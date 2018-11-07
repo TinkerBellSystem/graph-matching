@@ -1,25 +1,25 @@
-digraph RGL__DirectedAdjacencyGraph {path[fontsize = 8,label = '+name+',shape = ellipse, fillcolor='#fffacd', style = filled]
+digraph RGL__DirectedAdjacencyGraph {path[fontsize = 8,label = "path",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-process_memory[fontsize = 8,label = '+name+',shape = ellipse, fillcolor='#fffacd', style = filled]
+process_memory[fontsize = 8,label = "process_memory",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> process_memory[fontsize = 8,label = '+name+']
+path -> process_memory[fontsize = 8,label = "named_process"]
 
-inode[fontsize = 8,label = '+name+',shape = ellipse, fillcolor='#fffacd', style = filled]
+inode[fontsize = 8,label = "inode",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> inode[fontsize = 8,label = '+name+']
+path -> inode[fontsize = 8,label = "named"]
 
-task[fontsize = 8,label = '+name+',shape = rectangle, fillcolor='#e6e6fa', style = filled]
+task[fontsize = 8,label = "task",shape = rectangle, fillcolor="#e6e6fa", style = filled]
 
-process_memory -> task[fontsize = 8,label = '+name+']
+process_memory -> task[fontsize = 8,label = "memory_read"]
 
-xattr[fontsize = 8,label = '+name+',shape = ellipse, fillcolor='#fffacd', style = filled]
+xattr[fontsize = 8,label = "xattr",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-task -> xattr[fontsize = 8,label = '+name+']
+task -> xattr[fontsize = 8,label = "removexattr"]
 
-xattr -> inode[fontsize = 8,label = '+name+']
+xattr -> inode[fontsize = 8,label = "removexattr_inode"]
 
-task -> task[fontsize = 8,label = '+name+']
+task -> task[fontsize = 8,label = "version_activity"]
 
-inode -> inode[fontsize = 8,label = '+name+']
+inode -> inode[fontsize = 8,label = "version_entity"]
 
 }
