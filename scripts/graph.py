@@ -15,11 +15,11 @@ class Graph:
 	def add_entity(self, name):
 		if name == 'task':
 			self.str += name
-			self.str += "[fontsize = 8,label = '+name+',shape = rectangle, fillcolor='#e6e6fa', style = filled]"
+			self.str += "[fontsize = 8,label = '+name+',shape = rectangle, fillcolor=\"#e6e6fa\", style = filled]"
 			self.str += "\n\n"
 		else:
 			self.str += name
-			self.str += "[fontsize = 8,label = '+name+',shape = ellipse, fillcolor='#fffacd', style = filled]"
+			self.str += "[fontsize = 8,label = '+name+',shape = ellipse, fillcolor=\"#fffacd\", style = filled]"
 			self.str += "\n\n"
 
 	def add_edge(self, fr, to, name):
