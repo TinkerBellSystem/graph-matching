@@ -1,0 +1,1 @@
+path-named_process->process_memory,process_memory-memory_read->task,task-shmdt->shm,task-version_activity->task,shm-version_entity->shm,inode-sh_read->process_memory,process_memory-version_entity->process_memory

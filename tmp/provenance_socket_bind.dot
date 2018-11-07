@@ -1,0 +1,1 @@
+path-named_process->process_memory,address-named->inode,process_memory-memory_read->task,task-bind->inode,task-version_activity->task,inode-version_entity->inode,inode-sh_read->process_memory,process_memory-version_entity->process_memory

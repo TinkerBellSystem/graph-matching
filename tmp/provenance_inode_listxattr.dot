@@ -1,0 +1,1 @@
+path-named_process->process_memory,path-named->inode,inode-listxattr->task,task-memory_write->process_memory,task-version_activity->task,process_memory-version_entity->process_memory,process_memory-sh_write->inode,inode-version_entity->inode
