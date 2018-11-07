@@ -11,6 +11,7 @@ from __future__ import print_function
 import sys
 import os
 import provenance as prov
+from graph import *
 
 from pycparser import c_parser, c_ast, parse_file
 
@@ -267,51 +268,75 @@ for ext in ast.ext:
                 if prov_string != "":
                     hooks[function_name] = prov_string
                     # Draw a graph
+                    g = Graph()
+                    g.process_string(hooks[function_name])
+                    dot = g.get_graph()
                     with open('../tmp/'+ function_name +'.dot', 'w') as f:
-                        f.write(prov_string)
+                        f.write(dot)
                     f.close()
                     os.system('dot -Tpng ../tmp/'+ function_name +'.dot -o ../img/'+ function_name +'.png')
 
 # Deal with function hooks that are not explicitly defined
 hooks['provenance_socket_sendmsg_always'] = hooks['provenance_socket_sendmsg']
+g = Graph()
+g.process_string(hooks['provenance_socket_sendmsg_always'])
+dot = g.get_graph()
 with open('../tmp/provenance_socket_sendmsg_always.dot', 'w') as f:
-    f.write(hooks['provenance_socket_sendmsg_always'])
+    f.write(dot)
 f.close()
 os.system('dot -Tpng ../tmp/provenance_socket_sendmsg_always.dot -o ../img/provenance_socket_sendmsg_always.png')
 
 hooks['provenance_socket_recvmsg_always'] = hooks['provenance_socket_recvmsg']
+g = Graph()
+g.process_string(hooks['provenance_socket_recvmsg_always'])
+dot = g.get_graph()
 with open('../tmp/provenance_socket_recvmsg_always.dot', 'w') as f:
-    f.write(hooks['provenance_socket_recvmsg_always'])
+    f.write(dot)
 f.close()
 os.system('dot -Tpng ../tmp/provenance_socket_recvmsg_always.dot -o ../img/provenance_socket_recvmsg_always.png')
 
 hooks['provenance_inode_rename'] = hooks['provenance_inode_link']
+g = Graph()
+g.process_string(hooks['provenance_inode_rename'])
+dot = g.get_graph()
 with open('../tmp/provenance_inode_rename.dot', 'w') as f:
-    f.write(hooks['provenance_inode_rename'])
+    f.write(dot)
 f.close()
 os.system('dot -Tpng ../tmp/provenance_inode_rename.dot -o ../img/provenance_inode_rename.png')
 
 hooks['provenance_msg_queue_msgsnd'] = hooks['__mq_msgsnd']
+g = Graph()
+g.process_string(hooks['provenance_msg_queue_msgsnd'])
+dot = g.get_graph()
 with open('../tmp/provenance_msg_queue_msgsnd.dot', 'w') as f:
-    f.write(hooks['provenance_msg_queue_msgsnd'])
+    f.write(dot)
 f.close()
 os.system('dot -Tpng ../tmp/provenance_msg_queue_msgsnd.dot -o ../img/provenance_msg_queue_msgsnd.png')
 
 hooks['provenance_mq_timedsend'] = hooks['__mq_msgsnd']
+g = Graph()
+g.process_string(hooks['provenance_mq_timedsend'])
+dot = g.get_graph()
 with open('../tmp/provenance_mq_timedsend.dot', 'w') as f:
-    f.write(hooks['provenance_mq_timedsend'])
+    f.write(dot)
 f.close()
 os.system('dot -Tpng ../tmp/provenance_mq_timedsend.dot -o ../img/provenance_mq_timedsend.png')
 
 hooks['provenance_msg_queue_msgrcv'] = hooks['__mq_msgrcv']
+g = Graph()
+g.process_string(hooks['provenance_msg_queue_msgrcv'])
+dot = g.get_graph()
 with open('../tmp/provenance_msg_queue_msgrcv.dot', 'w') as f:
-    f.write(hooks['provenance_msg_queue_msgrcv'])
+    f.write(dot)
 f.close()
 os.system('dot -Tpng ../tmp/provenance_msg_queue_msgrcv.dot -o ../img/provenance_msg_queue_msgrcv.png')
 
 hooks['provenance_mq_timedreceive'] = hooks['__mq_msgrcv']
+g = Graph()
+g.process_string(hooks['provenance_mq_timedreceive'])
+dot = g.get_graph()
 with open('../tmp/provenance_mq_timedreceive.dot', 'w') as f:
-    f.write(hooks['provenance_mq_timedreceive'])
+    f.write(dot)
 f.close()
 os.system('dot -Tpng ../tmp/provenance_mq_timedreceive.dot -o ../img/provenance_mq_timedreceive.png')
 

@@ -1,1 +1,5 @@
-process_memory-terminate_proc->process_memory
+digraph RGL__DirectedAdjacencyGraph {process_memory[fontsize = 8,label = '+name+',shape = ellipse, fillcolor='#fffacd', style = filled]
+
+process_memory -> process_memory[fontsize = 8,label = '+name+']
+
+}

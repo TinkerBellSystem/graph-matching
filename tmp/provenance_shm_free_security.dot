@@ -1,1 +1,5 @@
-shm-free->shm
+digraph RGL__DirectedAdjacencyGraph {shm[fontsize = 8,label = '+name+',shape = ellipse, fillcolor='#fffacd', style = filled]
+
+shm -> shm[fontsize = 8,label = '+name+']
+
+}

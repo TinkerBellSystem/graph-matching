@@ -1,1 +1,17 @@
-process_memory-memory_read->task,task-clone_mem->process_memory,task-version_activity->task,process_memory-version_entity->process_memory,inode-sh_read->process_memory,process_memory-version_entity->process_memory
+digraph RGL__DirectedAdjacencyGraph {process_memory[fontsize = 8,label = '+name+',shape = ellipse, fillcolor='#fffacd', style = filled]
+
+task[fontsize = 8,label = '+name+',shape = rectangle, fillcolor='#e6e6fa', style = filled]
+
+process_memory -> task[fontsize = 8,label = '+name+']
+
+task -> process_memory[fontsize = 8,label = '+name+']
+
+task -> task[fontsize = 8,label = '+name+']
+
+process_memory -> process_memory[fontsize = 8,label = '+name+']
+
+inode[fontsize = 8,label = '+name+',shape = ellipse, fillcolor='#fffacd', style = filled]
+
+inode -> process_memory[fontsize = 8,label = '+name+']
+
+}

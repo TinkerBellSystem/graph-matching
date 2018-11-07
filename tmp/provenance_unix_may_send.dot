@@ -1,1 +1,7 @@
-inode-send_unix->inode,inode-version_entity->inode
+digraph RGL__DirectedAdjacencyGraph {inode[fontsize = 8,label = '+name+',shape = ellipse, fillcolor='#fffacd', style = filled]
+
+inode -> inode[fontsize = 8,label = '+name+']
+
+inode -> inode[fontsize = 8,label = '+name+']
+
+}

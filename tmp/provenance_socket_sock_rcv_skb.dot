@@ -1,1 +1,13 @@
-packet_content-packet_content->packet,packet-receive_packet->inode,inode-version_entity->inode
+digraph RGL__DirectedAdjacencyGraph {packet_content[fontsize = 8,label = '+name+',shape = ellipse, fillcolor='#fffacd', style = filled]
+
+packet[fontsize = 8,label = '+name+',shape = ellipse, fillcolor='#fffacd', style = filled]
+
+packet_content -> packet[fontsize = 8,label = '+name+']
+
+inode[fontsize = 8,label = '+name+',shape = ellipse, fillcolor='#fffacd', style = filled]
+
+packet -> inode[fontsize = 8,label = '+name+']
+
+inode -> inode[fontsize = 8,label = '+name+']
+
+}

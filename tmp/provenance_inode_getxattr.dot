@@ -1,1 +1,25 @@
-path-named_process->process_memory,path-named->inode,inode-getxattr_inode->xattr,xattr-getxattr->task,task-memory_write->process_memory,task-version_activity->task,process_memory-version_entity->process_memory
+digraph RGL__DirectedAdjacencyGraph {path[fontsize = 8,label = '+name+',shape = ellipse, fillcolor='#fffacd', style = filled]
+
+process_memory[fontsize = 8,label = '+name+',shape = ellipse, fillcolor='#fffacd', style = filled]
+
+path -> process_memory[fontsize = 8,label = '+name+']
+
+inode[fontsize = 8,label = '+name+',shape = ellipse, fillcolor='#fffacd', style = filled]
+
+path -> inode[fontsize = 8,label = '+name+']
+
+xattr[fontsize = 8,label = '+name+',shape = ellipse, fillcolor='#fffacd', style = filled]
+
+inode -> xattr[fontsize = 8,label = '+name+']
+
+task[fontsize = 8,label = '+name+',shape = rectangle, fillcolor='#e6e6fa', style = filled]
+
+xattr -> task[fontsize = 8,label = '+name+']
+
+task -> process_memory[fontsize = 8,label = '+name+']
+
+task -> task[fontsize = 8,label = '+name+']
+
+process_memory -> process_memory[fontsize = 8,label = '+name+']
+
+}

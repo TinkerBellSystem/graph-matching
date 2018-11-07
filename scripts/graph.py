@@ -6,27 +6,28 @@
 # it under the terms of the GNU General Public License version 2, as
 # published by the Free Software Foundation; either version 2 of the License,
 # or (at your option) any later version.
+import re
 
 class Graph:
 	def __init__(self):
 		self.str = 'digraph RGL__DirectedAdjacencyGraph {'
 
 	def add_entity(self, name):
-		if name == 'task'
+		if name == 'task':
 			self.str += name
 			self.str += "[fontsize = 8,label = '+name+',shape = rectangle, fillcolor='#e6e6fa', style = filled]"
 			self.str += "\n\n"
 		else:
 			self.str += name
 			self.str += "[fontsize = 8,label = '+name+',shape = ellipse, fillcolor='#fffacd', style = filled]"
-			self.tr += "\n\n"
+			self.str += "\n\n"
 
-	def add_edge(self, from, to, name):
-		self.str += from + ' -> '+ to
+	def add_edge(self, fr, to, name):
+		self.str += fr + ' -> '+ to
 		self.str += "[fontsize = 8,label = '+name+']"
 		self.str += "\n\n"
 
-	def process_string(provenance_str):
+	def process_string(self, provenance_str):
 		seen = []
 		entries = provenance_str.split(',')
 		for e in entries:
@@ -41,6 +42,6 @@ class Graph:
 				self.add_edge(elements.group(1), elements.group(3), elements.group(2))
 				seen.append(e)
 
-	def get_graph():
+	def get_graph(self):
 		self.str += '}'
 		return self.str

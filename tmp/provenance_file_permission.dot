@@ -1,1 +1,39 @@
-path-named_process->process_memory,path-named->inode,process_memory-memory_read->task,task-write->inode,task-version_activity->task,inode-version_entity->inode,inode-sh_read->process_memory,process_memory-version_entity->process_memory,inode-read->task,task-memory_write->process_memory,task-version_activity->task,process_memory-version_entity->process_memory,process_memory-sh_write->inode,inode-version_entity->inode,inode-search->task,task-memory_write->process_memory,task-version_activity->task,process_memory-version_entity->process_memory,process_memory-sh_write->inode,inode-version_entity->inode,process_memory-memory_read->task,task-send->inode,task-version_activity->task,inode-version_entity->inode,inode-sh_read->process_memory,process_memory-version_entity->process_memory,inode-receive->task,task-memory_write->process_memory,task-version_activity->task,process_memory-version_entity->process_memory,process_memory-sh_write->inode,inode-version_entity->inode,process_memory-memory_read->task,task-write->inode,task-version_activity->task,inode-version_entity->inode,inode-sh_read->process_memory,process_memory-version_entity->process_memory,inode-read->task,task-memory_write->process_memory,task-version_activity->task,process_memory-version_entity->process_memory,process_memory-sh_write->inode,inode-version_entity->inode,inode-exec->process_memory,process_memory-version_entity->process_memory
+digraph RGL__DirectedAdjacencyGraph {path[fontsize = 8,label = '+name+',shape = ellipse, fillcolor='#fffacd', style = filled]
+
+process_memory[fontsize = 8,label = '+name+',shape = ellipse, fillcolor='#fffacd', style = filled]
+
+path -> process_memory[fontsize = 8,label = '+name+']
+
+inode[fontsize = 8,label = '+name+',shape = ellipse, fillcolor='#fffacd', style = filled]
+
+path -> inode[fontsize = 8,label = '+name+']
+
+task[fontsize = 8,label = '+name+',shape = rectangle, fillcolor='#e6e6fa', style = filled]
+
+process_memory -> task[fontsize = 8,label = '+name+']
+
+task -> inode[fontsize = 8,label = '+name+']
+
+task -> task[fontsize = 8,label = '+name+']
+
+inode -> inode[fontsize = 8,label = '+name+']
+
+inode -> process_memory[fontsize = 8,label = '+name+']
+
+process_memory -> process_memory[fontsize = 8,label = '+name+']
+
+inode -> task[fontsize = 8,label = '+name+']
+
+task -> process_memory[fontsize = 8,label = '+name+']
+
+process_memory -> inode[fontsize = 8,label = '+name+']
+
+inode -> task[fontsize = 8,label = '+name+']
+
+task -> inode[fontsize = 8,label = '+name+']
+
+inode -> task[fontsize = 8,label = '+name+']
+
+inode -> process_memory[fontsize = 8,label = '+name+']
+
+}
