@@ -11,7 +11,7 @@ from __future__ import print_function
 import sys
 import os
 import provenance as prov
-from rtm import *
+from graph import *
 
 from pycparser import c_parser, c_ast, parse_file
 
@@ -27,40 +27,31 @@ def get_arg_name(args):
             names.append(arg.expr.name)
     return names
 
-def eval_prov_func_call(func_call, ast):
+def eval_prov_func_call(func_call):
     """
-    Evaluate a single function call that directly generates relations.
+    Evaluate a single function call that directly generates a provenance string.
     """
-    if func_call.name.name == 'uses' or func_call.name.name == 'generates':
+    # print(func_call.name.name)
+    if func_call.name.name == 'uses':
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
-        func = None
-        for ext in ast.ext:
-            if type(ext).__name__ == 'FuncDef':
-                function_decl = ext.decl
-                function_name = function_decl.name
-                if function_name == func_call.name.name:
-                    func = ext
-        if func == None:
-            print('\33[103m' + '[error]: cannot find: '+ func_call.name.name + '\033[0m')
-            exit()
-        else:
-            return prov.relation_with_four_args(func, arg_names[0], arg_names[1], arg_names[2], arg_names[3])
-    elif func_call.name.name == 'derives' or func_call.name.name == 'informs' or func_call.name.name == 'uses_two':
+        return prov.uses_to_relation(arg_names[0], arg_names[1], arg_names[2], arg_names[3])
+    elif func_call.name.name == 'generates':
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
-        func = None
-        for ext in ast.ext:
-            if type(ext).__name__ == 'FuncDef':
-                function_decl = ext.decl
-                function_name = function_decl.name
-                if function_name == func_call.name.name:
-                    func = ext
-        if func == None:
-            print('\33[103m' + '[error]: cannot find: '+ func_call.name.name + '\033[0m')
-            exit()
-        else:
-            return prov.relation_with_three_args(func, arg_names[0], arg_names[1], arg_names[2])
+        return prov.generates_to_relation(arg_names[0], arg_names[1], arg_names[2], arg_names[3])
+    elif func_call.name.name == 'derives':
+        args = func_call.args.exprs
+        arg_names = get_arg_name(args)
+        return prov.derives_to_relation(arg_names[0], arg_names[1], arg_names[2])
+    elif func_call.name.name == 'informs':
+        args = func_call.args.exprs
+        arg_names = get_arg_name(args)
+        return prov.informs_to_relation(arg_names[0], arg_names[1], arg_names[2])
+    elif func_call.name.name == 'uses_two':
+        args = func_call.args.exprs
+        arg_names = get_arg_name(args)
+        return prov.uses_two_to_relation(arg_names[0], arg_names[1], arg_names[2])
     elif func_call.name.name == 'get_cred_provenance':
         return prov.get_cred_provenance_to_relation()
     elif func_call.name.name == 'inode_provenance':
@@ -88,102 +79,126 @@ def eval_prov_func_call(func_call, ast):
         arg_names = get_arg_name(args)
         return prov.record_terminate_to_relation(arg_names[0], arg_names[1])
     else:
-        return None
+        return ""
 
-def eval_assignment(assignment, ast):
+def eval_assignment(assignment):
     """
-    Evaluate a single assignment that directly generates a relation.
+    Evaluate a single assignment that directly generates a provenance string.
     """
     if type(assignment.rvalue).__name__ == 'FuncCall':
-        return eval_prov_func_call(assignment.rvalue, ast)
+        return eval_prov_func_call(assignment.rvalue)
     else:
-        return None
+        return ""
 
-def eval_declaration(declaration, ast):
+def eval_declaration(declaration):
     """
-    Evaluate a single declaration that directly generates a relation.
+    Evaluate a single declaration that directly generates a provenance string.
     """
     if type(declaration.init).__name__ == 'FuncCall':
-        return eval_prov_func_call(declaration.init, ast)
+        return eval_prov_func_call(declaration.init)
     else:
-        return None
+        return ""
 
-def eval_return(statement, ast):
+def eval_if_else(item):
     """
-    Evaluate a single return statement that directly generates a relation.
+    Evaluate possible nesting if/else blocks.
     """
-    if type(statement.expr).__name__ == 'FuncCall':
-        return eval_prov_func_call(statement.expr, ast)
-    else:
-        return None
+    return_str = ""
 
-def eval_if_else(item, ast):
-    """
-    Evaluate (nesting) if/else blocks.
-    """
     true_branch = item.iftrue
-
     if type(true_branch).__name__ == 'FuncCall':
-        left = eval_prov_func_call(true_branch, ast)
+        edge_str = eval_prov_func_call(true_branch)
+        if edge_str != "":
+            if return_str != "":
+                return_str += ","
+            return_str += edge_str
     elif type(true_branch).__name__ == 'Assignment':
-        left = eval_assignment(true_branch, ast)
+        edge_str = eval_assignment(true_branch)
+        if edge_str != "":
+            if return_str != "":
+                return_str += ","
+            return_str += edge_str
     elif type(true_branch).__name__ == 'Decl':
-        left = eval_declaration(true_branch, ast)
-    elif type(true_branch).__name__ == 'Return':
-        left = eval_return(true_branch, ast)
+        edge_str = eval_declaration(true_branch)
+        if edge_str != "":
+            if return_str != "":
+                return_str += ","
+            return_str += edge_str
     elif type(true_branch).__name__ == 'Compound':
-        left = eval_function_body(true_branch, ast)
-    else:
-        left = None
+        edge_str = eval_function_body(true_branch)
+        if edge_str != "":
+            if return_str != "":
+                return_str += ","
+            return_str += edge_str
     
     false_branch = item.iffalse
     if type(false_branch).__name__ == 'FuncCall':
-        right = eval_prov_func_call(false_branch, ast)
+        edge_str = eval_prov_func_call(false_branch)
+        if edge_str != "":
+            if return_str != "":
+                return_str += ","
+            return_str += edge_str
     elif type(false_branch).__name__ == 'Assignment':
-        right = eval_assignment(false_branch, ast)
+        edge_str = eval_assignment(false_branch)
+        if edge_str != "":
+            if return_str != "":
+                return_str += ","
+            return_str += edge_str
     elif type(false_branch).__name__ == 'Decl':
-        right = eval_declaration(false_branch, ast)
-    elif type(false_branch).__name__ == 'Return':
-        right = eval_return(false_branch, ast)
+        edge_str = eval_declaration(false_branch)
+        if edge_str != "":
+            if return_str != "":
+                return_str += ","
+            return_str += edge_str
     elif type(false_branch).__name__ == 'Compound':
-        right = eval_function_body(false_branch, ast)
+        edge_str = eval_function_body(false_branch)
+        if edge_str != "":
+            if return_str != "":
+                return_str += ","
+            return_str += edge_str
     elif type(false_branch).__name__ == 'If':   # else if case
-        right = eval_if_else(false_branch, ast)
-    else:
-        right = None
+        edge_str = eval_if_else(false_branch)
+        if edge_str != "":
+            if return_str != "":
+                return_str += ","
+            return_str += edge_str
+    return return_str
 
-    if left != None and right != None:
-        return prov.create_alternation_relation(left, right)
-    else:
-        return None
 
-def eval_function_body(function_body, ast):
+def eval_function_body(function_body):
     """
-    Evaluate a Compound function body.
+    Evaluate function body of each hook function to generate graph string.
     """
     # The body of FuncDef is a Compound, which is a placeholder for a block surrounded by {}
     # The following goes through the declarations and statements in the function body
-    relation = None
+    graph_str = ""
     for item in function_body.block_items:
         if type(item).__name__ == 'FuncCall':   # Case 1: provenance-graph-related function call
-            relation = prov.create_group_relation(relation, eval_prov_func_call(item, ast))
+            edge_str = eval_prov_func_call(item)
+            if edge_str != "":
+                if graph_str != "":
+                    graph_str += ","
+                graph_str += edge_str
         elif type(item).__name__ == 'Assignment': # Case 2: rc = provenance-graph-related function call
-            relation = prov.create_group_relation(relation, eval_assignment(item, ast))
+            edge_str = eval_assignment(item)
+            if edge_str != "":
+                if graph_str != "":
+                    graph_str += ","
+                graph_str += edge_str
         elif type(item).__name__ == 'Decl': # Case 3: declaration with initialization
-            relation = prov.create_group_relation(relation, eval_declaration(item, ast))
-        elif type(item).__name__ == 'If':   # Case 4: if
-            relation = prov.create_group_relation(relation, eval_if_else(item, ast))
-        elif type(item).__name__ == 'Return':   # Case 5: return with function call
-            relation = prov.create_group_relation(relation, eval_return(item, ast))
-    return relation
-
-def eval_hook(function_body, ast):
-    """
-    Evaluate function body of each hook function to generate its regular temporal motif.
-    """
-    motif = RegularTemporalMotif()
-    motif.add_relation(eval_function_body(function_body, ast))
-    return motif
+            edge_str = eval_declaration(item)
+            if edge_str != "":
+                if graph_str != "":
+                    graph_str += ","
+                graph_str += edge_str
+        elif type(item).__name__ == 'If':   # Case 4: if/else if/else
+            # TODO: Disregard conditions for now.
+            edge_str = eval_if_else(item)
+            if edge_str != "":
+                if graph_str != "":
+                    graph_str += ","
+                graph_str += edge_str
+    return graph_str
 
 # PyCParser must begin at the top level of the C files,
 # with either declarations or function definitions.
@@ -193,7 +208,7 @@ def eval_hook(function_body, ast):
 
 # Parse the preprocessed hooks.c file.
 ast = parse_file("../camflow/hooks_pp.c")
-record_ast = parse_file("../camflow/provenance_record_pp.h")
+
 # Uncomment the following line to see the AST in a nice, human
 # readable way. show() is the most useful tool in exploring ASTs
 # created by pycparser. See the c_ast.py file for the options you
@@ -206,7 +221,7 @@ record_ast = parse_file("../camflow/provenance_record_pp.h")
 # and are stored in a list called ext[] (see _c_ast.cfg for the
 # names and types of Nodes and their children).
 
-# A dictionary that saves a motif for each hook.
+# A dictionary that saves prov_string for each hook.
 hooks = {}
 
 # We go through each function definition that defines a hook.
@@ -236,8 +251,8 @@ for ext in ast.ext:
             # The body of FuncDef is a Compound, which is a placeholder for a block surrounded by {}
             function_body = ext.body
             # print(function_body)
-            motif = eval_hook(function_body, record_ast)
-            hooks[function_name] = motif
+            prov_string = eval_function_body(function_body)
+            hooks[function_name] = prov_string
         
 # We go through each hook function again to draw model graphs.
 for ext in ast.ext:
@@ -249,22 +264,79 @@ for ext in ast.ext:
         if function_name != 'provenance_socket_sendmsg_always' or function_name != 'provenance_socket_recvmsg_always' or function_name != 'provenance_inode_rename' or function_name != 'provenance_msg_queue_msgsnd' or function_name != 'provenance_mq_timedsend' or function_name != 'provenance_msg_queue_msgrcv' or function_name != 'provenance_mq_timedreceive' or function_name != "__mq_msgsnd" or function_name != "__mq_msgrcv":
             function_body = ext.body
             if function_body.block_items != None:
-                motif = eval_hook(function_body, record_ast)
-                if motif.validate():
-                    hooks[function_name] = motif
-                    
+                prov_string = eval_function_body(function_body)
+                if prov_string != "":
+                    hooks[function_name] = prov_string
+                    # Draw a graph
+                    g = Graph()
+                    g.process_string(hooks[function_name])
+                    dot = g.get_graph()
+                    with open('../tmp/'+ function_name +'.dot', 'w') as f:
+                        f.write(dot)
+                    f.close()
+                    os.system('dot -Tpng ../tmp/'+ function_name +'.dot -o ../img/'+ function_name +'.png')
+
 # Deal with function hooks that are not explicitly defined
 hooks['provenance_socket_sendmsg_always'] = hooks['provenance_socket_sendmsg']
-hooks['provenance_socket_recvmsg_always'] = hooks['provenance_socket_recvmsg']
-hooks['provenance_inode_rename'] = hooks['provenance_inode_link']
-hooks['provenance_msg_queue_msgsnd'] = hooks['__mq_msgsnd']
-hooks['provenance_mq_timedsend'] = hooks['__mq_msgsnd']
-hooks['provenance_msg_queue_msgrcv'] = hooks['__mq_msgrcv']
-hooks['provenance_mq_timedreceive'] = hooks['__mq_msgrcv']
+g = Graph()
+g.process_string(hooks['provenance_socket_sendmsg_always'])
+dot = g.get_graph()
+with open('../tmp/provenance_socket_sendmsg_always.dot', 'w') as f:
+    f.write(dot)
+f.close()
+os.system('dot -Tpng ../tmp/provenance_socket_sendmsg_always.dot -o ../img/provenance_socket_sendmsg_always.png')
 
-# Print them out for inspection
-for hookname, motif in hooks.iteritems():
-    print(hookname)
-    motif.print_rtm()
-    print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+hooks['provenance_socket_recvmsg_always'] = hooks['provenance_socket_recvmsg']
+g = Graph()
+g.process_string(hooks['provenance_socket_recvmsg_always'])
+dot = g.get_graph()
+with open('../tmp/provenance_socket_recvmsg_always.dot', 'w') as f:
+    f.write(dot)
+f.close()
+os.system('dot -Tpng ../tmp/provenance_socket_recvmsg_always.dot -o ../img/provenance_socket_recvmsg_always.png')
+
+hooks['provenance_inode_rename'] = hooks['provenance_inode_link']
+g = Graph()
+g.process_string(hooks['provenance_inode_rename'])
+dot = g.get_graph()
+with open('../tmp/provenance_inode_rename.dot', 'w') as f:
+    f.write(dot)
+f.close()
+os.system('dot -Tpng ../tmp/provenance_inode_rename.dot -o ../img/provenance_inode_rename.png')
+
+hooks['provenance_msg_queue_msgsnd'] = hooks['__mq_msgsnd']
+g = Graph()
+g.process_string(hooks['provenance_msg_queue_msgsnd'])
+dot = g.get_graph()
+with open('../tmp/provenance_msg_queue_msgsnd.dot', 'w') as f:
+    f.write(dot)
+f.close()
+os.system('dot -Tpng ../tmp/provenance_msg_queue_msgsnd.dot -o ../img/provenance_msg_queue_msgsnd.png')
+
+hooks['provenance_mq_timedsend'] = hooks['__mq_msgsnd']
+g = Graph()
+g.process_string(hooks['provenance_mq_timedsend'])
+dot = g.get_graph()
+with open('../tmp/provenance_mq_timedsend.dot', 'w') as f:
+    f.write(dot)
+f.close()
+os.system('dot -Tpng ../tmp/provenance_mq_timedsend.dot -o ../img/provenance_mq_timedsend.png')
+
+hooks['provenance_msg_queue_msgrcv'] = hooks['__mq_msgrcv']
+g = Graph()
+g.process_string(hooks['provenance_msg_queue_msgrcv'])
+dot = g.get_graph()
+with open('../tmp/provenance_msg_queue_msgrcv.dot', 'w') as f:
+    f.write(dot)
+f.close()
+os.system('dot -Tpng ../tmp/provenance_msg_queue_msgrcv.dot -o ../img/provenance_msg_queue_msgrcv.png')
+
+hooks['provenance_mq_timedreceive'] = hooks['__mq_msgrcv']
+g = Graph()
+g.process_string(hooks['provenance_mq_timedreceive'])
+dot = g.get_graph()
+with open('../tmp/provenance_mq_timedreceive.dot', 'w') as f:
+    f.write(dot)
+f.close()
+os.system('dot -Tpng ../tmp/provenance_mq_timedreceive.dot -o ../img/provenance_mq_timedreceive.png')
 
