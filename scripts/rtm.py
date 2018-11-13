@@ -11,7 +11,7 @@ import struct
 import random
 import graph
 
-asterisk_color = '#40e0d0'
+fixed_edge_color = '#000000'
 
 class MotifNode():
 	"""
@@ -88,6 +88,9 @@ class Relation():
 		self.left = left
 		self.right = right
 		self.op = op
+		Relation.used_colors = []
+		Relation.color = fixed_edge_color
+		Relation.num = 0
 
 	@property
 	def left(self):
@@ -119,21 +122,6 @@ class Relation():
 			valid_right = valid_right or self.right.validate()
 		
 		return valid_left or valid_right
-
-	# def next_color(self):
-	# 	r = random.randint(0, 256)
-	# 	g = random.randint(0, 256)
-	# 	b = random.randint(0, 256)
-	# 	rgb = (r,g,b)
-	# 	hex_str = '#' + struct.pack('BBB',*rgb).encode('hex')
-	# 	while rgb in self.colors or hex_str == asterisk_color:
-	# 		r = random.randint(0, 256)
-	# 		g = random.randint(0, 256)
-	# 		b = random.randint(0, 256)
-	# 		rgb = (r,g,b)
-	# 		hex_str = '#' + struct.pack('BBB',*rgb).encode('hex')
-	# 	self.colors.append(rgb)
-	# 	return hex_str
 
 	def print_rel(self):
 		if self.op == None:
@@ -192,6 +180,87 @@ class Relation():
 				self.right.print_rel()
 			print(")", end='')
 
+	def next_color(self):
+		r = random.randint(0, 255)
+		g = random.randint(0, 255)
+		b = random.randint(0, 255)
+		rgb = (r,g,b)
+		hex_str = '#' + struct.pack('BBB',*rgb).encode('hex')
+		while rgb in Relation.used_colors or hex_str == fixed_edge_color:
+			r = random.randint(0, 255)
+			g = random.randint(0, 255)
+			b = random.randint(0, 255)
+			rgb = (r,g,b)
+			hex_str = '#' + struct.pack('BBB',*rgb).encode('hex')
+		Relation.used_colors.append(rgb)
+		Relation.color = hex_str
+
+	def next_number(self):
+		Relation.num = Relation.num + 1
+
+	def draw_rtm(self, graph):
+		if self.op == None:
+			if self.right != None:
+				print('\33[103m' + '[error]: None OP should not have non-None type RHS ' + '\033[0m')
+			if self.left == None:
+				pass
+			elif isinstance(self.left, MotifEdge):
+				graph_str = self.left.src_node.mn_type + '-' + self.left.me_type + str(Relation.num) + '->' + self.left.dst_node.mn_type
+				# print(graph_str)
+				graph.add_string(graph_str, Relation.color)
+			else:
+				self.left.draw_rtm(graph)
+		elif self.op == '*':
+			if self.right != None:
+				print('\33[103m' + '[error]: "*" OP should not have non-None type RHS ' + '\033[0m')
+			if self.left == None:
+				print('\33[103m' + '[error]: "*" OP should not have None type LHS ' + '\033[0m')
+			elif isinstance(self.left, MotifEdge):
+				self.next_number()
+				graph_str = self.left.src_node.mn_type + '-' + self.left.me_type + str(Relation.num) + '->' + self.left.dst_node.mn_type
+				graph.add_string(graph_str, Relation.color)
+			else:
+				self.next_number()
+				self.left.draw_rtm(graph)
+		elif self.op == '|':
+			if self.left == None:
+				pass
+			elif isinstance(self.left, MotifEdge):
+				self.next_color()
+				graph_str = self.left.src_node.mn_type + '-' + self.left.me_type + str(Relation.num) + '->' + self.left.dst_node.mn_type
+				# print(graph_str)
+				graph.add_string(graph_str, Relation.color)
+			else:
+				self.next_color()
+				self.left.draw_rtm(graph)
+			if self.right == None:
+				pass
+			elif isinstance(self.right, MotifEdge):
+				self.next_color()
+				graph_str = self.right.src_node.mn_type + '-' + self.right.me_type + str(Relation.num) + '->' + self.right.dst_node.mn_type
+				# print(graph_str)
+				graph.add_string(graph_str, Relation.color)
+			else:
+				self.next_color()
+				self.right.draw_rtm(graph)
+		elif self.op == '()':
+			if self.left == None:
+				pass
+			elif isinstance(self.left, MotifEdge):
+				graph_str = self.left.src_node.mn_type + '-' + self.left.me_type + str(Relation.num) + '->' + self.left.dst_node.mn_type
+				# print(graph_str)
+				graph.add_string(graph_str, Relation.color)
+			else:
+				self.left.draw_rtm(graph)
+			if self.right == None:
+				pass
+			elif isinstance(self.right, MotifEdge):
+				graph_str = self.right.src_node.mn_type + '-' + self.right.me_type + str(Relation.num) + '->' + self.right.dst_node.mn_type
+				# print(graph_str)
+				graph.add_string(graph_str, Relation.color)
+			else:
+				self.right.draw_rtm(graph)
+
 class RegularTemporalMotif():
 	"""
 	A regular temporal motif (RTM) consists of a list of relations (Relation) in the motif.
@@ -219,6 +288,9 @@ class RegularTemporalMotif():
 		for relation in self.relations:
 			relation.print_rel()
 
+	def draw_rtm(self, graph):
+		for relation in self.relations:
+			relation.draw_rtm(graph)
 
 
 

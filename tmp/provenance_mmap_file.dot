@@ -2,44 +2,82 @@ digraph RGL__DirectedAdjacencyGraph {path[fontsize = 8,label = "path",shape = el
 
 process_memory[fontsize = 8,label = "process_memory",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> process_memory[fontsize = 8,label = "named_process"]
+path -> process_memory[fontsize = 8,label = "named_process1", color="#000000"]
 
 inode[fontsize = 8,label = "inode",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> inode[fontsize = 8,label = "named"]
+path -> inode[fontsize = 8,label = "named1", color="#000000"]
+
+process_memory -> process_memory[fontsize = 8,label = "version_entity2", color="#f3c8eb"]
+
+inode -> process_memory[fontsize = 8,label = "sh_read2", color="#f3c8eb"]
 
 task[fontsize = 8,label = "task",shape = rectangle, fillcolor="#e6e6fa", style = filled]
 
-process_memory -> task[fontsize = 8,label = "memory_read"]
+task -> task[fontsize = 8,label = "version_activity2", color="#f3c8eb"]
 
-task -> inode[fontsize = 8,label = "mmap_write"]
+process_memory -> task[fontsize = 8,label = "memory_read2", color="#f3c8eb"]
 
-task -> task[fontsize = 8,label = "version_activity"]
+inode -> inode[fontsize = 8,label = "version_entity2", color="#f3c8eb"]
 
-inode -> inode[fontsize = 8,label = "version_entity"]
+task -> inode[fontsize = 8,label = "mmap_write2", color="#f3c8eb"]
 
-inode -> process_memory[fontsize = 8,label = "sh_read"]
+inode -> task[fontsize = 8,label = "mmap_read2", color="#60d0ad"]
 
-process_memory -> process_memory[fontsize = 8,label = "version_entity"]
+task -> process_memory[fontsize = 8,label = "memory_write2", color="#60d0ad"]
 
-inode -> task[fontsize = 8,label = "mmap_read"]
+inode -> inode[fontsize = 8,label = "version_entity3", color="#60d0ad"]
 
-task -> process_memory[fontsize = 8,label = "memory_write"]
+process_memory -> inode[fontsize = 8,label = "sh_write3", color="#60d0ad"]
 
-process_memory -> inode[fontsize = 8,label = "sh_write"]
+task -> task[fontsize = 8,label = "version_activity3", color="#447eae"]
 
-inode -> task[fontsize = 8,label = "mmap_exec"]
+inode -> task[fontsize = 8,label = "mmap_exec3", color="#447eae"]
+
+process_memory -> process_memory[fontsize = 8,label = "version_entity3", color="#447eae"]
+
+task -> process_memory[fontsize = 8,label = "memory_write3", color="#447eae"]
+
+inode -> inode[fontsize = 8,label = "version_entity4", color="#447eae"]
+
+process_memory -> inode[fontsize = 8,label = "sh_write4", color="#447eae"]
 
 mmaped_file[fontsize = 8,label = "mmaped_file",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-inode -> mmaped_file[fontsize = 8,label = "mmap"]
+mmaped_file -> mmaped_file[fontsize = 8,label = "version_entity4", color="#639ff3"]
 
-mmaped_file -> mmaped_file[fontsize = 8,label = "version_entity"]
+inode -> mmaped_file[fontsize = 8,label = "mmap4", color="#639ff3"]
 
-task -> mmaped_file[fontsize = 8,label = "mmap_write"]
+process_memory -> process_memory[fontsize = 8,label = "version_entity5", color="#81402f"]
 
-mmaped_file -> task[fontsize = 8,label = "mmap_read"]
+inode -> process_memory[fontsize = 8,label = "sh_read5", color="#81402f"]
 
-mmaped_file -> task[fontsize = 8,label = "mmap_exec"]
+task -> task[fontsize = 8,label = "version_activity5", color="#81402f"]
+
+process_memory -> task[fontsize = 8,label = "memory_read5", color="#81402f"]
+
+mmaped_file -> mmaped_file[fontsize = 8,label = "version_entity5", color="#81402f"]
+
+task -> mmaped_file[fontsize = 8,label = "mmap_write5", color="#81402f"]
+
+mmaped_file -> task[fontsize = 8,label = "mmap_read5", color="#18cb4a"]
+
+task -> process_memory[fontsize = 8,label = "memory_write5", color="#18cb4a"]
+
+inode -> inode[fontsize = 8,label = "version_entity6", color="#18cb4a"]
+
+process_memory -> inode[fontsize = 8,label = "sh_write6", color="#18cb4a"]
+
+task -> task[fontsize = 8,label = "version_activity6", color="#45f186"]
+
+mmaped_file -> task[fontsize = 8,label = "mmap_exec6", color="#45f186"]
+
+process_memory -> process_memory[fontsize = 8,label = "version_entity6", color="#45f186"]
+
+task -> process_memory[fontsize = 8,label = "memory_write6", color="#45f186"]
+
+inode -> inode[fontsize = 8,label = "version_entity7", color="#45f186"]
+
+process_memory -> inode[fontsize = 8,label = "sh_write7", color="#45f186"]
 
 }

@@ -2,16 +2,16 @@ digraph RGL__DirectedAdjacencyGraph {path[fontsize = 8,label = "path",shape = el
 
 process_memory[fontsize = 8,label = "process_memory",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> process_memory[fontsize = 8,label = "named_process"]
+path -> process_memory[fontsize = 8,label = "named_process44", color="#0ecbcc"]
 
 inode[fontsize = 8,label = "inode",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> inode[fontsize = 8,label = "named"]
+path -> inode[fontsize = 8,label = "named44", color="#0ecbcc"]
 
-process_memory -> process_memory[fontsize = 8,label = "exec_task"]
+process_memory -> process_memory[fontsize = 8,label = "version_entity44", color="#0ecbcc"]
 
-process_memory -> process_memory[fontsize = 8,label = "version_entity"]
+process_memory -> process_memory[fontsize = 8,label = "exec_task44", color="#0ecbcc"]
 
-inode -> process_memory[fontsize = 8,label = "exec"]
+inode -> process_memory[fontsize = 8,label = "exec44", color="#0ecbcc"]
 
 }

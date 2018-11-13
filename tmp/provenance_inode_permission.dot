@@ -2,30 +2,60 @@ digraph RGL__DirectedAdjacencyGraph {path[fontsize = 8,label = "path",shape = el
 
 process_memory[fontsize = 8,label = "process_memory",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> process_memory[fontsize = 8,label = "named_process"]
+path -> process_memory[fontsize = 8,label = "named_process48", color="#0ecbcc"]
 
 inode[fontsize = 8,label = "inode",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> inode[fontsize = 8,label = "named"]
+path -> inode[fontsize = 8,label = "named48", color="#0ecbcc"]
 
 task[fontsize = 8,label = "task",shape = rectangle, fillcolor="#e6e6fa", style = filled]
 
-inode -> task[fontsize = 8,label = "perm_exec"]
+task -> task[fontsize = 8,label = "version_activity48", color="#e6c8a0"]
 
-task -> process_memory[fontsize = 8,label = "memory_write"]
+inode -> task[fontsize = 8,label = "perm_exec48", color="#e6c8a0"]
 
-task -> task[fontsize = 8,label = "version_activity"]
+process_memory -> process_memory[fontsize = 8,label = "version_entity48", color="#e6c8a0"]
 
-process_memory -> process_memory[fontsize = 8,label = "version_entity"]
+task -> process_memory[fontsize = 8,label = "memory_write48", color="#e6c8a0"]
 
-process_memory -> inode[fontsize = 8,label = "sh_write"]
+inode -> inode[fontsize = 8,label = "version_entity49", color="#e6c8a0"]
 
-inode -> inode[fontsize = 8,label = "version_entity"]
+process_memory -> inode[fontsize = 8,label = "sh_write49", color="#e6c8a0"]
 
-inode -> task[fontsize = 8,label = "perm_read"]
+task -> task[fontsize = 8,label = "version_activity49", color="#d6583c"]
 
-inode -> task[fontsize = 8,label = "perm_append"]
+inode -> task[fontsize = 8,label = "perm_read49", color="#d6583c"]
 
-inode -> task[fontsize = 8,label = "perm_write"]
+process_memory -> process_memory[fontsize = 8,label = "version_entity49", color="#d6583c"]
+
+task -> process_memory[fontsize = 8,label = "memory_write49", color="#d6583c"]
+
+inode -> inode[fontsize = 8,label = "version_entity50", color="#d6583c"]
+
+process_memory -> inode[fontsize = 8,label = "sh_write50", color="#d6583c"]
+
+task -> task[fontsize = 8,label = "version_activity50", color="#c8ab7d"]
+
+inode -> task[fontsize = 8,label = "perm_append50", color="#c8ab7d"]
+
+process_memory -> process_memory[fontsize = 8,label = "version_entity50", color="#c8ab7d"]
+
+task -> process_memory[fontsize = 8,label = "memory_write50", color="#c8ab7d"]
+
+inode -> inode[fontsize = 8,label = "version_entity51", color="#c8ab7d"]
+
+process_memory -> inode[fontsize = 8,label = "sh_write51", color="#c8ab7d"]
+
+task -> task[fontsize = 8,label = "version_activity51", color="#7790d8"]
+
+inode -> task[fontsize = 8,label = "perm_write51", color="#7790d8"]
+
+process_memory -> process_memory[fontsize = 8,label = "version_entity51", color="#7790d8"]
+
+task -> process_memory[fontsize = 8,label = "memory_write51", color="#7790d8"]
+
+inode -> inode[fontsize = 8,label = "version_entity52", color="#7790d8"]
+
+process_memory -> inode[fontsize = 8,label = "sh_write52", color="#7790d8"]
 
 }

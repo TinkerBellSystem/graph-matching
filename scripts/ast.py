@@ -12,6 +12,7 @@ import sys
 import os
 import provenance as prov
 from rtm import *
+from graph import *
 
 from pycparser import c_parser, c_ast, parse_file
 
@@ -284,8 +285,16 @@ hooks['provenance_mq_timedreceive'] = hooks['__mq_msgrcv']
 
 # Print them out for inspection
 for hookname, motif in hooks.iteritems():
-    print("\n+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
-    print(hookname)
-    print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
-    motif.print_rtm()
+    # print("\n+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+    # print(hookname)
+    # print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+    # motif.print_rtm()
+    g = Graph()
+    motif.draw_rtm(g)
+    dot_str = g.get_graph()
+    with open('../tmp/'+ hookname +'.dot', 'w') as f:
+        f.write(dot_str)
+    f.close()
+    # os.system('dot -Tpng ../tmp/'+ hookname +'.dot -o ../img/'+ hookname +'.png')
+
 

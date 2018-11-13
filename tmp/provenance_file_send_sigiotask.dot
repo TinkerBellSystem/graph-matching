@@ -2,22 +2,22 @@ digraph RGL__DirectedAdjacencyGraph {path[fontsize = 8,label = "path",shape = el
 
 inode[fontsize = 8,label = "inode",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> inode[fontsize = 8,label = "named"]
+path -> inode[fontsize = 8,label = "named63", color="#dcac92"]
 
 task[fontsize = 8,label = "task",shape = rectangle, fillcolor="#e6e6fa", style = filled]
 
-inode -> task[fontsize = 8,label = "file_sigio"]
+task -> task[fontsize = 8,label = "version_activity63", color="#dcac92"]
+
+inode -> task[fontsize = 8,label = "file_sigio63", color="#dcac92"]
 
 process_memory[fontsize = 8,label = "process_memory",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-task -> process_memory[fontsize = 8,label = "memory_write"]
+process_memory -> process_memory[fontsize = 8,label = "version_entity63", color="#dcac92"]
 
-task -> task[fontsize = 8,label = "version_activity"]
+task -> process_memory[fontsize = 8,label = "memory_write63", color="#dcac92"]
 
-process_memory -> process_memory[fontsize = 8,label = "version_entity"]
+inode -> inode[fontsize = 8,label = "version_entity64", color="#dcac92"]
 
-process_memory -> inode[fontsize = 8,label = "sh_write"]
-
-inode -> inode[fontsize = 8,label = "version_entity"]
+process_memory -> inode[fontsize = 8,label = "sh_write64", color="#dcac92"]
 
 }

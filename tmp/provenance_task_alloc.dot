@@ -1,11 +1,11 @@
-digraph RGL__DirectedAdjacencyGraph {process_memory[fontsize = 8,label = "process_memory",shape = ellipse, fillcolor="#fffacd", style = filled]
+digraph RGL__DirectedAdjacencyGraph {task[fontsize = 8,label = "task",shape = rectangle, fillcolor="#e6e6fa", style = filled]
 
-task[fontsize = 8,label = "task",shape = rectangle, fillcolor="#e6e6fa", style = filled]
+task -> task[fontsize = 8,label = "version_activity18", color="#0c599c"]
 
-process_memory -> task[fontsize = 8,label = "memory_read"]
+process_memory[fontsize = 8,label = "process_memory",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-task -> task[fontsize = 8,label = "version_activity"]
+process_memory -> task[fontsize = 8,label = "memory_read18", color="#0c599c"]
 
-task -> task[fontsize = 8,label = "clone"]
+task -> task[fontsize = 8,label = "clone18", color="#0c599c"]
 
 }

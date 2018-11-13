@@ -2,30 +2,32 @@ digraph RGL__DirectedAdjacencyGraph {path[fontsize = 8,label = "path",shape = el
 
 process_memory[fontsize = 8,label = "process_memory",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> process_memory[fontsize = 8,label = "named_process"]
+path -> process_memory[fontsize = 8,label = "named_process64", color="#dcac92"]
 
 inode[fontsize = 8,label = "inode",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> inode[fontsize = 8,label = "named"]
+path -> inode[fontsize = 8,label = "named64", color="#dcac92"]
+
+process_memory -> process_memory[fontsize = 8,label = "version_entity65", color="#dcac92"]
+
+inode -> process_memory[fontsize = 8,label = "sh_read65", color="#dcac92"]
 
 task[fontsize = 8,label = "task",shape = rectangle, fillcolor="#e6e6fa", style = filled]
 
-process_memory -> task[fontsize = 8,label = "memory_read"]
+task -> task[fontsize = 8,label = "version_activity65", color="#dcac92"]
 
-task -> inode[fontsize = 8,label = "write_ioctl"]
+process_memory -> task[fontsize = 8,label = "memory_read65", color="#dcac92"]
 
-task -> task[fontsize = 8,label = "version_activity"]
+inode -> inode[fontsize = 8,label = "version_entity65", color="#dcac92"]
 
-inode -> inode[fontsize = 8,label = "version_entity"]
+task -> inode[fontsize = 8,label = "write_ioctl65", color="#dcac92"]
 
-inode -> process_memory[fontsize = 8,label = "sh_read"]
+inode -> task[fontsize = 8,label = "read_ioctl65", color="#dcac92"]
 
-process_memory -> process_memory[fontsize = 8,label = "version_entity"]
+task -> process_memory[fontsize = 8,label = "memory_write65", color="#dcac92"]
 
-inode -> task[fontsize = 8,label = "read_ioctl"]
+inode -> inode[fontsize = 8,label = "version_entity66", color="#dcac92"]
 
-task -> process_memory[fontsize = 8,label = "memory_write"]
-
-process_memory -> inode[fontsize = 8,label = "sh_write"]
+process_memory -> inode[fontsize = 8,label = "sh_write66", color="#dcac92"]
 
 }
