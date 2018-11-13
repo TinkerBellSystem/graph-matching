@@ -6,6 +6,7 @@
 # it under the terms of the GNU General Public License version 2, as
 # published by the Free Software Foundation; either version 2 of the License,
 # or (at your option) any later version.
+from __future__ import print_function
 
 class MotifNode():
 	"""
@@ -114,19 +115,67 @@ class Relation():
 		
 		return valid_left or valid_right
 
+	# def print_rel(self):
+	# 	if self.left != None and not isinstance(self.left, MotifEdge):
+	# 		self.left.print_rel()
+	# 	if isinstance(self.left, MotifEdge):
+	# 		print(self.left.src_node.mn_type + '-' + self.left.me_type + '->' + self.left.dst_node.mn_type)
+	# 	if self.op != None:
+	# 		print(self.op)
+	# 	if self.right != None and not isinstance(self.right, MotifEdge):
+	# 		self.right.print_rel()
+	# 	if isinstance(self.right, MotifEdge):
+	# 		print(self.right.src_node.mn_type + '-' + self.right.me_type + '->' + self.right.dst_node.mn_type)
+
 	def print_rel(self):
-		if self.left != None and not isinstance(self.left, MotifEdge):
-			self.left.print_rel()
-		if isinstance(self.left, MotifEdge):
-			print(self.left.src_node.mn_type + '-' + self.left.me_type + '->' + self.left.dst_node.mn_type)
-		if self.op != None:
-			print(self.op)
-		if self.right != None and not isinstance(self.right, MotifEdge):
-			self.right.print_rel()
-		if isinstance(self.right, MotifEdge):
-			print(self.right.src_node.mn_type + '-' + self.right.me_type + '->' + self.right.dst_node.mn_type)
-
-
+		if self.op == None:
+			if self.right != None:
+				print('\33[103m' + '[error]: None OP should not have non-None type RHS ' + '\033[0m')
+			if self.left == None:
+				print("None", end='')
+			elif isinstance(self.left, MotifEdge):
+				print(self.left.src_node.mn_type + '-' + self.left.me_type + '->' + self.left.dst_node.mn_type, end='')
+			else:
+				self.left.print_rel()
+		elif self.op == '*':
+			if self.right != None:
+				print('\33[103m' + '[error]: "*" OP should not have non-None type RHS ' + '\033[0m')
+			if self.left == None:
+				print('\33[103m' + '[error]: "*" OP should not have None type LHS ' + '\033[0m')
+			elif isinstance(self.left, MotifEdge):
+				print(self.left.src_node.mn_type + '-' + self.left.me_type + '->' + self.left.dst_node.mn_type + '*', end='')
+			else:
+				self.left.print_rel()
+		elif self.op == '|':
+			if self.left == None:
+				print("None", end='')
+			elif isinstance(self.left, MotifEdge):
+				print(self.left.src_node.mn_type + '-' + self.left.me_type + '->' + self.left.dst_node.mn_type, end='')
+			else:
+				self.left.print_rel()
+			print("|", end='')
+			if self.right == None:
+				print("None", end='')
+			elif isinstance(self.right, MotifEdge):
+				print(self.right.src_node.mn_type + '-' + self.right.me_type + '->' + self.right.dst_node.mn_type, end='')
+			else:
+				self.right.print_rel()
+		elif self.op == '()':
+			print("(", end='')
+			if self.left == None:
+				print("None", end='')
+			elif isinstance(self.left, MotifEdge):
+				print(self.left.src_node.mn_type + '-' + self.left.me_type + '->' + self.left.dst_node.mn_type, end='')
+			else:
+				self.left.print_rel()
+			print(",", end='')
+			if self.right == None:
+				print("None", end='')
+			elif isinstance(self.right, MotifEdge):
+				print(self.right.src_node.mn_type + '-' + self.right.me_type + '->' + self.right.dst_node.mn_type, end='')
+			else:
+				self.right.print_rel()
+			print(")", end='')
 
 class RegularTemporalMotif():
 	"""

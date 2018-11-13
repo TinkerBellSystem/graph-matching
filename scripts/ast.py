@@ -284,7 +284,7 @@ hooks['provenance_mq_timedreceive'] = hooks['__mq_msgrcv']
 
 # Print them out for inspection
 for hookname, motif in hooks.iteritems():
-    print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+    print("\n+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
     print(hookname)
     print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
     motif.print_rtm()
