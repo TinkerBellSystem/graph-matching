@@ -287,7 +287,7 @@ def eval_if_else(item, caller_arguments, params):
 	else:
 		right = None
 
-	if left != None and right != None:
+	if left != None or right != None:
 		return create_alternation_relation(left, right)
 	else:
 		return None
@@ -301,15 +301,35 @@ def eval_function_body(function_body, caller_arguments, params):
 	relation = None
 	for item in function_body.block_items:
 		if type(item).__name__ == 'FuncCall':   # Case 1: provenance-graph-related function call
-			relation = create_group_relation(relation, eval_func_call(item, caller_arguments, params))
+			right = eval_func_call(item, caller_arguments, params)
+			if right == None and relation == None:
+				relation = None
+			else:
+				relation = create_group_relation(relation, right)
 		elif type(item).__name__ == 'Assignment': # Case 2: rc = provenance-graph-related function call
-			relation = create_group_relation(relation, eval_assignment(item, caller_arguments, params))
+			right = eval_assignment(item, caller_arguments, params)
+			if right == None and relation == None:
+				relation = None
+			else:
+				relation = create_group_relation(relation, right)
 		elif type(item).__name__ == 'Decl': # Case 3: declaration with initialization
-			relation = create_group_relation(relation, eval_declaration(item, caller_arguments, params))
+			right = eval_declaration(item, caller_arguments, params)
+			if right == None and relation == None:
+				relation = None
+			else:
+				relation = create_group_relation(relation, right)
 		elif type(item).__name__ == 'If':   # Case 4: if
-			relation = create_group_relation(relation, eval_if_else(item, caller_arguments, params))
+			right = eval_if_else(item, caller_arguments, params)
+			if right == None and relation == None:
+				relation = None
+			else:
+				relation = create_group_relation(relation, right)
 		elif type(item).__name__ == 'Return':	# Case 5: return with function call
-			relation = create_group_relation(relation, eval_return(item, caller_arguments, params))
+			right = eval_return(item, caller_arguments, params)
+			if right == None and relation == None:
+				relation = None
+			else:
+				relation = create_group_relation(relation, right)
 	return relation
 ###########################################################################################
 def relation_with_four_args(function, rel, arg1, arg2, arg3):

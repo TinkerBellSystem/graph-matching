@@ -152,7 +152,7 @@ def eval_if_else(item, ast):
     else:
         right = None
 
-    if left != None and right != None:
+    if left != None or right != None:
         return prov.create_alternation_relation(left, right)
     else:
         return None
@@ -166,15 +166,35 @@ def eval_function_body(function_body, ast):
     relation = None
     for item in function_body.block_items:
         if type(item).__name__ == 'FuncCall':   # Case 1: provenance-graph-related function call
-            relation = prov.create_group_relation(relation, eval_prov_func_call(item, ast))
+            right = eval_prov_func_call(item, ast)
+            if right == None and relation == None:
+                relation = None
+            else:
+                relation = prov.create_group_relation(relation, right)
         elif type(item).__name__ == 'Assignment': # Case 2: rc = provenance-graph-related function call
-            relation = prov.create_group_relation(relation, eval_assignment(item, ast))
+            right = eval_assignment(item, ast)
+            if right == None and relation == None:
+                relation = None
+            else:
+                relation = prov.create_group_relation(relation, right)
         elif type(item).__name__ == 'Decl': # Case 3: declaration with initialization
-            relation = prov.create_group_relation(relation, eval_declaration(item, ast))
+            right = eval_declaration(item, ast)
+            if right == None and relation == None:
+                relation = None
+            else:
+                relation = prov.create_group_relation(relation, right)
         elif type(item).__name__ == 'If':   # Case 4: if
-            relation = prov.create_group_relation(relation, eval_if_else(item, ast))
+            right = eval_if_else(item, ast)
+            if right == None and relation == None:
+                relation = None
+            else:
+                relation = prov.create_group_relation(relation, right)
         elif type(item).__name__ == 'Return':   # Case 5: return with function call
-            relation = prov.create_group_relation(relation, eval_return(item, ast))
+            right = eval_return(item, ast)
+            if right == None and relation == None:
+                relation = None
+            else:
+                relation = prov.create_group_relation(relation, right)
     return relation
 
 def eval_hook(function_body, ast):
@@ -264,7 +284,8 @@ hooks['provenance_mq_timedreceive'] = hooks['__mq_msgrcv']
 
 # Print them out for inspection
 for hookname, motif in hooks.iteritems():
-    print(hookname)
-    motif.print_rtm()
     print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+    print(hookname)
+    print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+    motif.print_rtm()
 
