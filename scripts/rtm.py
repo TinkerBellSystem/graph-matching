@@ -7,6 +7,11 @@
 # published by the Free Software Foundation; either version 2 of the License,
 # or (at your option) any later version.
 from __future__ import print_function
+import struct
+import random
+import graph
+
+asterisk_color = '#40e0d0'
 
 class MotifNode():
 	"""
@@ -115,17 +120,20 @@ class Relation():
 		
 		return valid_left or valid_right
 
-	# def print_rel(self):
-	# 	if self.left != None and not isinstance(self.left, MotifEdge):
-	# 		self.left.print_rel()
-	# 	if isinstance(self.left, MotifEdge):
-	# 		print(self.left.src_node.mn_type + '-' + self.left.me_type + '->' + self.left.dst_node.mn_type)
-	# 	if self.op != None:
-	# 		print(self.op)
-	# 	if self.right != None and not isinstance(self.right, MotifEdge):
-	# 		self.right.print_rel()
-	# 	if isinstance(self.right, MotifEdge):
-	# 		print(self.right.src_node.mn_type + '-' + self.right.me_type + '->' + self.right.dst_node.mn_type)
+	# def next_color(self):
+	# 	r = random.randint(0, 256)
+	# 	g = random.randint(0, 256)
+	# 	b = random.randint(0, 256)
+	# 	rgb = (r,g,b)
+	# 	hex_str = '#' + struct.pack('BBB',*rgb).encode('hex')
+	# 	while rgb in self.colors or hex_str == asterisk_color:
+	# 		r = random.randint(0, 256)
+	# 		g = random.randint(0, 256)
+	# 		b = random.randint(0, 256)
+	# 		rgb = (r,g,b)
+	# 		hex_str = '#' + struct.pack('BBB',*rgb).encode('hex')
+	# 	self.colors.append(rgb)
+	# 	return hex_str
 
 	def print_rel(self):
 		if self.op == None:
@@ -134,7 +142,8 @@ class Relation():
 			if self.left == None:
 				print("None", end='')
 			elif isinstance(self.left, MotifEdge):
-				print(self.left.src_node.mn_type + '-' + self.left.me_type + '->' + self.left.dst_node.mn_type, end='')
+				print_str = self.left.src_node.mn_type + '-' + self.left.me_type + '->' + self.left.dst_node.mn_type
+				print(print_str, end='')
 			else:
 				self.left.print_rel()
 		elif self.op == '*':
@@ -143,21 +152,25 @@ class Relation():
 			if self.left == None:
 				print('\33[103m' + '[error]: "*" OP should not have None type LHS ' + '\033[0m')
 			elif isinstance(self.left, MotifEdge):
-				print(self.left.src_node.mn_type + '-' + self.left.me_type + '->' + self.left.dst_node.mn_type + '*', end='')
+				print_str = self.left.src_node.mn_type + '-' + self.left.me_type + '->' + self.left.dst_node.mn_type + '*'
+				print(print_str, end='')
 			else:
 				self.left.print_rel()
+				print('*', end='')
 		elif self.op == '|':
 			if self.left == None:
 				print("None", end='')
 			elif isinstance(self.left, MotifEdge):
-				print(self.left.src_node.mn_type + '-' + self.left.me_type + '->' + self.left.dst_node.mn_type, end='')
+				print_str = self.left.src_node.mn_type + '-' + self.left.me_type + '->' + self.left.dst_node.mn_type
+				print(print_str, end='')
 			else:
 				self.left.print_rel()
 			print("|", end='')
 			if self.right == None:
 				print("None", end='')
 			elif isinstance(self.right, MotifEdge):
-				print(self.right.src_node.mn_type + '-' + self.right.me_type + '->' + self.right.dst_node.mn_type, end='')
+				print_str = self.right.src_node.mn_type + '-' + self.right.me_type + '->' + self.right.dst_node.mn_type
+				print(print_str, end='')
 			else:
 				self.right.print_rel()
 		elif self.op == '()':
@@ -165,14 +178,16 @@ class Relation():
 			if self.left == None:
 				print("None", end='')
 			elif isinstance(self.left, MotifEdge):
-				print(self.left.src_node.mn_type + '-' + self.left.me_type + '->' + self.left.dst_node.mn_type, end='')
+				print_str = self.left.src_node.mn_type + '-' + self.left.me_type + '->' + self.left.dst_node.mn_type
+				print(print_str, end='')
 			else:
 				self.left.print_rel()
 			print(",", end='')
 			if self.right == None:
 				print("None", end='')
 			elif isinstance(self.right, MotifEdge):
-				print(self.right.src_node.mn_type + '-' + self.right.me_type + '->' + self.right.dst_node.mn_type, end='')
+				print_str = self.right.src_node.mn_type + '-' + self.right.me_type + '->' + self.right.dst_node.mn_type
+				print(print_str, end='')
 			else:
 				self.right.print_rel()
 			print(")", end='')
