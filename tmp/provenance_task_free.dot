@@ -1,5 +1,5 @@
 digraph RGL__DirectedAdjacencyGraph {task[fontsize = 8,label = "task",shape = rectangle, fillcolor="#e6e6fa", style = filled]
 
-task -> task[fontsize = 8,label = "terminate_task42", color="#151b85"]
+task -> task[fontsize = 8,label = "terminate_task207", color="#ff64cd"]
 
 }

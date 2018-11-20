@@ -6,18 +6,24 @@ path -> process_memory[fontsize = 8,label = "named_process0", color="#000000"]
 
 process_memory -> process_memory[fontsize = 8,label = "version_entity1", color="#000000"]
 
+machine[fontsize = 8,label = "machine",shape = house, fillcolor="#ff8c00", style = filled]
+
+machine -> process_memory[fontsize = 8,label = "ran_on1", color="#000000"]
+
+process_memory -> process_memory[fontsize = 8,label = "version_entity3", color="#000000"]
+
 inode[fontsize = 8,label = "inode",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-inode -> process_memory[fontsize = 8,label = "sh_read1", color="#000000"]
+inode -> process_memory[fontsize = 8,label = "sh_read3", color="#000000"]
 
 task[fontsize = 8,label = "task",shape = rectangle, fillcolor="#e6e6fa", style = filled]
 
-task -> task[fontsize = 8,label = "version_activity1", color="#000000"]
+task -> task[fontsize = 8,label = "version_activity4", color="#000000"]
 
-process_memory -> task[fontsize = 8,label = "memory_read1", color="#000000"]
+process_memory -> task[fontsize = 8,label = "memory_read4", color="#000000"]
 
-inode -> inode[fontsize = 8,label = "version_entity1", color="#000000"]
+inode -> inode[fontsize = 8,label = "version_entity5", color="#000000"]
 
-task -> inode[fontsize = 8,label = "connect1", color="#000000"]
+task -> inode[fontsize = 8,label = "connect5", color="#000000"]
 
 }

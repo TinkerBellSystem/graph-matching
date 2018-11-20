@@ -88,6 +88,10 @@ def eval_prov_func_call(func_call, ast):
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
         return prov.record_terminate_to_relation(arg_names[0], arg_names[1])
+    elif func_call.name.name == 'influences_kernel':
+        args = func_call.args.exprs
+        arg_names = get_arg_name(args)
+        return prov.influences_kernel_to_relation(arg_names[0], arg_names[1], arg_names[2])
     else:
         return None
 
@@ -138,6 +142,7 @@ def eval_if_else(item, ast):
         left = None
     
     false_branch = item.iffalse
+
     if type(false_branch).__name__ == 'FuncCall':
         right = eval_prov_func_call(false_branch, ast)
     elif type(false_branch).__name__ == 'Assignment':
@@ -267,7 +272,7 @@ for ext in ast.ext:
         function_name = function_decl.name
 
         # We skip those that are not explicitly defined
-        if function_name != 'provenance_socket_sendmsg_always' or function_name != 'provenance_socket_recvmsg_always' or function_name != 'provenance_inode_rename' or function_name != 'provenance_msg_queue_msgsnd' or function_name != 'provenance_mq_timedsend' or function_name != 'provenance_msg_queue_msgrcv' or function_name != 'provenance_mq_timedreceive' or function_name != "__mq_msgsnd" or function_name != "__mq_msgrcv":
+        if function_name != 'provenance_socket_sendmsg' or function_name != 'provenance_socket_recvmsg' or function_name != 'provenance_inode_rename' or function_name != 'provenance_msg_queue_msgsnd' or function_name != 'provenance_mq_timedsend' or function_name != 'provenance_msg_queue_msgrcv' or function_name != 'provenance_mq_timedreceive' or function_name != "__mq_msgsnd" or function_name != "__mq_msgrcv":
             function_body = ext.body
             if function_body.block_items != None:
                 motif = eval_hook(function_body, record_ast)
@@ -275,8 +280,8 @@ for ext in ast.ext:
                     hooks[function_name] = motif
                     
 # Deal with function hooks that are not explicitly defined
-hooks['provenance_socket_sendmsg_always'] = hooks['provenance_socket_sendmsg']
-hooks['provenance_socket_recvmsg_always'] = hooks['provenance_socket_recvmsg']
+hooks['provenance_socket_sendmsg'] = hooks['provenance_socket_sendmsg_always']
+hooks['provenance_socket_recvmsg'] = hooks['provenance_socket_recvmsg_always']
 hooks['provenance_inode_rename'] = hooks['provenance_inode_link']
 hooks['provenance_msg_queue_msgsnd'] = hooks['__mq_msgsnd']
 hooks['provenance_mq_timedsend'] = hooks['__mq_msgsnd']
@@ -285,10 +290,10 @@ hooks['provenance_mq_timedreceive'] = hooks['__mq_msgrcv']
 
 # Print them out for inspection
 for hookname, motif in hooks.iteritems():
-    # print("\n+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
-    # print(hookname)
-    # print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
-    # motif.print_rtm()
+    print("\n+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+    print(hookname)
+    print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+    motif.print_rtm()
     g = Graph()
     motif.draw_rtm(g)
     dot_str = g.get_graph()

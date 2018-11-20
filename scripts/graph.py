@@ -18,6 +18,10 @@ class Graph:
 			self.str += name
 			self.str += "[fontsize = 8,label = \"" + name + "\",shape = rectangle, fillcolor=\"#e6e6fa\", style = filled]"
 			self.str += "\n\n"
+		elif name == 'machine':
+			self.str += name
+			self.str += "[fontsize = 8,label = \"" + name + "\",shape = house, fillcolor=\"#ff8c00\", style = filled]"
+			self.str += "\n\n"
 		else:
 			self.str += name
 			self.str += "[fontsize = 8,label = \"" + name + "\",shape = ellipse, fillcolor=\"#fffacd\", style = filled]"

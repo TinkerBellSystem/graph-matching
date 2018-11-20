@@ -145,6 +145,17 @@ class Relation():
 			else:
 				self.left.print_rel()
 				print('*', end='')
+		elif self.op == '?':
+			if self.right != None:
+				print('\33[103m' + '[error]: "?" OP should not have non-None type RHS ' + '\033[0m')
+			if self.left == None:
+				print('\33[103m' + '[error]: "?" OP should not have None type LHS ' + '\033[0m')
+			elif isinstance(self.left, MotifEdge):
+				print_str = self.left.src_node.mn_type + '-' + self.left.me_type + '->' + self.left.dst_node.mn_type + '?'
+				print(print_str, end='')
+			else:
+				self.left.print_rel()
+				print('?', end='')
 		elif self.op == '|':
 			if self.left == None:
 				print("None", end='')
@@ -215,6 +226,18 @@ class Relation():
 				print('\33[103m' + '[error]: "*" OP should not have non-None type RHS ' + '\033[0m')
 			if self.left == None:
 				print('\33[103m' + '[error]: "*" OP should not have None type LHS ' + '\033[0m')
+			elif isinstance(self.left, MotifEdge):
+				self.next_number()
+				graph_str = self.left.src_node.mn_type + '-' + self.left.me_type + str(Relation.num) + '->' + self.left.dst_node.mn_type
+				graph.add_string(graph_str, Relation.color)
+			else:
+				self.next_number()
+				self.left.draw_rtm(graph)
+		elif self.op == '?':
+			if self.right != None:
+				print('\33[103m' + '[error]: "?" OP should not have non-None type RHS ' + '\033[0m')
+			if self.left == None:
+				print('\33[103m' + '[error]: "?" OP should not have None type LHS ' + '\033[0m')
 			elif isinstance(self.left, MotifEdge):
 				self.next_number()
 				graph_str = self.left.src_node.mn_type + '-' + self.left.me_type + str(Relation.num) + '->' + self.left.dst_node.mn_type

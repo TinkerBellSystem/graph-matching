@@ -2,26 +2,32 @@ digraph RGL__DirectedAdjacencyGraph {path[fontsize = 8,label = "path",shape = el
 
 process_memory[fontsize = 8,label = "process_memory",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> process_memory[fontsize = 8,label = "named_process22", color="#e3473a"]
+path -> process_memory[fontsize = 8,label = "named_process112", color="#c3494c"]
+
+process_memory -> process_memory[fontsize = 8,label = "version_entity113", color="#c3494c"]
+
+machine[fontsize = 8,label = "machine",shape = house, fillcolor="#ff8c00", style = filled]
+
+machine -> process_memory[fontsize = 8,label = "ran_on113", color="#c3494c"]
 
 address[fontsize = 8,label = "address",shape = ellipse, fillcolor="#fffacd", style = filled]
 
 inode[fontsize = 8,label = "inode",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-address -> inode[fontsize = 8,label = "named22", color="#e3473a"]
+address -> inode[fontsize = 8,label = "named113", color="#c3494c"]
 
-process_memory -> process_memory[fontsize = 8,label = "version_entity23", color="#e3473a"]
+process_memory -> process_memory[fontsize = 8,label = "version_entity115", color="#c3494c"]
 
-inode -> process_memory[fontsize = 8,label = "sh_read23", color="#e3473a"]
+inode -> process_memory[fontsize = 8,label = "sh_read115", color="#c3494c"]
 
 task[fontsize = 8,label = "task",shape = rectangle, fillcolor="#e6e6fa", style = filled]
 
-task -> task[fontsize = 8,label = "version_activity23", color="#e3473a"]
+task -> task[fontsize = 8,label = "version_activity116", color="#c3494c"]
 
-process_memory -> task[fontsize = 8,label = "memory_read23", color="#e3473a"]
+process_memory -> task[fontsize = 8,label = "memory_read116", color="#c3494c"]
 
-inode -> inode[fontsize = 8,label = "version_entity23", color="#e3473a"]
+inode -> inode[fontsize = 8,label = "version_entity117", color="#c3494c"]
 
-task -> inode[fontsize = 8,label = "bind23", color="#e3473a"]
+task -> inode[fontsize = 8,label = "bind117", color="#c3494c"]
 
 }

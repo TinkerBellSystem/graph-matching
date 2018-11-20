@@ -1,0 +1,19 @@
+digraph RGL__DirectedAdjacencyGraph {path[fontsize = 8,label = "path",shape = ellipse, fillcolor="#fffacd", style = filled]
+
+inode[fontsize = 8,label = "inode",shape = ellipse, fillcolor="#fffacd", style = filled]
+
+path -> inode[fontsize = 8,label = "named232", color="#46fe94"]
+
+task[fontsize = 8,label = "task",shape = rectangle, fillcolor="#e6e6fa", style = filled]
+
+task -> task[fontsize = 8,label = "version_activity233", color="#46fe94"]
+
+inode -> task[fontsize = 8,label = "load_file233", color="#46fe94"]
+
+machine[fontsize = 8,label = "machine",shape = house, fillcolor="#ff8c00", style = filled]
+
+machine -> machine[fontsize = 8,label = "version_entity234", color="#46fe94"]
+
+task -> machine[fontsize = 8,label = "load_module234", color="#46fe94"]
+
+}

@@ -2,26 +2,32 @@ digraph RGL__DirectedAdjacencyGraph {path[fontsize = 8,label = "path",shape = el
 
 process_memory[fontsize = 8,label = "process_memory",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> process_memory[fontsize = 8,label = "named_process26", color="#6b2000"]
+path -> process_memory[fontsize = 8,label = "named_process128", color="#c3494c"]
+
+process_memory -> process_memory[fontsize = 8,label = "version_entity129", color="#c3494c"]
+
+machine[fontsize = 8,label = "machine",shape = house, fillcolor="#ff8c00", style = filled]
+
+machine -> process_memory[fontsize = 8,label = "ran_on129", color="#c3494c"]
 
 inode[fontsize = 8,label = "inode",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-inode -> inode[fontsize = 8,label = "version_entity26", color="#6b2000"]
+inode -> inode[fontsize = 8,label = "version_entity130", color="#c3494c"]
 
-inode -> inode[fontsize = 8,label = "accept_socket26", color="#6b2000"]
+inode -> inode[fontsize = 8,label = "accept_socket130", color="#c3494c"]
 
 task[fontsize = 8,label = "task",shape = rectangle, fillcolor="#e6e6fa", style = filled]
 
-task -> task[fontsize = 8,label = "version_activity26", color="#6b2000"]
+task -> task[fontsize = 8,label = "version_activity131", color="#c3494c"]
 
-inode -> task[fontsize = 8,label = "accept26", color="#6b2000"]
+inode -> task[fontsize = 8,label = "accept131", color="#c3494c"]
 
-process_memory -> process_memory[fontsize = 8,label = "version_entity26", color="#6b2000"]
+process_memory -> process_memory[fontsize = 8,label = "version_entity132", color="#c3494c"]
 
-task -> process_memory[fontsize = 8,label = "memory_write26", color="#6b2000"]
+task -> process_memory[fontsize = 8,label = "memory_write132", color="#c3494c"]
 
-inode -> inode[fontsize = 8,label = "version_entity27", color="#6b2000"]
+inode -> inode[fontsize = 8,label = "version_entity134", color="#c3494c"]
 
-process_memory -> inode[fontsize = 8,label = "sh_write27", color="#6b2000"]
+process_memory -> inode[fontsize = 8,label = "sh_write134", color="#c3494c"]
 
 }

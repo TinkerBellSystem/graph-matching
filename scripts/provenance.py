@@ -51,7 +51,7 @@ def prov_to_type(str):
 
 def create_edge(src_node_type, dst_node_type, edge_type):
 	"""
-	Create a typed (@edge_type), timestamped(@ts) MotifEdge.
+	Create a typed (@edge_type) MotifEdge.
 	An edge is defined by two MotifNodes.
 	"""
 	src_node = MotifNode(src_node_type)
@@ -76,6 +76,13 @@ def create_asterisk_relation(left):
 	""" 
 	return Relation(left, None, '*')
 
+def create_question_mark_relation(left):
+	"""
+	This function creates a unary "?" relation.
+
+	version updates can result in this question mark relation.
+	""" 
+	return Relation(left, None, '?')
 
 def create_group_relation(left, right):
 	"""
@@ -102,9 +109,9 @@ def update_version_relation(node_type):
 	# TODO: This function is processed MANUALLY due to its requirement in "if" conditions.
 	"""
 	if node_type == 'task':
-		return create_singular_relation('task', 'task', relation_to_str('RL_VERSION_TASK'))
+		return create_question_mark_relation(create_singular_relation('task', 'task', relation_to_str('RL_VERSION_TASK')))
 	else:
-		return create_singular_relation(node_type, node_type, relation_to_str('RL_VERSION'))
+		return create_question_mark_relation(create_singular_relation(node_type, node_type, relation_to_str('RL_VERSION')))
 
 def record_relation(src_node_type, dst_node_type, edge_type):
 	"""
@@ -257,7 +264,6 @@ def eval_if_else(item, caller_arguments, params):
 	Evaluate (nesting) if/else blocks.
 	"""
 	true_branch = item.iftrue
-
 	if type(true_branch).__name__ == 'FuncCall':
 		left = eval_func_call(true_branch, caller_arguments, params)
 	elif type(true_branch).__name__ == 'Assignment':
@@ -363,12 +369,23 @@ def relation_with_three_args(function, rel, arg1, arg2):
 	function_body = function.body
 	return eval_function_body(function_body, caller_arguments, params)
 
+def influences_kernel_to_relation(rel, arg1, arg2):
+	"""
+	Edges for 'influences_kernel'.
+	# TODO: automate this process.
+	"""
+	relation = relation_to_str(rel)
+	a = prov_to_type(arg1)
+	b = prov_to_type(arg2)
+
+	return create_group_relation(record_relation(a, b, relation_to_str('RL_LOAD_FILE')), record_relation(b, 'machine', relation))
+
 def get_cred_provenance_to_relation():
 	"""
 	Edge for 'get_cred_provenance'.
 	# TODO: automate this process.
 	"""
-	return create_edge('path', 'process_memory', relation_to_str('RL_NAMED_PROCESS'))
+	return create_group_relation(create_edge('path', 'process_memory', relation_to_str('RL_NAMED_PROCESS')), record_relation('machine', 'process_memory', relation_to_str('RL_RAN_ON')))
 
 def inode_provenance_to_relation():
 	"""

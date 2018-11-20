@@ -2,26 +2,32 @@ digraph RGL__DirectedAdjacencyGraph {path[fontsize = 8,label = "path",shape = el
 
 process_memory[fontsize = 8,label = "process_memory",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> process_memory[fontsize = 8,label = "named_process15", color="#db3549"]
+path -> process_memory[fontsize = 8,label = "named_process67", color="#325106"]
+
+process_memory -> process_memory[fontsize = 8,label = "version_entity68", color="#325106"]
+
+machine[fontsize = 8,label = "machine",shape = house, fillcolor="#ff8c00", style = filled]
+
+machine -> process_memory[fontsize = 8,label = "ran_on68", color="#325106"]
 
 inode[fontsize = 8,label = "inode",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> inode[fontsize = 8,label = "named15", color="#db3549"]
+path -> inode[fontsize = 8,label = "named68", color="#325106"]
 
 task[fontsize = 8,label = "task",shape = rectangle, fillcolor="#e6e6fa", style = filled]
 
-task -> task[fontsize = 8,label = "version_activity15", color="#db3549"]
+task -> task[fontsize = 8,label = "version_activity69", color="#325106"]
 
-process_memory -> task[fontsize = 8,label = "memory_read15", color="#db3549"]
+process_memory -> task[fontsize = 8,label = "memory_read69", color="#325106"]
 
 xattr[fontsize = 8,label = "xattr",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-xattr -> xattr[fontsize = 8,label = "version_entity15", color="#db3549"]
+xattr -> xattr[fontsize = 8,label = "version_entity70", color="#325106"]
 
-task -> xattr[fontsize = 8,label = "removexattr15", color="#db3549"]
+task -> xattr[fontsize = 8,label = "removexattr70", color="#325106"]
 
-inode -> inode[fontsize = 8,label = "version_entity15", color="#db3549"]
+inode -> inode[fontsize = 8,label = "version_entity71", color="#325106"]
 
-xattr -> inode[fontsize = 8,label = "removexattr_inode15", color="#db3549"]
+xattr -> inode[fontsize = 8,label = "removexattr_inode71", color="#325106"]
 
 }

@@ -2,38 +2,44 @@ digraph RGL__DirectedAdjacencyGraph {path[fontsize = 8,label = "path",shape = el
 
 process_memory[fontsize = 8,label = "process_memory",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> process_memory[fontsize = 8,label = "named_process58", color="#dcac92"]
+path -> process_memory[fontsize = 8,label = "named_process290", color="#e0fd54"]
+
+process_memory -> process_memory[fontsize = 8,label = "version_entity291", color="#e0fd54"]
+
+machine[fontsize = 8,label = "machine",shape = house, fillcolor="#ff8c00", style = filled]
+
+machine -> process_memory[fontsize = 8,label = "ran_on291", color="#e0fd54"]
 
 inode[fontsize = 8,label = "inode",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> inode[fontsize = 8,label = "named58", color="#dcac92"]
+path -> inode[fontsize = 8,label = "named291", color="#e0fd54"]
 
-process_memory -> process_memory[fontsize = 8,label = "version_entity59", color="#dcac92"]
+process_memory -> process_memory[fontsize = 8,label = "version_entity293", color="#e0fd54"]
 
-inode -> process_memory[fontsize = 8,label = "sh_read59", color="#dcac92"]
+inode -> process_memory[fontsize = 8,label = "sh_read293", color="#e0fd54"]
 
 task[fontsize = 8,label = "task",shape = rectangle, fillcolor="#e6e6fa", style = filled]
 
-task -> task[fontsize = 8,label = "version_activity59", color="#dcac92"]
+task -> task[fontsize = 8,label = "version_activity294", color="#e0fd54"]
 
-process_memory -> task[fontsize = 8,label = "memory_read59", color="#dcac92"]
+process_memory -> task[fontsize = 8,label = "memory_read294", color="#e0fd54"]
 
 directory[fontsize = 8,label = "directory",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-directory -> directory[fontsize = 8,label = "version_entity59", color="#dcac92"]
+directory -> directory[fontsize = 8,label = "version_entity295", color="#e0fd54"]
 
-task -> directory[fontsize = 8,label = "link59", color="#dcac92"]
+task -> directory[fontsize = 8,label = "link295", color="#e0fd54"]
 
-process_memory -> process_memory[fontsize = 8,label = "version_entity60", color="#dcac92"]
+process_memory -> process_memory[fontsize = 8,label = "version_entity297", color="#e0fd54"]
 
-inode -> process_memory[fontsize = 8,label = "sh_read60", color="#dcac92"]
+inode -> process_memory[fontsize = 8,label = "sh_read297", color="#e0fd54"]
 
-task -> task[fontsize = 8,label = "version_activity60", color="#dcac92"]
+task -> task[fontsize = 8,label = "version_activity298", color="#e0fd54"]
 
-process_memory -> task[fontsize = 8,label = "memory_read60", color="#dcac92"]
+process_memory -> task[fontsize = 8,label = "memory_read298", color="#e0fd54"]
 
-inode -> inode[fontsize = 8,label = "version_entity60", color="#dcac92"]
+inode -> inode[fontsize = 8,label = "version_entity299", color="#e0fd54"]
 
-task -> inode[fontsize = 8,label = "link60", color="#dcac92"]
+task -> inode[fontsize = 8,label = "link299", color="#e0fd54"]
 
 }

@@ -1,11 +1,11 @@
-# 1 "provenance_record.h"
+# 1 "../camflow/provenance_record.h"
 # 1 "<built-in>" 1
 # 1 "<built-in>" 3
 # 325 "<built-in>" 3
 # 1 "<command line>" 1
 # 1 "<built-in>" 2
-# 1 "provenance_record.h" 2
-# 39 "provenance_record.h"
+# 1 "../camflow/provenance_record.h" 2
+# 39 "../camflow/provenance_record.h"
 static int __update_version(const int type,
          int *prov)
 {
@@ -32,7 +32,7 @@ static int __update_version(const int type,
  clear_saved(prov);
  return rc;
 }
-# 88 "provenance_record.h"
+# 88 "../camflow/provenance_record.h"
 static int record_relation(const int type,
         int *from,
         int *to,
@@ -60,7 +60,7 @@ static int record_relation(const int type,
  rc = __write_relation(type, from, to, file, flags);
  return rc;
 }
-# 129 "provenance_record.h"
+# 129 "../camflow/provenance_record.h"
 static int record_terminate(int type, struct provenance *prov)
 {
  union prov_elt old_prov;
@@ -80,7 +80,7 @@ static int record_terminate(int type, struct provenance *prov)
  clear_has_outgoing(prov_elt(prov));
  return rc;
 }
-# 166 "provenance_record.h"
+# 166 "../camflow/provenance_record.h"
 static inline int record_node_name(struct provenance *node,
        const char *name,
        int force)
@@ -113,8 +113,22 @@ static inline int record_node_name(struct provenance *node,
  return rc;
 }
 
+static inline int record_kernel_link(struct provenance *node)
+{
+ int rc;
+
+ if (provenance_is_kernel_recorded(prov_elt(node)) ||
+     !provenance_is_recorded(prov_elt(node)))
+  return 0;
+ spin_lock(prov_lock(node));
+ rc = record_relation(RL_RAN_ON, prov_machine, prov_entry(node), NULL, 0);
+ set_kernel_recorded(prov_elt(node));
+ spin_unlock(prov_lock(node));
+ return rc;
+}
+
 static int current_update_shst(struct provenance *cprov, int read);
-# 220 "provenance_record.h"
+# 234 "../camflow/provenance_record.h"
 static int uses(const int type,
     struct provenance *entity,
     struct provenance *activity,
@@ -154,7 +168,7 @@ static int uses(const int type,
 out:
  return rc;
 }
-# 273 "provenance_record.h"
+# 287 "../camflow/provenance_record.h"
 static int uses_two(const int type,
         struct provenance *entity,
         struct provenance *activity,
@@ -178,7 +192,7 @@ static int uses_two(const int type,
   return 0;
  return record_relation(type, prov_entry(entity), prov_entry(activity), file, flags);
 }
-# 317 "provenance_record.h"
+# 331 "../camflow/provenance_record.h"
 static int generates(const int type,
          struct provenance *activity_mem,
          struct provenance *activity,
@@ -217,7 +231,7 @@ static int generates(const int type,
 out:
  return rc;
 }
-# 372 "provenance_record.h"
+# 386 "../camflow/provenance_record.h"
 static int derives(const int type,
        struct provenance *from,
        struct provenance *to,
@@ -242,7 +256,7 @@ static int derives(const int type,
 
  return record_relation(type, prov_entry(from), prov_entry(to), file, flags);
 }
-# 413 "provenance_record.h"
+# 427 "../camflow/provenance_record.h"
 static int informs(const int type,
        struct provenance *from,
        struct provenance *to,
@@ -266,4 +280,33 @@ static int informs(const int type,
   return 0;
 
  return record_relation(type, prov_entry(from), prov_entry(to), file, flags);
+}
+
+static int influences_kernel(const int type,
+      struct provenance *entity,
+        struct provenance *activity,
+      const struct file *file)
+{
+ int rc;
+
+ BUILD_BUG_ON(!prov_is_influenced(type));
+
+ apply_target(prov_elt(entity));
+ apply_target(prov_elt(activity));
+
+ if (provenance_is_opaque(prov_elt(entity))
+     || provenance_is_opaque(prov_elt(activity)))
+  return 0;
+ rc = record_relation(RL_LOAD_FILE, prov_entry(entity), prov_entry(activity), file, 0);
+ if (rc < 0)
+  goto out;
+ rc = record_relation(type, prov_entry(activity), prov_machine, NULL, 0);
+out:
+ return rc;
+}
+
+static void record_machine(void)
+{
+ pr_info("Provenance: recording machine node...");
+ __write_node(prov_machine);
 }

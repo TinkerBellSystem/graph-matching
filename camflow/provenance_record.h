@@ -13,8 +13,8 @@
 #ifndef _PROVENANCE_RECORD_H
 #define _PROVENANCE_RECORD_H
 
-// #include "provenance.h"
-// #include "provenance_relay.h"
+//#include "provenance.h"
+//#include "provenance_relay.h"
 
 /*!
  * @brief This function updates the version of a provenance node.
@@ -192,6 +192,20 @@ static inline int record_node_name(struct provenance *node,
 	}
 	spin_unlock(prov_lock(node));
 	free_long_provenance(fname_prov);
+	return rc;
+}
+
+static inline int record_kernel_link(struct provenance *node)
+{
+	int rc;
+
+	if (provenance_is_kernel_recorded(prov_elt(node)) ||
+	    !provenance_is_recorded(prov_elt(node)))
+		return 0;
+	spin_lock(prov_lock(node));
+	rc = record_relation(RL_RAN_ON, prov_machine, prov_entry(node), NULL, 0);
+	set_kernel_recorded(prov_elt(node));
+	spin_unlock(prov_lock(node));
 	return rc;
 }
 
@@ -433,5 +447,34 @@ static __always_inline int informs(const uint64_t type,
 		return 0;
 
 	return record_relation(type, prov_entry(from), prov_entry(to), file, flags);
+}
+
+static __always_inline int influences_kernel(const uint64_t type,
+						struct provenance *entity,
+				    struct provenance *activity,
+						const struct file *file)
+{
+	int rc;
+
+	BUILD_BUG_ON(!prov_is_influenced(type));
+
+	apply_target(prov_elt(entity));
+	apply_target(prov_elt(activity));
+
+	if (provenance_is_opaque(prov_elt(entity))
+	    || provenance_is_opaque(prov_elt(activity)))
+		return 0;
+	rc = record_relation(RL_LOAD_FILE, prov_entry(entity), prov_entry(activity), file, 0);
+	if (rc < 0)
+		goto out;
+	rc = record_relation(type, prov_entry(activity), prov_machine, NULL, 0);
+out:
+	return rc;
+}
+
+static __always_inline void record_machine(void)
+{
+	pr_info("Provenance: recording machine node...");
+	__write_node(prov_machine);
 }
 #endif

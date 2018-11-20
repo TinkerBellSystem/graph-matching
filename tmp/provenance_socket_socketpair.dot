@@ -2,34 +2,40 @@ digraph RGL__DirectedAdjacencyGraph {path[fontsize = 8,label = "path",shape = el
 
 process_memory[fontsize = 8,label = "process_memory",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> process_memory[fontsize = 8,label = "named_process15", color="#d9e063"]
+path -> process_memory[fontsize = 8,label = "named_process73", color="#94f084"]
 
-process_memory -> process_memory[fontsize = 8,label = "version_entity16", color="#d9e063"]
+process_memory -> process_memory[fontsize = 8,label = "version_entity74", color="#94f084"]
+
+machine[fontsize = 8,label = "machine",shape = house, fillcolor="#ff8c00", style = filled]
+
+machine -> process_memory[fontsize = 8,label = "ran_on74", color="#94f084"]
+
+process_memory -> process_memory[fontsize = 8,label = "version_entity76", color="#94f084"]
 
 inode[fontsize = 8,label = "inode",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-inode -> process_memory[fontsize = 8,label = "sh_read16", color="#d9e063"]
+inode -> process_memory[fontsize = 8,label = "sh_read76", color="#94f084"]
 
 task[fontsize = 8,label = "task",shape = rectangle, fillcolor="#e6e6fa", style = filled]
 
-task -> task[fontsize = 8,label = "version_activity16", color="#d9e063"]
+task -> task[fontsize = 8,label = "version_activity77", color="#94f084"]
 
-process_memory -> task[fontsize = 8,label = "memory_read16", color="#d9e063"]
+process_memory -> task[fontsize = 8,label = "memory_read77", color="#94f084"]
 
-inode -> inode[fontsize = 8,label = "version_entity16", color="#d9e063"]
+inode -> inode[fontsize = 8,label = "version_entity78", color="#94f084"]
 
-task -> inode[fontsize = 8,label = "socket_pair_create16", color="#d9e063"]
+task -> inode[fontsize = 8,label = "socket_pair_create78", color="#94f084"]
 
-process_memory -> process_memory[fontsize = 8,label = "version_entity17", color="#d9e063"]
+process_memory -> process_memory[fontsize = 8,label = "version_entity80", color="#94f084"]
 
-inode -> process_memory[fontsize = 8,label = "sh_read17", color="#d9e063"]
+inode -> process_memory[fontsize = 8,label = "sh_read80", color="#94f084"]
 
-task -> task[fontsize = 8,label = "version_activity17", color="#d9e063"]
+task -> task[fontsize = 8,label = "version_activity81", color="#94f084"]
 
-process_memory -> task[fontsize = 8,label = "memory_read17", color="#d9e063"]
+process_memory -> task[fontsize = 8,label = "memory_read81", color="#94f084"]
 
-inode -> inode[fontsize = 8,label = "version_entity17", color="#d9e063"]
+inode -> inode[fontsize = 8,label = "version_entity82", color="#94f084"]
 
-task -> inode[fontsize = 8,label = "socket_pair_create17", color="#d9e063"]
+task -> inode[fontsize = 8,label = "socket_pair_create82", color="#94f084"]
 
 }

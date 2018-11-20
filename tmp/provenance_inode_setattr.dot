@@ -2,30 +2,36 @@ digraph RGL__DirectedAdjacencyGraph {path[fontsize = 8,label = "path",shape = el
 
 process_memory[fontsize = 8,label = "process_memory",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> process_memory[fontsize = 8,label = "named_process20", color="#0c599c"]
+path -> process_memory[fontsize = 8,label = "named_process98", color="#3e9830"]
+
+process_memory -> process_memory[fontsize = 8,label = "version_entity99", color="#3e9830"]
+
+machine[fontsize = 8,label = "machine",shape = house, fillcolor="#ff8c00", style = filled]
+
+machine -> process_memory[fontsize = 8,label = "ran_on99", color="#3e9830"]
 
 inode[fontsize = 8,label = "inode",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> inode[fontsize = 8,label = "named20", color="#0c599c"]
+path -> inode[fontsize = 8,label = "named99", color="#3e9830"]
 
-process_memory -> process_memory[fontsize = 8,label = "version_entity21", color="#0c599c"]
+process_memory -> process_memory[fontsize = 8,label = "version_entity101", color="#3e9830"]
 
-inode -> process_memory[fontsize = 8,label = "sh_read21", color="#0c599c"]
+inode -> process_memory[fontsize = 8,label = "sh_read101", color="#3e9830"]
 
 task[fontsize = 8,label = "task",shape = rectangle, fillcolor="#e6e6fa", style = filled]
 
-task -> task[fontsize = 8,label = "version_activity21", color="#0c599c"]
+task -> task[fontsize = 8,label = "version_activity102", color="#3e9830"]
 
-process_memory -> task[fontsize = 8,label = "memory_read21", color="#0c599c"]
+process_memory -> task[fontsize = 8,label = "memory_read102", color="#3e9830"]
 
 iattr[fontsize = 8,label = "iattr",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-iattr -> iattr[fontsize = 8,label = "version_entity21", color="#0c599c"]
+iattr -> iattr[fontsize = 8,label = "version_entity103", color="#3e9830"]
 
-task -> iattr[fontsize = 8,label = "setattr21", color="#0c599c"]
+task -> iattr[fontsize = 8,label = "setattr103", color="#3e9830"]
 
-inode -> inode[fontsize = 8,label = "version_entity21", color="#0c599c"]
+inode -> inode[fontsize = 8,label = "version_entity104", color="#3e9830"]
 
-iattr -> inode[fontsize = 8,label = "setattr_inode21", color="#0c599c"]
+iattr -> inode[fontsize = 8,label = "setattr_inode104", color="#3e9830"]
 
 }
