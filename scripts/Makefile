@@ -39,5 +39,8 @@ preprocess_record:
 analyze:
 	python ast.py
 
+draw_demo:
+	dot -Tpng demo_shm_shmat.dot -o ../img/demo_shm_shmat.png
+
 all: remedy_record preprocess_record remedy_hooks preprocess_hooks analyze
 
