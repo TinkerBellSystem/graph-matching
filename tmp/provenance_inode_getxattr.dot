@@ -2,32 +2,30 @@ digraph RGL__DirectedAdjacencyGraph {path[fontsize = 8,label = "path",shape = el
 
 process_memory[fontsize = 8,label = "process_memory",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> process_memory[fontsize = 8,label = "named_process104", color="#3e9830"]
+path -> process_memory[fontsize = 8,label = "named_process", color="#000000"]
 
-process_memory -> process_memory[fontsize = 8,label = "version_entity105", color="#3e9830"]
+process_memory -> process_memory[fontsize = 8,label = "version_entity", color="#000000"]
 
 machine[fontsize = 8,label = "machine",shape = house, fillcolor="#ff8c00", style = filled]
 
-machine -> process_memory[fontsize = 8,label = "ran_on105", color="#3e9830"]
+machine -> process_memory[fontsize = 8,label = "ran_on", color="#000000"]
 
 inode[fontsize = 8,label = "inode",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> inode[fontsize = 8,label = "named105", color="#3e9830"]
+path -> inode[fontsize = 8,label = "named", color="#000000"]
 
 xattr[fontsize = 8,label = "xattr",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-xattr -> xattr[fontsize = 8,label = "version_entity106", color="#3e9830"]
+xattr -> xattr[fontsize = 8,label = "version_entity", color="#000000"]
 
-inode -> xattr[fontsize = 8,label = "getxattr_inode106", color="#3e9830"]
+inode -> xattr[fontsize = 8,label = "getxattr_inode", color="#000000"]
 
 task[fontsize = 8,label = "task",shape = rectangle, fillcolor="#e6e6fa", style = filled]
 
-task -> task[fontsize = 8,label = "version_activity107", color="#3e9830"]
+task -> task[fontsize = 8,label = "version_activity", color="#000000"]
 
-xattr -> task[fontsize = 8,label = "getxattr107", color="#3e9830"]
+xattr -> task[fontsize = 8,label = "getxattr", color="#000000"]
 
-process_memory -> process_memory[fontsize = 8,label = "version_entity108", color="#3e9830"]
-
-task -> process_memory[fontsize = 8,label = "memory_write108", color="#3e9830"]
+task -> process_memory[fontsize = 8,label = "memory_write", color="#000000"]
 
 }

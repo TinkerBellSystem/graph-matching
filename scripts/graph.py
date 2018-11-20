@@ -33,7 +33,7 @@ class Graph:
 		self.str += "\n\n"
 
 	def add_string(self, provenance_str, color):
-		elements = re.match(r"([a-z_]+)-([a-z_]+[0-9]+)->([a-z_]+)", provenance_str.strip())
+		elements = re.match(r"([a-z_]+)-([a-z_]+[0-9]*)->([a-z_]+)", provenance_str.strip())
 		if elements.group(1) not in self.objects: 
 			self.add_entity(elements.group(1))
 			self.objects.append(elements.group(1))

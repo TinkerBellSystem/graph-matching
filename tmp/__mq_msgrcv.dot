@@ -1,21 +1,21 @@
 digraph RGL__DirectedAdjacencyGraph {task[fontsize = 8,label = "task",shape = rectangle, fillcolor="#e6e6fa", style = filled]
 
-task -> task[fontsize = 8,label = "version_activity224", color="#46fe94"]
+task -> task[fontsize = 8,label = "version_activity", color="#000000"]
 
 msg[fontsize = 8,label = "msg",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-msg -> task[fontsize = 8,label = "receive_msg_queue224", color="#46fe94"]
+msg -> task[fontsize = 8,label = "receive_msg_queue", color="#000000"]
 
 process_memory[fontsize = 8,label = "process_memory",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-process_memory -> process_memory[fontsize = 8,label = "version_entity225", color="#46fe94"]
+process_memory -> process_memory[fontsize = 8,label = "version_entity", color="#000000"]
 
-task -> process_memory[fontsize = 8,label = "memory_write225", color="#46fe94"]
+task -> process_memory[fontsize = 8,label = "memory_write", color="#000000"]
 
 inode[fontsize = 8,label = "inode",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-inode -> inode[fontsize = 8,label = "version_entity227", color="#46fe94"]
+inode -> inode[fontsize = 8,label = "version_entity", color="#000000"]
 
-process_memory -> inode[fontsize = 8,label = "sh_write227", color="#46fe94"]
+process_memory -> inode[fontsize = 8,label = "sh_write", color="#000000"]
 
 }

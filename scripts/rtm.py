@@ -284,6 +284,68 @@ class Relation():
 			else:
 				self.right.draw_rtm(graph)
 
+	def draw_rtm_simplify(self, graph):
+		if self.op == None:
+			if self.right != None:
+				print('\33[103m' + '[error]: None OP should not have non-None type RHS ' + '\033[0m')
+			if self.left == None:
+				pass
+			elif isinstance(self.left, MotifEdge):
+				graph_str = self.left.src_node.mn_type + '-' + self.left.me_type + '->' + self.left.dst_node.mn_type
+				graph.add_string(graph_str, Relation.color)
+			else:
+				self.left.draw_rtm_simplify(graph)
+		elif self.op == '*':
+			if self.right != None:
+				print('\33[103m' + '[error]: "*" OP should not have non-None type RHS ' + '\033[0m')
+			if self.left == None:
+				print('\33[103m' + '[error]: "*" OP should not have None type LHS ' + '\033[0m')
+			elif isinstance(self.left, MotifEdge):
+				graph_str = self.left.src_node.mn_type + '-' + self.left.me_type + '->' + self.left.dst_node.mn_type
+				graph.add_string(graph_str, Relation.color)
+			else:
+				self.left.draw_rtm_simplify(graph)
+		elif self.op == '?':
+			if self.right != None:
+				print('\33[103m' + '[error]: "?" OP should not have non-None type RHS ' + '\033[0m')
+			if self.left == None:
+				print('\33[103m' + '[error]: "?" OP should not have None type LHS ' + '\033[0m')
+			elif isinstance(self.left, MotifEdge):
+				graph_str = self.left.src_node.mn_type + '-' + self.left.me_type + '->' + self.left.dst_node.mn_type
+				graph.add_string(graph_str, Relation.color)
+			else:
+				self.left.draw_rtm_simplify(graph)
+		elif self.op == '|':
+			if self.left == None:
+				pass
+			elif isinstance(self.left, MotifEdge):
+				graph_str = self.left.src_node.mn_type + '-' + self.left.me_type + '->' + self.left.dst_node.mn_type
+				graph.add_string(graph_str, Relation.color)
+			else:
+				self.left.draw_rtm_simplify(graph)
+			if self.right == None:
+				pass
+			elif isinstance(self.right, MotifEdge):
+				graph_str = self.right.src_node.mn_type + '-' + self.right.me_type + '->' + self.right.dst_node.mn_type
+				graph.add_string(graph_str, Relation.color)
+			else:
+				self.right.draw_rtm_simplify(graph)
+		elif self.op == '()':
+			if self.left == None:
+				pass
+			elif isinstance(self.left, MotifEdge):
+				graph_str = self.left.src_node.mn_type + '-' + self.left.me_type + '->' + self.left.dst_node.mn_type
+				graph.add_string(graph_str, Relation.color)
+			else:
+				self.left.draw_rtm_simplify(graph)
+			if self.right == None:
+				pass
+			elif isinstance(self.right, MotifEdge):
+				graph_str = self.right.src_node.mn_type + '-' + self.right.me_type + '->' + self.right.dst_node.mn_type
+				graph.add_string(graph_str, Relation.color)
+			else:
+				self.right.draw_rtm_simplify(graph)
+
 class RegularTemporalMotif():
 	"""
 	A regular temporal motif (RTM) consists of a list of relations (Relation) in the motif.
@@ -313,7 +375,8 @@ class RegularTemporalMotif():
 
 	def draw_rtm(self, graph):
 		for relation in self.relations:
-			relation.draw_rtm(graph)
+			# relation.draw_rtm(graph)
+			relation.draw_rtm_simplify(graph)
 
 
 

@@ -2,24 +2,20 @@ digraph RGL__DirectedAdjacencyGraph {path[fontsize = 8,label = "path",shape = el
 
 process_memory[fontsize = 8,label = "process_memory",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> process_memory[fontsize = 8,label = "named_process308", color="#e0fd54"]
+path -> process_memory[fontsize = 8,label = "named_process", color="#000000"]
 
-process_memory -> process_memory[fontsize = 8,label = "version_entity309", color="#e0fd54"]
+process_memory -> process_memory[fontsize = 8,label = "version_entity", color="#000000"]
 
 machine[fontsize = 8,label = "machine",shape = house, fillcolor="#ff8c00", style = filled]
 
-machine -> process_memory[fontsize = 8,label = "ran_on309", color="#e0fd54"]
+machine -> process_memory[fontsize = 8,label = "ran_on", color="#000000"]
 
 inode[fontsize = 8,label = "inode",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> inode[fontsize = 8,label = "named309", color="#e0fd54"]
+path -> inode[fontsize = 8,label = "named", color="#000000"]
 
-process_memory -> process_memory[fontsize = 8,label = "version_entity310", color="#e0fd54"]
+process_memory -> process_memory[fontsize = 8,label = "exec_task", color="#000000"]
 
-process_memory -> process_memory[fontsize = 8,label = "exec_task310", color="#e0fd54"]
-
-process_memory -> process_memory[fontsize = 8,label = "version_entity311", color="#e0fd54"]
-
-inode -> process_memory[fontsize = 8,label = "exec311", color="#e0fd54"]
+inode -> process_memory[fontsize = 8,label = "exec", color="#000000"]
 
 }

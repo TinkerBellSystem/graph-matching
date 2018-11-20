@@ -1,15 +1,15 @@
 digraph RGL__DirectedAdjacencyGraph {packet[fontsize = 8,label = "packet",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-packet -> packet[fontsize = 8,label = "version_entity72", color="#94f084"]
+packet -> packet[fontsize = 8,label = "version_entity", color="#000000"]
 
 packet_content[fontsize = 8,label = "packet_content",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-packet_content -> packet[fontsize = 8,label = "packet_content72", color="#94f084"]
+packet_content -> packet[fontsize = 8,label = "packet_content", color="#000000"]
 
 inode[fontsize = 8,label = "inode",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-inode -> inode[fontsize = 8,label = "version_entity73", color="#94f084"]
+inode -> inode[fontsize = 8,label = "version_entity", color="#000000"]
 
-packet -> inode[fontsize = 8,label = "receive_packet73", color="#94f084"]
+packet -> inode[fontsize = 8,label = "receive_packet", color="#000000"]
 
 }

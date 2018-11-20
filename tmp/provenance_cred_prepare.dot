@@ -1,19 +1,17 @@
 digraph RGL__DirectedAdjacencyGraph {process_memory[fontsize = 8,label = "process_memory",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-process_memory -> process_memory[fontsize = 8,label = "version_entity264", color="#1f1fa0"]
+process_memory -> process_memory[fontsize = 8,label = "version_entity", color="#000000"]
 
 inode[fontsize = 8,label = "inode",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-inode -> process_memory[fontsize = 8,label = "sh_read264", color="#1f1fa0"]
+inode -> process_memory[fontsize = 8,label = "sh_read", color="#000000"]
 
 task[fontsize = 8,label = "task",shape = rectangle, fillcolor="#e6e6fa", style = filled]
 
-task -> task[fontsize = 8,label = "version_activity265", color="#1f1fa0"]
+task -> task[fontsize = 8,label = "version_activity", color="#000000"]
 
-process_memory -> task[fontsize = 8,label = "memory_read265", color="#1f1fa0"]
+process_memory -> task[fontsize = 8,label = "memory_read", color="#000000"]
 
-process_memory -> process_memory[fontsize = 8,label = "version_entity266", color="#1f1fa0"]
-
-task -> process_memory[fontsize = 8,label = "clone_mem266", color="#1f1fa0"]
+task -> process_memory[fontsize = 8,label = "clone_mem", color="#000000"]
 
 }

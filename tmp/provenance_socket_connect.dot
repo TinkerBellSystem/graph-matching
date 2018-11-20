@@ -2,32 +2,30 @@ digraph RGL__DirectedAdjacencyGraph {path[fontsize = 8,label = "path",shape = el
 
 process_memory[fontsize = 8,label = "process_memory",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> process_memory[fontsize = 8,label = "named_process227", color="#46fe94"]
+path -> process_memory[fontsize = 8,label = "named_process", color="#000000"]
 
-process_memory -> process_memory[fontsize = 8,label = "version_entity228", color="#46fe94"]
+process_memory -> process_memory[fontsize = 8,label = "version_entity", color="#000000"]
 
 machine[fontsize = 8,label = "machine",shape = house, fillcolor="#ff8c00", style = filled]
 
-machine -> process_memory[fontsize = 8,label = "ran_on228", color="#46fe94"]
+machine -> process_memory[fontsize = 8,label = "ran_on", color="#000000"]
 
 address[fontsize = 8,label = "address",shape = ellipse, fillcolor="#fffacd", style = filled]
 
 inode[fontsize = 8,label = "inode",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-address -> inode[fontsize = 8,label = "named228", color="#46fe94"]
+address -> inode[fontsize = 8,label = "named", color="#000000"]
 
-process_memory -> process_memory[fontsize = 8,label = "version_entity230", color="#46fe94"]
-
-inode -> process_memory[fontsize = 8,label = "sh_read230", color="#46fe94"]
+inode -> process_memory[fontsize = 8,label = "sh_read", color="#000000"]
 
 task[fontsize = 8,label = "task",shape = rectangle, fillcolor="#e6e6fa", style = filled]
 
-task -> task[fontsize = 8,label = "version_activity231", color="#46fe94"]
+task -> task[fontsize = 8,label = "version_activity", color="#000000"]
 
-process_memory -> task[fontsize = 8,label = "memory_read231", color="#46fe94"]
+process_memory -> task[fontsize = 8,label = "memory_read", color="#000000"]
 
-inode -> inode[fontsize = 8,label = "version_entity232", color="#46fe94"]
+inode -> inode[fontsize = 8,label = "version_entity", color="#000000"]
 
-task -> inode[fontsize = 8,label = "connect232", color="#46fe94"]
+task -> inode[fontsize = 8,label = "connect", color="#000000"]
 
 }

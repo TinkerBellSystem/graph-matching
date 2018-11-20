@@ -2,30 +2,28 @@ digraph RGL__DirectedAdjacencyGraph {path[fontsize = 8,label = "path",shape = el
 
 process_memory[fontsize = 8,label = "process_memory",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> process_memory[fontsize = 8,label = "named_process167", color="#d8c86a"]
+path -> process_memory[fontsize = 8,label = "named_process", color="#000000"]
 
-process_memory -> process_memory[fontsize = 8,label = "version_entity168", color="#d8c86a"]
+process_memory -> process_memory[fontsize = 8,label = "version_entity", color="#000000"]
 
 machine[fontsize = 8,label = "machine",shape = house, fillcolor="#ff8c00", style = filled]
 
-machine -> process_memory[fontsize = 8,label = "ran_on168", color="#d8c86a"]
-
-process_memory -> process_memory[fontsize = 8,label = "version_entity170", color="#d8c86a"]
+machine -> process_memory[fontsize = 8,label = "ran_on", color="#000000"]
 
 inode[fontsize = 8,label = "inode",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-inode -> process_memory[fontsize = 8,label = "sh_read170", color="#d8c86a"]
+inode -> process_memory[fontsize = 8,label = "sh_read", color="#000000"]
 
 task[fontsize = 8,label = "task",shape = rectangle, fillcolor="#e6e6fa", style = filled]
 
-task -> task[fontsize = 8,label = "version_activity171", color="#d8c86a"]
+task -> task[fontsize = 8,label = "version_activity", color="#000000"]
 
-process_memory -> task[fontsize = 8,label = "memory_read171", color="#d8c86a"]
+process_memory -> task[fontsize = 8,label = "memory_read", color="#000000"]
 
 msg[fontsize = 8,label = "msg",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-msg -> msg[fontsize = 8,label = "version_entity172", color="#d8c86a"]
+msg -> msg[fontsize = 8,label = "version_entity", color="#000000"]
 
-task -> msg[fontsize = 8,label = "send_msg_queue172", color="#d8c86a"]
+task -> msg[fontsize = 8,label = "send_msg_queue", color="#000000"]
 
 }

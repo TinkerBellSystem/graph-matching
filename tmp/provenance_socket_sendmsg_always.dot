@@ -2,32 +2,28 @@ digraph RGL__DirectedAdjacencyGraph {path[fontsize = 8,label = "path",shape = el
 
 process_memory[fontsize = 8,label = "process_memory",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> process_memory[fontsize = 8,label = "named_process192", color="#b7394b"]
+path -> process_memory[fontsize = 8,label = "named_process", color="#000000"]
 
-process_memory -> process_memory[fontsize = 8,label = "version_entity193", color="#b7394b"]
+process_memory -> process_memory[fontsize = 8,label = "version_entity", color="#000000"]
 
 machine[fontsize = 8,label = "machine",shape = house, fillcolor="#ff8c00", style = filled]
 
-machine -> process_memory[fontsize = 8,label = "ran_on193", color="#b7394b"]
-
-process_memory -> process_memory[fontsize = 8,label = "version_entity195", color="#b7394b"]
+machine -> process_memory[fontsize = 8,label = "ran_on", color="#000000"]
 
 inode[fontsize = 8,label = "inode",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-inode -> process_memory[fontsize = 8,label = "sh_read195", color="#b7394b"]
+inode -> process_memory[fontsize = 8,label = "sh_read", color="#000000"]
 
 task[fontsize = 8,label = "task",shape = rectangle, fillcolor="#e6e6fa", style = filled]
 
-task -> task[fontsize = 8,label = "version_activity196", color="#b7394b"]
+task -> task[fontsize = 8,label = "version_activity", color="#000000"]
 
-process_memory -> task[fontsize = 8,label = "memory_read196", color="#b7394b"]
+process_memory -> task[fontsize = 8,label = "memory_read", color="#000000"]
 
-inode -> inode[fontsize = 8,label = "version_entity197", color="#b7394b"]
+inode -> inode[fontsize = 8,label = "version_entity", color="#000000"]
 
-task -> inode[fontsize = 8,label = "send_msg197", color="#b7394b"]
+task -> inode[fontsize = 8,label = "send_msg", color="#000000"]
 
-inode -> inode[fontsize = 8,label = "version_entity198", color="#d0b2a7"]
-
-inode -> inode[fontsize = 8,label = "receive_unix198", color="#d0b2a7"]
+inode -> inode[fontsize = 8,label = "receive_unix", color="#000000"]
 
 }

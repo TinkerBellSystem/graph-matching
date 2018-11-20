@@ -2,32 +2,32 @@ digraph RGL__DirectedAdjacencyGraph {path[fontsize = 8,label = "path",shape = el
 
 process_memory[fontsize = 8,label = "process_memory",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> process_memory[fontsize = 8,label = "named_process67", color="#325106"]
+path -> process_memory[fontsize = 8,label = "named_process", color="#000000"]
 
-process_memory -> process_memory[fontsize = 8,label = "version_entity68", color="#325106"]
+process_memory -> process_memory[fontsize = 8,label = "version_entity", color="#000000"]
 
 machine[fontsize = 8,label = "machine",shape = house, fillcolor="#ff8c00", style = filled]
 
-machine -> process_memory[fontsize = 8,label = "ran_on68", color="#325106"]
+machine -> process_memory[fontsize = 8,label = "ran_on", color="#000000"]
 
 inode[fontsize = 8,label = "inode",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> inode[fontsize = 8,label = "named68", color="#325106"]
+path -> inode[fontsize = 8,label = "named", color="#000000"]
 
 task[fontsize = 8,label = "task",shape = rectangle, fillcolor="#e6e6fa", style = filled]
 
-task -> task[fontsize = 8,label = "version_activity69", color="#325106"]
+task -> task[fontsize = 8,label = "version_activity", color="#000000"]
 
-process_memory -> task[fontsize = 8,label = "memory_read69", color="#325106"]
+process_memory -> task[fontsize = 8,label = "memory_read", color="#000000"]
 
 xattr[fontsize = 8,label = "xattr",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-xattr -> xattr[fontsize = 8,label = "version_entity70", color="#325106"]
+xattr -> xattr[fontsize = 8,label = "version_entity", color="#000000"]
 
-task -> xattr[fontsize = 8,label = "removexattr70", color="#325106"]
+task -> xattr[fontsize = 8,label = "removexattr", color="#000000"]
 
-inode -> inode[fontsize = 8,label = "version_entity71", color="#325106"]
+inode -> inode[fontsize = 8,label = "version_entity", color="#000000"]
 
-xattr -> inode[fontsize = 8,label = "removexattr_inode71", color="#325106"]
+xattr -> inode[fontsize = 8,label = "removexattr_inode", color="#000000"]
 
 }

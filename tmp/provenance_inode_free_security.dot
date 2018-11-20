@@ -1,5 +1,5 @@
 digraph RGL__DirectedAdjacencyGraph {inode[fontsize = 8,label = "inode",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-inode -> inode[fontsize = 8,label = "free266", color="#9aa164"]
+inode -> inode[fontsize = 8,label = "free", color="#000000"]
 
 }
