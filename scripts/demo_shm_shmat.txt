@@ -1,15 +1,15 @@
-1. path-named_process->process_memory
-2. process_memory-version_entity->process_memory ?
-3. machine-ran_on->process_memory
-4. task-version_activity->task?
-5. shm-sh_attach_read->task
-6. process_memory-version_entity->process_memory ?
-7. task-memory_write->process_memory
+1. path-named->process
+2. process-versioned->process ?
+3. kernel-ran_on->process
+4. thread-versioned->thread?
+5. shared_memory-read->thread
+6. process-versioned->process ?
+7. thread-write->process
 
-(8. task-version_activity->task ?
- 9. process_memory-memory_read->task
- 10. shm-version_entity->shm ?
- 11. task-sh_attach_write->shm
+(8. thread-versioned->thread ?
+ 9. process-read->thread
+ 10. shared_memory-versioned->shared_memory ?
+ 11. thread-write->shared_memory
 )
 |
 None

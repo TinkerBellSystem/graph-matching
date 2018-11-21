@@ -1,33 +1,33 @@
 digraph RGL__DirectedAdjacencyGraph {path[fontsize = 8,label = "path",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-process_memory[fontsize = 8,label = "process_memory",shape = ellipse, fillcolor="#fffacd", style = filled]
+process[fontsize = 8,label = "process",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-path -> process_memory[fontsize = 8,label = "1-named_process", color="#000000"]
+path -> process[fontsize = 8,label = "1-named", color="#000000"]
 
-process_memory -> process_memory[fontsize = 8,label = "2-version_entity", color="#000000", style = dashed]
+process -> process[fontsize = 8,label = "2-versioned", color="#000000", style = dashed]
 
-machine[fontsize = 8,label = "machine",shape = house, fillcolor="#ff8c00", style = filled]
+kernel[fontsize = 8,label = "kernel",shape = house, fillcolor="#ff8c00", style = filled]
 
-machine -> process_memory[fontsize = 8,label = "3-ran_on", color="#000000"]
+kernel -> process[fontsize = 8,label = "3-ran_on", color="#000000"]
 
-task[fontsize = 8,label = "task",shape = rectangle, fillcolor="#e6e6fa", style = filled]
+thread[fontsize = 8,label = "thread",shape = rectangle, fillcolor="#e6e6fa", style = filled]
 
-task -> task[fontsize = 8,label = "4-version_activity", color="#000000", style = dashed]
+thread -> thread[fontsize = 8,label = "4-versioned", color="#000000", style = dashed]
 
-shm[fontsize = 8,label = "shm",shape = ellipse, fillcolor="#fffacd", style = filled]
+shared_memory[fontsize = 8,label = "shared_memory",shape = ellipse, fillcolor="#fffacd", style = filled]
 
-shm -> task[fontsize = 8,label = "5-sh_attach_read", color="#000000"]
+shared_memory -> thread[fontsize = 8,label = "5-read", color="#000000"]
 
-process_memory -> process_memory[fontsize = 8,label = "6-version_entity", color="#000000", style = dashed]
+process -> process[fontsize = 8,label = "6-versioned", color="#000000", style = dashed]
 
-task -> process_memory[fontsize = 8,label = "7-memory_write", color="#000000"]
+thread -> process[fontsize = 8,label = "7-write", color="#000000"]
 
-task -> task[fontsize = 8,label = "8-version_activity", color="#40e0d0", style = dashed]
+thread -> thread[fontsize = 8,label = "8-versioned", color="#40e0d0", style = dashed]
 
-process_memory -> task[fontsize = 8,label = "9-memory_read", color="#40e0d0"]
+process -> thread[fontsize = 8,label = "9-read", color="#40e0d0"]
 
-shm -> shm[fontsize = 8,label = "10-version_entity", color="#40e0d0", style = dashed]
+shared_memory -> shared_memory[fontsize = 8,label = "10-versioned", color="#40e0d0", style = dashed]
 
-task -> shm[fontsize = 8,label = "11-sh_attach_write", color="#40e0d0"]
+thread -> shared_memory[fontsize = 8,label = "11-write", color="#40e0d0"]
 
 }
