@@ -26,10 +26,12 @@ inode -> inode[fontsize = 8,label = "version_entity", color="#000000"]
 
 process_memory -> inode[fontsize = 8,label = "sh_write", color="#000000"]
 
-process_memory -> task[fontsize = 8,label = "sh_attach_write", color="#000000"]
+inode -> process_memory[fontsize = 8,label = "sh_read", color="#000000"]
+
+process_memory -> task[fontsize = 8,label = "memory_read", color="#000000"]
 
 shm -> shm[fontsize = 8,label = "version_entity", color="#000000"]
 
-task -> shm[fontsize = 8,label = "memory_write", color="#000000"]
+task -> shm[fontsize = 8,label = "sh_attach_write", color="#000000"]
 
 }
