@@ -1,6 +1,6 @@
 # Author: Xueyuan Michael Han <hanx@g.harvard.edu>
 #
-# Copyright (C) 2015-2018 Harvard University, University of Cambridge
+# Copyright (C) 2018 Harvard University, University of Cambridge
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2, as
@@ -218,8 +218,8 @@ def eval_hook(function_body, ast):
 # to build the correct AST. 
 
 # Parse the preprocessed hooks.c file.
-ast = parse_file("../camflow/hooks_pp.c")
-record_ast = parse_file("../camflow/provenance_record_pp.h")
+ast = parse_file("./camflow/hooks_pp.c")
+record_ast = parse_file("./camflow/provenance_record_pp.h")
 # Uncomment the following line to see the AST in a nice, human
 # readable way. show() is the most useful tool in exploring ASTs
 # created by pycparser. See the c_ast.py file for the options you
@@ -297,9 +297,9 @@ for hookname, motif in hooks.iteritems():
     g = Graph()
     motif.draw_rtm(g)
     dot_str = g.get_graph()
-    with open('../tmp/'+ hookname +'.dot', 'w') as f:
+    with open('../dot/'+ hookname +'.dot', 'w') as f:
         f.write(dot_str)
     f.close()
-    # os.system('dot -Tpng ../tmp/'+ hookname +'.dot -o ../img/'+ hookname +'.png')
+    # os.system('dot -Tpng ../dot/'+ hookname +'.dot -o ../img/'+ hookname +'.png')
 
 

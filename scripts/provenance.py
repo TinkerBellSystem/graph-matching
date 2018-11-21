@@ -15,7 +15,7 @@ def relation_to_str(str):
 	Returns a corresponding relation string given the relation name.
 	The information is stored in "type.c".
 	"""
-	with open('../camflow/type.c', 'r') as f:
+	with open('./camflow/type.c', 'r') as f:
 		for line in f:
 			matched = re.match(r"\s*static\s*const\s*char\s*RL_STR_(\w+)\[\]\s*=\s*\"(\w+)\"\s*;\s*\/\/\s*([\w\s]+)", line.strip())	# Match the lines in the "type.c" file that contains types.
 			if matched is not None:	# Find the right lines

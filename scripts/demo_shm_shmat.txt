@@ -5,13 +5,12 @@
 5. shm-sh_attach_read->task
 6. process_memory-version_entity->process_memory ?
 7. task-memory_write->process_memory
-(8. inode-version_entity->inode ?, 9. process_memory-sh_write->inode) *
 
-(10. task-version_activity->task ?
- 11. process_memory-sh_attach_write->task
- 12. shm-version_entity->shm ?
- 13. task-memory_write->shm
- (14. inode-version_entity->inode ?, 15. process_memory-sh_write->inode) *
+(8. task-version_activity->task ?
+ 9. process_memory-memory_read->task
+ 10. shm-version_entity->shm ?
+ 11. task-sh_attach_write->shm
 )
 |
 None
+
