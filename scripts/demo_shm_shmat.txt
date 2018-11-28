@@ -14,3 +14,14 @@
 |
 None
 
+A: path-named->process
+B: process-versioned->process
+C: kernel-ran_on->process
+D: thread-versioned->thread
+E: shared_memory-read->thread
+F: thread-write->process
+G: process-read->thread
+H: shared_memory-versioned->shared_memory
+I: thread-write->shared_memory
+
+AB?CD?EB?F((D?GH?I)|)
