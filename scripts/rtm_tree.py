@@ -11,10 +11,10 @@ import struct
 import random
 
 class MotifNode():
-"""
-Each node (identified by @mn_id) in the RTM has attributes: 
-* mn_ty: type of the node in the motif.
-"""
+	"""
+	Each node (identified by @mn_id) in the RTM has attributes: 
+	* mn_ty: type of the node in the motif.
+	"""
 	node_id = 0	# Unique motif node ID for each new node.
 
 	def __init__(self, mn_ty):
