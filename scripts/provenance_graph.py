@@ -8,7 +8,7 @@
 # or (at your option) any later version.
 
 import re
-from rtm import *
+from rtm_graph import *
 
 def relation_to_str(str):
 	"""

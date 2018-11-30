@@ -94,7 +94,7 @@ class Relation():
 
 	@property
 	def left(self):
-		return self.__dleft
+		return self.__left
 
 	@property
 	def right(self):

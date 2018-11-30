@@ -8,6 +8,7 @@
 # or (at your option) any later version.
 import numpy as np
 
+#TODO: G should be implemented as a map, not a matrix.
 def findNextMatch(G, E, e_M, e_G, map_MG, map_GM, t, E_G, E_M, elm_G, elm_M, nlm_G, nlm_M):
 """
 Finding the next matching temporal edge that matches edge e_M in the motif M.
@@ -71,6 +72,11 @@ nlm_M: a mapping of nodes in M (motif) to its label(s).
 
 	# Reach here only if no match is found.
 	return len(E_G)
+
+def nextMotifEdge(M, ):
+"""
+Finding the next edge (temporally ordered) of the motif
+"""
 
 def motifMatch(G, M, delta, V_G, V_M, map_GM, map_MG):
 """
