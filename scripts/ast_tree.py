@@ -233,6 +233,8 @@ def eval_function_body(function_body, motif_node_dict, ast):
     for item in function_body.block_items:
         if type(item).__name__ == 'FuncCall':   # Case 1: provenance-graph-related function call
             right = eval_prov_func_call(item, motif_node_dict, ast)
+            if type(right).__name__ == 'tuple': # If we do not care about the new node becasue we are not assigning to anything.
+                right = right[1]
             if right == None and relation == None:
                 relation = None
             elif right != None:
@@ -337,7 +339,10 @@ for ext in ast.ext:
             function_body = ext.body
             if function_body.block_items != None:
                 motif = eval_hook(function_body, record_ast)
-                hooks[function_name] = motif
+                if motif != None:
+                    hooks[function_name] = motif
+                else:
+                    print(function_name + " does not have an RTM Motif.")
                     
 # Deal with function hooks that are not explicitly defined
 hooks['provenance_socket_sendmsg'] = hooks['provenance_socket_sendmsg_always']
@@ -354,4 +359,6 @@ for hookname, motif in hooks.iteritems():
     print("\n+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
     print(hookname)
     print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+    
+
     

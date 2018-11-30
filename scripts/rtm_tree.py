@@ -105,6 +105,15 @@ class RTMTreeNode():
 	def value(self):
 		return self.__value
 
+	def findLeftMostNode(self):
+		"""
+		Find left most (leaf) node.
+		"""
+		node = self
+		while node.left != None:
+			node = node.left
+		return node
+
 
 
 
