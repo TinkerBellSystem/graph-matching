@@ -335,9 +335,10 @@ for ext in ast.ext:
         function_name = function_decl.name
 
         # We skip those that are not explicitly defined
-        if function_name != 'provenance_socket_sendmsg' or function_name != 'provenance_socket_recvmsg' or function_name != 'provenance_inode_rename' or function_name != 'provenance_msg_queue_msgsnd' or function_name != 'provenance_mq_timedsend' or function_name != 'provenance_msg_queue_msgrcv' or function_name != 'provenance_mq_timedreceive' or function_name != "__mq_msgsnd" or function_name != "__mq_msgrcv" or function_name != 'provenance_inode_rename':
+        if function_name != 'provenance_socket_sendmsg' and function_name != 'provenance_socket_recvmsg' and function_name != 'provenance_inode_rename' and function_name != 'provenance_msg_queue_msgsnd' and function_name != 'provenance_mq_timedsend' and function_name != 'provenance_msg_queue_msgrcv' and function_name != 'provenance_mq_timedreceive' and function_name != "__mq_msgsnd" and function_name != "__mq_msgrcv" and function_name != 'provenance_inode_rename':
             function_body = ext.body
             if function_body.block_items != None:
+                MotifNode.node_id = 0
                 motif = eval_hook(function_body, record_ast)
                 if motif != None:
                     hooks[function_name] = motif
@@ -359,6 +360,6 @@ for hookname, motif in hooks.iteritems():
     print("\n+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
     print(hookname)
     print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
-    
+    inorder_traversal(motif)
 
     

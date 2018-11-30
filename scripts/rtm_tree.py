@@ -54,6 +54,9 @@ class MotifEdge():
 	def me_ty(self):
 		return self.__me_ty
 
+	def print_edge(self):
+		print(str(self.src_node.mn_id) + "-" + self.me_ty + "->" + str(self.dst_node.mn_id))
+
 class RTMTreeNode():
 	"""
 	A binary tree that represents the regular temporal motif (RTM) with regular expression operators in the internal tree nodes and MotifEdges in the leaf nodes.
@@ -113,6 +116,21 @@ class RTMTreeNode():
 		while node.left != None:
 			node = node.left
 		return node
+
+def is_operator(c):
+	if c == '*' or c == '?' or c == '.' or c == '|':
+		return True
+	else:
+		return False 
+
+def inorder_traversal(node):
+	if node is not None: 
+		inorder_traversal(node.left) 
+		if is_operator(node.value):
+			print(node.value)
+		else:
+			node.value.print_edge()
+		inorder_traversal(node.right) 
 
 
 

@@ -128,7 +128,7 @@ def update_version_relation(motif_node):
 	else:
 		new_motif_node = MotifNode(motif_node.mn_ty)
 		motif_edge = MotifEdge(motif_node, new_motif_node, relation_to_str('RL_VERSION'))
-	return new_motif_node, create_question_mark_node(motif_edge)
+	return new_motif_node, create_question_mark_node(create_leaf_node(motif_edge))
 
 def record_relation(from_node, to_node, edge_type):
 	"""
