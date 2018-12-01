@@ -55,7 +55,7 @@ class MotifEdge():
 		return self.__me_ty
 
 	def print_edge(self):
-		print(str(self.src_node.mn_id) + "-" + self.me_ty + "->" + str(self.dst_node.mn_id))
+		print(str(self.src_node.mn_id) + "-" + self.me_ty + "->" + str(self.dst_node.mn_id) + '   ', end='')
 
 class RTMTreeNode():
 	"""
@@ -124,13 +124,50 @@ def is_operator(c):
 		return False 
 
 def inorder_traversal(node):
+	"""
+	Inorder traversal follows the sequence of the operation.
+	"""
 	if node is not None: 
 		inorder_traversal(node.left) 
 		if is_operator(node.value):
 			print(node.value)
 		else:
 			node.value.print_edge()
-		inorder_traversal(node.right) 
+		inorder_traversal(node.right)
+
+def _is_all_None(l):
+	is_all_None = True
+	for e in l:
+		if e != None:
+			is_all_None = False
+	return is_all_None
+
+def bf_traversal(root):
+	"""
+	Print the binary RTM tree using breadth-first search.
+	"""
+	cur_level = [root]
+	nextlevel = []
+	while not _is_all_None(cur_level):
+		for node in cur_level:
+			if node is None:
+				print("None   ", end='')
+				continue
+			if is_operator(node.value):
+				print(node.value + '   ', end='')
+			else:
+				node.value.print_edge()
+			if node.left: 
+				nextlevel.append(node.left)
+			else:
+				nextlevel.append(None)
+			if node.right: 
+				nextlevel.append(node.right)
+			else:
+				nextlevel.append(None)
+		print("\n")
+		cur_level = nextlevel
+		nextlevel = []
 
 
 

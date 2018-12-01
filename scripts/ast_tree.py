@@ -233,7 +233,7 @@ def eval_function_body(function_body, motif_node_dict, ast):
     for item in function_body.block_items:
         if type(item).__name__ == 'FuncCall':   # Case 1: provenance-graph-related function call
             right = eval_prov_func_call(item, motif_node_dict, ast)
-            if type(right).__name__ == 'tuple': # If we do not care about the new node becasue we are not assigning to anything.
+            if type(right).__name__ == 'tuple': # If we do not care about the new node because we are not assigning to anything.
                 right = right[1]
             if right == None and relation == None:
                 relation = None
@@ -360,6 +360,6 @@ for hookname, motif in hooks.iteritems():
     print("\n+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
     print(hookname)
     print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
-    inorder_traversal(motif)
-
+    # inorder_traversal(motif)
+    bf_traversal(motif)
     
