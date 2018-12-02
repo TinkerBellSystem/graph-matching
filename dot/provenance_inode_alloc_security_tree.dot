@@ -1,0 +1,7 @@
+digraph RGL__DirectedAdjacencyGraph {1[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
+
+1 -> 0[fontsize = 8, color="#000000"]
+
+0[fontsize = 8,label = "1/path-named->2/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
+
+}

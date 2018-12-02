@@ -1,0 +1,15 @@
+digraph RGL__DirectedAdjacencyGraph {3[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
+
+3 -> 2[fontsize = 8, color="#000000"]
+
+2[fontsize = 8,label = "|",shape = ellipse, fillcolor="#e6e6fa", style = filled]
+
+2 -> 1[fontsize = 8, color="#000000"]
+
+1[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
+
+1 -> 0[fontsize = 8, color="#000000"]
+
+0[fontsize = 8,label = "0/msg-free->1/msg",shape = rectangle, fillcolor="#fffacd", style = filled]
+
+}

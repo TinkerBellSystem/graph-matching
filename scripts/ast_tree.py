@@ -13,6 +13,7 @@ import os
 import provenance_tree as prov
 from rtm_tree import *
 from helper import *
+from graph_tree import *
 
 from pycparser import c_parser, c_ast, parse_file
 
@@ -343,6 +344,7 @@ for ext in ast.ext:
             function_body = ext.body
             if function_body.block_items != None:
                 MotifNode.node_id = 0
+                RTMTreeNode.nid = 0
                 motif = eval_hook(function_body, record_ast)
                 if motif != None:
                     hooks[function_name] = motif
@@ -365,5 +367,12 @@ for hookname, motif in hooks.iteritems():
     print(hookname)
     print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
     # inorder_traversal(motif)
-    bf_traversal(motif)
+    # bf_traversal(motif)
+    g = Graph()
+    visualize_rtm_tree(motif, g)
+    dot_str = g.get_graph()
+    with open('../dot/'+ hookname +'_tree.dot', 'w') as f:
+        f.write(dot_str)
+    f.close()
+    # os.system('dot -Tpng ../dot/'+ hookname +'_tree.dot -o ../img/'+ hookname +'_tree.png')
     

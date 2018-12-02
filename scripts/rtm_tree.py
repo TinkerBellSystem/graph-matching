@@ -9,6 +9,7 @@
 from __future__ import print_function
 import struct
 import random
+from graph_tree import *
 
 class MotifNode():
 	"""
@@ -86,6 +87,8 @@ class RTMTreeNode():
 	* Left and right child: a node (i.e., an internal operator node or a leaf node)
 	* Value: A binary regular expression operator ('.', '|')
 	"""
+	nid = 0	# Unique node ID for visualization.
+
 	def __init__(self, value):
 		"""
 		Constructor to create a node.
@@ -98,6 +101,8 @@ class RTMTreeNode():
 		self.left = None
 		self.right = None
 		self.value = value
+		self.nid = RTMTreeNode.nid
+		RTMTreeNode.nid += 1
 
 	@property
 	def left(self):
@@ -171,6 +176,28 @@ def bf_traversal(root):
 		print("\n")
 		cur_level = nextlevel
 		nextlevel = []
+
+def visualize_rtm_tree(node, graph):
+	"""
+	Visualize RTM tree using Graphviz.
+	@node is the node of the RTMTree
+	@graph is the Graphviz graph.
+	@nid is the ID of @node.
+	"""
+	if node is None:
+		return
+	if is_operator(node.value):
+		graph.add_entity(str(node.nid), True, node.value)
+	else:
+		value = str(node.value.src_node.mn_id) + "/" + str(node.value.src_node.mn_ty) + "-" + node.value.me_ty + "->" + str(node.value.dst_node.mn_id) + "/" + str(node.value.dst_node.mn_ty)
+		graph.add_entity(str(node.nid), False, value)
+	if node.left:
+		graph.add_edge(str(node.nid), str(node.left.nid))
+		visualize_rtm_tree(node.left, graph)
+	if node.right: 
+		graph.add_edge(str(node.nid), str(node.right.nid))
+		visualize_rtm_tree(node.right, graph)
+
 
 
 
