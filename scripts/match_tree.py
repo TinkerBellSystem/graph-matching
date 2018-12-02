@@ -29,3 +29,6 @@
 ## With Kleene Star (*) Operator:
 ### 10. ?
 
+### Questions to Think About:
+### What data structures do we use for internal and leaf nodes to hold partial match information? 
+
