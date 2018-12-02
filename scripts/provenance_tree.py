@@ -6,13 +6,9 @@
 # it under the terms of the GNU General Public License version 2, as
 # published by the Free Software Foundation; either version 2 of the License,
 # or (at your option) any later version.
-
-
-###########TODO
-# Version: currently we all point to the old version.
-
 import re
 from rtm_tree import *
+from helper import *
 
 def relation_to_str(str):
 	"""
@@ -113,11 +109,12 @@ def create_alternation_node(left, right):
 
 # Some building block relation functions
 ########################################
-def update_version_relation(motif_node):
+def update_version_relation(motif_node, motif_node_dict):
 	"""
 	RTM tree question mark node for when "__update_version" (provenance_record.h) is called.
 	A new MotifNode is created based on @motif_node when this edge is created. This node is also returned.
-	We must update the @motif_node_dict with the corresponding entry named @motif_name.
+	We must update the @motif_node_dict with the corresponding entry name.
+	This is append to the value of the dictionary.
 	
 	Function signature: int __update_version(const uint64_t type, prov_entry_t *prov)
 	@motif_node --> prov
@@ -128,9 +125,12 @@ def update_version_relation(motif_node):
 	else:
 		new_motif_node = MotifNode(motif_node.mn_ty)
 		motif_edge = MotifEdge(motif_node, new_motif_node, relation_to_str('RL_VERSION'))
+	dict_key = getKeyByValue(motif_node_dict, motif_node)
+	if dict_key:
+		motif_node_dict[dict_key].append(new_motif_node)
 	return new_motif_node, create_question_mark_node(create_leaf_node(motif_edge))
 
-def record_relation(from_node, to_node, edge_type):
+def record_relation(from_node, to_node, edge_type, motif_node_dict):
 	"""
 	RTM tree group node for when "record_relation" (provenance_record.h) is called.
 
@@ -139,7 +139,7 @@ def record_relation(from_node, to_node, edge_type):
 	@to_node --> to
 	@edge_type --> type
 	"""
-	new_motif_node, rtm_internal_node = update_version_relation(to_node)
+	new_motif_node, rtm_internal_node = update_version_relation(to_node, motif_node_dict)
 	new_motif_edge = MotifEdge(from_node, new_motif_node, edge_type)
 	rtm_leaf_node = create_leaf_node(new_motif_edge)
 	return create_group_node(rtm_internal_node, rtm_leaf_node)
@@ -157,7 +157,7 @@ def record_terminate(motif_node, edge_type):
 	motif_edge = MotifEdge(motif_node, new_motif_node, relation_to_str(edge_type))
 	return create_leaf_node(motif_edge)
 
-def record_write_xattr(iprov_node, tprov_node, cprov_node, edge_type):
+def record_write_xattr(iprov_node, tprov_node, cprov_node, edge_type, motif_node_dict):
 	"""
 	RTM tree nodes for when "record_write_xattr" (provenance_inode.h) is called.
 	A new MotifNode is created for 'xattr' type.
@@ -176,18 +176,18 @@ def record_write_xattr(iprov_node, tprov_node, cprov_node, edge_type):
 	@edge_type --> type
 	"""
 	relation = relation_to_str(edge_type)
-	proc_read_rtm_node = record_relation(cprov_node, tprov_node, relation_to_str('RL_PROC_READ'))
+	proc_read_rtm_node = record_relation(cprov_node, tprov_node, relation_to_str('RL_PROC_READ'), motif_node_dict)
 
 	new_motif_node = MotifNode('xattr')
-	edge_type_rtm_node = record_relation(tprov_node, new_motif_node, relation)
+	edge_type_rtm_node = record_relation(tprov_node, new_motif_node, relation, motif_node_dict)
 	
 	group_rtm_node = create_group_node(proc_read_rtm_node, edge_type_rtm_node)
 	if relation == 'setxattr':
-		return create_group_node(group_rtm_node, record_relation(new_motif_node, iprov_node, relation_to_str('RL_SETXATTR_INODE')))
+		return create_group_node(group_rtm_node, record_relation(new_motif_node, iprov_node, relation_to_str('RL_SETXATTR_INODE'), motif_node_dict))
 	else:
-		return create_group_node(group_rtm_node, record_relation(new_motif_node, iprov_node, relation_to_str('RL_RMVXATTR_INODE')))
+		return create_group_node(group_rtm_node, record_relation(new_motif_node, iprov_node, relation_to_str('RL_RMVXATTR_INODE'), motif_node_dict))
 
-def record_read_xattr(cprov_node, tprov_node, iprov_node):
+def record_read_xattr(cprov_node, tprov_node, iprov_node, motif_node_dict):
 	"""
 	RTM tree nodes for when "record_read_xattr" (provenance_inode.h) is called.
 	A new MotifNode is created for 'xattr' type.
@@ -201,12 +201,12 @@ def record_read_xattr(cprov_node, tprov_node, iprov_node):
 	@iprov_node --> iprov
 	"""
 	new_motif_node = MotifNode('xattr')
-	getxattr_inode_rtm_node = record_relation(iprov_node, new_motif_node, relation_to_str('RL_GETXATTR_INODE'))
-	getxattr_rtm_node = record_relation(new_motif_node, tprov_node, relation_to_str('RL_GETXATTR'))
-	proc_write_rtm_node = record_relation(tprov_node, cprov_node, relation_to_str('RL_PROC_WRITE'))
+	getxattr_inode_rtm_node = record_relation(iprov_node, new_motif_node, relation_to_str('RL_GETXATTR_INODE'), motif_node_dict)
+	getxattr_rtm_node = record_relation(new_motif_node, tprov_node, relation_to_str('RL_GETXATTR'), motif_node_dict)
+	proc_write_rtm_node = record_relation(tprov_node, cprov_node, relation_to_str('RL_PROC_WRITE'), motif_node_dict)
 	return create_group_node(create_group_node(getxattr_inode_rtm_node, getxattr_rtm_node), proc_write_rtm_node)
 
-def current_update_shst(cprov_node, read):
+def current_update_shst(cprov_node, read, motif_node_dict):
 	"""
 	RTM tree nodes for when "current_update_shst" (provenance_task.h) is called.
 	@read: if False, then it is "write"
@@ -221,9 +221,9 @@ def current_update_shst(cprov_node, read):
 	motif_edge = MotifEdge(new_path_motif_node, new_inode_motif_node, relation_to_str('RL_NAMED'))
 
 	if read:
-		return create_asterisk_node(record_relation(new_inode_motif_node, cprov_node, relation_to_str('RL_SH_READ')))
+		return create_group_node(create_leaf_node(motif_edge), create_asterisk_node(record_relation(new_inode_motif_node, cprov_node, relation_to_str('RL_SH_READ'), motif_node_dict)))
 	else:
-		return create_asterisk_node(record_relation(cprov_node, new_inode_motif_node, relation_to_str('RL_SH_WRITE')))
+		return create_group_node(create_leaf_node(motif_edge), create_asterisk_node(record_relation(cprov_node, new_inode_motif_node, relation_to_str('RL_SH_WRITE'), motif_node_dict)))
 ########################################
 
 # Building block functions to parse higher-level functions such as 'uses', 'generates', etc.
@@ -268,7 +268,7 @@ def extract_function_arg_names(func_call):
 			arg_names.append(arg.args.exprs[0].name)	# assuming only first argument in FuncCall
 	return arg_names
 
-def eval_func_call(func_call, caller_arguments, params):
+def eval_func_call(func_call, caller_arguments, params, motif_node_dict):
 	"""
 	Evaluate a single function call that directly generates relations.
 	"""
@@ -282,78 +282,87 @@ def eval_func_call(func_call, caller_arguments, params):
 			edge_type = params[edge_type_index]
 		from_node_index = match_arguments(arg_names[1], caller_arguments)
 		from_node = params[from_node_index]
+		from_key = getKeyByValue(motif_node_dict, from_node)
+		if from_key:
+			from_node = getLastValueFromKey(motif_node_dict, from_key)
 		to_node_index = match_arguments(arg_names[2], caller_arguments)
 		to_node = params[to_node_index]
-		return record_relation(from_node, to_node, edge_type)
+		to_key = getKeyByValue(motif_node_dict, to_node)
+		if to_key:
+			to_node = getLastValueFromKey(motif_node_dict, to_key)
+		return record_relation(from_node, to_node, edge_type, motif_node_dict)
 	elif func_call.name.name == 'current_update_shst':
 		arg_names = extract_function_arg_names(func_call)
 		cprov_index = match_arguments(arg_names[0], caller_arguments)
 		cprov_node = params[cprov_index]
+		cprov_key = getKeyByValue(motif_node_dict, cprov_node)
+		if cprov_key:
+			cprov_node = getLastValueFromKey(motif_node_dict, cprov_key)
 		if arg_names[1] == 'true':
-			return current_update_shst(cprov_node, True)
+			return current_update_shst(cprov_node, True, motif_node_dict)
 		else:
-			return current_update_shst(cprov_node, False)
+			return current_update_shst(cprov_node, False, motif_node_dict)
 	else:
 		return None
 
-def eval_assignment(assignment, caller_arguments, params):
+def eval_assignment(assignment, caller_arguments, params, motif_node_dict):
 	"""
 	Evaluate a single assignment that directly generates a relation.
 	"""
 	if type(assignment.rvalue).__name__ == 'FuncCall':
-		return eval_func_call(assignment.rvalue, caller_arguments, params)
+		return eval_func_call(assignment.rvalue, caller_arguments, params, motif_node_dict)
 	else:
 		return None
 
-def eval_declaration(declaration, caller_arguments, params):
+def eval_declaration(declaration, caller_arguments, params, motif_node_dict):
 	"""
 	Evaluate a single declaration that directly generates a relation.
 	"""
 	if type(declaration.init).__name__ == 'FuncCall':
-		return eval_func_call(declaration.init, caller_arguments, params)
+		return eval_func_call(declaration.init, caller_arguments, params, motif_node_dict)
 	else:
 		return None
 
-def eval_return(statement, caller_arguments, params):
+def eval_return(statement, caller_arguments, params, motif_node_dict):
 	"""
 	Evaluate a single return statement that directly generates a relation.
 	"""
 	if type(statement.expr).__name__ == 'FuncCall':
-		return eval_func_call(statement.expr, caller_arguments, params)
+		return eval_func_call(statement.expr, caller_arguments, params, motif_node_dict)
 	else:
 		return None
 
-def eval_if_else(item, caller_arguments, params):
+def eval_if_else(item, caller_arguments, params, motif_node_dict):
 	"""
 	Evaluate (nesting) if/else blocks.
 	"""
 	true_branch = item.iftrue
 	if type(true_branch).__name__ == 'FuncCall':
-		left = eval_func_call(true_branch, caller_arguments, params)
+		left = eval_func_call(true_branch, caller_arguments, params, motif_node_dict)
 	elif type(true_branch).__name__ == 'Assignment':
-		left = eval_assignment(true_branch, caller_arguments, params)
+		left = eval_assignment(true_branch, caller_arguments, params, motif_node_dict)
 	elif type(true_branch).__name__ == 'Decl':
-		left = eval_declaration(true_branch, caller_arguments, params)
+		left = eval_declaration(true_branch, caller_arguments, params, motif_node_dict)
 	elif type(true_branch).__name__ == 'Return':
-		left = eval_return(true_branch, caller_arguments, params)
+		left = eval_return(true_branch, caller_arguments, params, motif_node_dict)
 	elif type(true_branch).__name__ == 'Compound':
-		left = eval_function_body(true_branch, caller_arguments, params)
+		left = eval_function_body(true_branch, caller_arguments, params, motif_node_dict)
 	else:
 		left = None
     
 	false_branch = item.iffalse
 	if type(false_branch).__name__ == 'FuncCall':
-		right = eval_func_call(false_branch, caller_arguments, params)
+		right = eval_func_call(false_branch, caller_arguments, params, motif_node_dict)
 	elif type(false_branch).__name__ == 'Assignment':
-		right = eval_assignment(false_branch, caller_arguments, params)
+		right = eval_assignment(false_branch, caller_arguments, params, motif_node_dict)
 	elif type(false_branch).__name__ == 'Decl':
-		right = eval_declaration(false_branch, caller_arguments, params)
+		right = eval_declaration(false_branch, caller_arguments, params, motif_node_dict)
 	elif type(false_branch).__name__ == 'Return':
-		right = eval_return(false_branch, caller_arguments, params)
+		right = eval_return(false_branch, caller_arguments, params, motif_node_dict)
 	elif type(false_branch).__name__ == 'Compound':
-		right = eval_function_body(false_branch, caller_arguments, params)
+		right = eval_function_body(false_branch, caller_arguments, params, motif_node_dict)
 	elif type(false_branch).__name__ == 'If':   # else if case
-		right = eval_if_else(false_branch, caller_arguments, params)
+		right = eval_if_else(false_branch, caller_arguments, params, motif_node_dict)
 	else:
 		right = None
 
@@ -362,7 +371,7 @@ def eval_if_else(item, caller_arguments, params):
 	else:
 		return None
 
-def eval_function_body(function_body, caller_arguments, params):
+def eval_function_body(function_body, caller_arguments, params, motif_node_dict):
 	"""
 	Evaluate a Compound function body.
 	"""
@@ -371,31 +380,31 @@ def eval_function_body(function_body, caller_arguments, params):
 	relation = None
 	for item in function_body.block_items:
 		if type(item).__name__ == 'FuncCall':   # Case 1: provenance-graph-related function call
-			right = eval_func_call(item, caller_arguments, params)
+			right = eval_func_call(item, caller_arguments, params, motif_node_dict)
 			if right == None and relation == None:
 				relation = None
 			elif right != None:
 				relation = create_group_node(relation, right)
 		elif type(item).__name__ == 'Assignment': # Case 2: rc = provenance-graph-related function call
-			right = eval_assignment(item, caller_arguments, params)
+			right = eval_assignment(item, caller_arguments, params, motif_node_dict)
 			if right == None and relation == None:
 				relation = None
 			elif right != None:
 				relation = create_group_node(relation, right)
 		elif type(item).__name__ == 'Decl': # Case 3: declaration with initialization
-			right = eval_declaration(item, caller_arguments, params)
+			right = eval_declaration(item, caller_arguments, params, motif_node_dict)
 			if right == None and relation == None:
 				relation = None
 			elif right != None:
 				relation = create_group_node(relation, right)
 		elif type(item).__name__ == 'If':   # Case 4: if
-			right = eval_if_else(item, caller_arguments, params)
+			right = eval_if_else(item, caller_arguments, params, motif_node_dict)
 			if right == None and relation == None:
 				relation = None
 			elif right != None:
 				relation = create_group_node(relation, right)
 		elif type(item).__name__ == 'Return':	# Case 5: return with function call
-			right = eval_return(item, caller_arguments, params)
+			right = eval_return(item, caller_arguments, params, motif_node_dict)
 			if right == None and relation == None:
 				relation = None
 			elif right != None:
@@ -403,7 +412,7 @@ def eval_function_body(function_body, caller_arguments, params):
 	return relation
 ###########################################################################################
 
-def relation_with_four_args(function, rel, arg1, arg2, arg3):
+def relation_with_four_args(function, rel, arg1, arg2, arg3, motif_node_dict):
 	"""
 	For relations: uses, generates
 	@rel (edge_type): from type.c
@@ -416,9 +425,9 @@ def relation_with_four_args(function, rel, arg1, arg2, arg3):
 	params = [relation, arg1, arg2, arg3]
 
 	function_body = function.body
-	return eval_function_body(function_body, caller_arguments, params)
+	return eval_function_body(function_body, caller_arguments, params, motif_node_dict)
 
-def relation_with_three_args(function, rel, arg1, arg2):
+def relation_with_three_args(function, rel, arg1, arg2, motif_node_dict):
 	"""
 	For relations: derives, informs, uses_two
 	@rel (edge_type): from type.c
@@ -431,9 +440,9 @@ def relation_with_three_args(function, rel, arg1, arg2):
 	params = [relation, arg1, arg2]
 
 	function_body = function.body
-	return eval_function_body(function_body, caller_arguments, params)
+	return eval_function_body(function_body, caller_arguments, params, motif_node_dict)
 
-def influences_kernel_to_relation(edge_type, entity_node, activity_node):
+def influences_kernel_to_relation(edge_type, entity_node, activity_node, motif_node_dict):
 	"""
 	RTM tree nodes for when 'influences_kernel' (provenance_record.h) is called.
 	A new MotifNode is created for machine.
@@ -450,8 +459,8 @@ def influences_kernel_to_relation(edge_type, entity_node, activity_node):
 	* In hooks (motifs) that call them, we assume it is always the first time a "machine" typed node is created.
 	"""
 	new_machine_node = MotifNode('machine')
-	load_file_rtm_node = record_relation(entity_node, activity_node, relation_to_str('RL_LOAD_FILE'))
-	machine_rtm_node = record_relation(activity_node, new_machine_node, relation_to_str(edge_type))
+	load_file_rtm_node = record_relation(entity_node, activity_node, relation_to_str('RL_LOAD_FILE'), motif_node_dict)
+	machine_rtm_node = record_relation(activity_node, new_machine_node, relation_to_str(edge_type), motif_node_dict)
 
 	return create_group_node(load_file_rtm_node, machine_rtm_node)
 
@@ -516,7 +525,7 @@ def inode_provenance_to_relation():
 
 	return new_inode_motif_node, create_leaf_node(motif_edge)
 
-def provenance_record_address_to_relation(prov_node):
+def provenance_record_address_to_relation(prov_node, motif_node_dict):
 	"""
 	RTM tree nodes for when 'provenance_record_address' (provenance_net.h) is called.
 	A new MotifNode is created for 'address' type.
@@ -525,9 +534,9 @@ def provenance_record_address_to_relation(prov_node):
 	@prov_node --> prov
 	"""
 	new_address_motif_node = MotifNode('address')
-	return record_relation(new_address_motif_node, prov_node, relation_to_str('RL_NAMED'))
+	return record_relation(new_address_motif_node, prov_node, relation_to_str('RL_NAMED'), motif_node_dict)
 
-def provenance_packet_content_to_relation(prov_node):
+def provenance_packet_content_to_relation(prov_node, motif_node_dict):
 	"""
 	RTM tree node(s) for when 'provenance_packet_content' (provenance_net.h) is called.
 	A new MotifNode and a MotifEdge between them are created for packet.
@@ -537,9 +546,9 @@ def provenance_packet_content_to_relation(prov_node):
 	@prov_node --> pckprov
 	"""
 	new_packet_content_motif_node = MotifNode('packet_content')
-	return record_relation(new_packet_content_motif_node, prov_node, relation_to_str('RL_PCK_CNT'))
+	return record_relation(new_packet_content_motif_node, prov_node, relation_to_str('RL_PCK_CNT'), motif_node_dict)
 
-def prov_record_args_to_relation(prov_node):
+def prov_record_args_to_relation(prov_node, motif_node_dict):
 	"""
 	RTM tree node(s) for when 'prov_record_args' (provenance_task.h) is called.
 	Two new MotifNodes are created for arg and env.
@@ -550,6 +559,6 @@ def prov_record_args_to_relation(prov_node):
 	"""
 	new_argv_motif_node = MotifNode('argv')
 	new_envp_motif_node = MotifNode('envp')
-	rtm_argv_node = record_relation(new_argv_motif_node, prov_node, relation_to_str('RL_ARG'))
-	rtm_envp_node = record_relation(new_envp_motif_node, prov_node, relation_to_str('RL_ENV'))
+	rtm_argv_node = record_relation(new_argv_motif_node, prov_node, relation_to_str('RL_ARG'), motif_node_dict)
+	rtm_envp_node = record_relation(new_envp_motif_node, prov_node, relation_to_str('RL_ENV'), motif_node_dict)
 	return create_group_node(create_asterisk_node(rtm_argv_node), create_asterisk_node(rtm_envp_node))

@@ -30,6 +30,9 @@ class MotifNode():
 	def mn_ty(self):
 		return self.__mn_ty
 
+	def __eq__(self, other):
+		return self.mn_id == other.mn_id and self.mn_ty == other.mn_ty
+
 class MotifEdge():
 	"""
 	Each edge in the RTM has attributes: 

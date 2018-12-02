@@ -12,6 +12,7 @@ import sys
 import os
 import provenance_tree as prov
 from rtm_tree import *
+from helper import *
 
 from pycparser import c_parser, c_ast, parse_file
 
@@ -49,12 +50,12 @@ def eval_prov_func_call(func_call, motif_node_dict, ast):
             arg2 = arg_names[2]
             arg3 = arg_names[3]
             if arg1 not in motif_node_dict:
-                motif_node_dict[arg1] = prov.alloc_motif_node(arg1)
+                motif_node_dict[arg1] = [prov.alloc_motif_node(arg1)]
             if arg2 not in motif_node_dict:
-                motif_node_dict[arg2] = prov.alloc_motif_node(arg2)
+                motif_node_dict[arg2] = [prov.alloc_motif_node(arg2)]
             if arg3 not in motif_node_dict:
-                motif_node_dict[arg3] = prov.alloc_motif_node(arg3)
-            return prov.relation_with_four_args(func, arg_names[0], motif_node_dict[arg1], motif_node_dict[arg2], motif_node_dict[arg3])
+                motif_node_dict[arg3] = [prov.alloc_motif_node(arg3)]
+            return prov.relation_with_four_args(func, arg_names[0], getLastValueFromKey(motif_node_dict, arg1), getLastValueFromKey(motif_node_dict, arg2), getLastValueFromKey(motif_node_dict, arg3), motif_node_dict)
     elif func_call.name.name == 'derives' or func_call.name.name == 'informs' or func_call.name.name == 'uses_two':
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
@@ -72,10 +73,10 @@ def eval_prov_func_call(func_call, motif_node_dict, ast):
             arg1 = arg_names[1]
             arg2 = arg_names[2]
             if arg1 not in motif_node_dict:
-                motif_node_dict[arg1] = prov.alloc_motif_node(arg1)
+                motif_node_dict[arg1] = [prov.alloc_motif_node(arg1)]
             if arg2 not in motif_node_dict:
-                motif_node_dict[arg2] = prov.alloc_motif_node(arg2)
-            return prov.relation_with_three_args(func, arg_names[0], motif_node_dict[arg1], motif_node_dict[arg2])
+                motif_node_dict[arg2] = [prov.alloc_motif_node(arg2)]
+            return prov.relation_with_three_args(func, arg_names[0], getLastValueFromKey(motif_node_dict, arg1), getLastValueFromKey(motif_node_dict, arg2), motif_node_dict)
     elif func_call.name.name == 'alloc_provenance':
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
@@ -94,54 +95,54 @@ def eval_prov_func_call(func_call, motif_node_dict, ast):
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
         if arg_names[2] not in motif_node_dict:
-            motif_node_dict[arg_names[2]] = prov.alloc_motif_node(arg_names[2])
-        return prov.provenance_record_address_to_relation(motif_node_dict[arg_names[2]])
+            motif_node_dict[arg_names[2]] = [prov.alloc_motif_node(arg_names[2])]
+        return prov.provenance_record_address_to_relation(getLastValueFromKey(motif_node_dict, arg_names[2]), motif_node_dict)
     elif func_call.name.name == 'record_write_xattr':
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
         if arg_names[1] not in motif_node_dict:
-            motif_node_dict[arg_names[1]] = prov.alloc_motif_node(arg_names[1])
+            motif_node_dict[arg_names[1]] = [prov.alloc_motif_node(arg_names[1])]
         if arg_names[2] not in motif_node_dict:
-            motif_node_dict[arg_names[2]] = prov.alloc_motif_node(arg_names[2])
+            motif_node_dict[arg_names[2]] = [prov.alloc_motif_node(arg_names[2])]
         if arg_names[3] not in motif_node_dict:
-            motif_node_dict[arg_names[3]] = prov.alloc_motif_node(arg_names[3])
-        return prov.record_write_xattr(motif_node_dict[arg_names[1]], motif_node_dict[arg_names[2]], motif_node_dict[arg_names[3]], arg_names[0])
+            motif_node_dict[arg_names[3]] = [prov.alloc_motif_node(arg_names[3])]
+        return prov.record_write_xattr(getLastValueFromKey(motif_node_dict, arg_names[1]), getLastValueFromKey(motif_node_dict, arg_names[2]), getLastValueFromKey(motif_node_dict, arg_names[3]), arg_names[0], motif_node_dict)
     elif func_call.name.name == 'record_read_xattr':
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
         if arg_names[0] not in motif_node_dict:
-            motif_node_dict[arg_names[0]] = prov.alloc_motif_node(arg_names[0])
+            motif_node_dict[arg_names[0]] = [prov.alloc_motif_node(arg_names[0])]
         if arg_names[1] not in motif_node_dict:
-            motif_node_dict[arg_names[1]] = prov.alloc_motif_node(arg_names[1])
+            motif_node_dict[arg_names[1]] = [prov.alloc_motif_node(arg_names[1])]
         if arg_names[2] not in motif_node_dict:
-            motif_node_dict[arg_names[2]] = prov.alloc_motif_node(arg_names[2])
-        return prov.record_read_xattr(motif_node_dict[arg_names[0]], motif_node_dict[arg_names[1]], motif_node_dict[arg_names[2]])
+            motif_node_dict[arg_names[2]] = [prov.alloc_motif_node(arg_names[2])]
+        return prov.record_read_xattr(getLastValueFromKey(motif_node_dict, arg_names[0]), getLastValueFromKey(motif_node_dict, arg_names[1]), getLastValueFromKey(motif_node_dict, arg_names[2]), motif_node_dict)
     elif func_call.name.name == 'provenance_packet_content':
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
         if arg_names[1] not in motif_node_dict:
-            motif_node_dict[arg_names[1]] = prov.alloc_motif_node(arg_names[1])
-        return prov.provenance_packet_content_to_relation(motif_node_dict[arg_names[1]])
+            motif_node_dict[arg_names[1]] = [prov.alloc_motif_node(arg_names[1])]
+        return prov.provenance_packet_content_to_relation(getLastValueFromKey(motif_node_dict, arg_names[1]), motif_node_dict)
     elif func_call.name.name == 'prov_record_args':
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
         if arg_names[0] not in motif_node_dict:
-            motif_node_dict[arg_names[0]] = prov.alloc_motif_node(arg_names[0])
-        return prov.prov_record_args_to_relation(motif_node_dict[arg_names[0]])
+            motif_node_dict[arg_names[0]] = [prov.alloc_motif_node(arg_names[0])]
+        return prov.prov_record_args_to_relation(getLastValueFromKey(motif_node_dict, arg_names[0]), motif_node_dict)
     elif func_call.name.name == 'record_terminate':
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
         if arg_names[1] not in motif_node_dict:
-            motif_node_dict[arg_names[1]] = prov.alloc_motif_node(arg_names[1])
-        return prov.record_terminate(motif_node_dict[arg_names[1]], arg_names[0])
+            motif_node_dict[arg_names[1]] = [prov.alloc_motif_node(arg_names[1])]
+        return prov.record_terminate(getLastValueFromKey(motif_node_dict, arg_names[1]), arg_names[0])
     elif func_call.name.name == 'influences_kernel':
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
         if arg_names[1] not in motif_node_dict:
-            motif_node_dict[arg_names[1]] = prov.alloc_motif_node(arg_names[1])
+            motif_node_dict[arg_names[1]] = [prov.alloc_motif_node(arg_names[1])]
         if arg_names[2] not in motif_node_dict:
-            motif_node_dict[arg_names[2]] = prov.alloc_motif_node(arg_names[2])
-        return prov.influences_kernel_to_relation(arg_names[0], motif_node_dict[arg_names[1]], motif_node_dict[arg_names[2]])
+            motif_node_dict[arg_names[2]] = [prov.alloc_motif_node(arg_names[2])]
+        return prov.influences_kernel_to_relation(arg_names[0], getLastValueFromKey(motif_node_dict, arg_names[1]), getLastValueFromKey(motif_node_dict, arg_names[2]), motif_node_dict)
     else:
         return None
 
@@ -152,7 +153,7 @@ def eval_assignment(assignment, motif_node_dict, ast):
     if type(assignment.rvalue).__name__ == 'FuncCall':
         rtn = eval_prov_func_call(assignment.rvalue, motif_node_dict, ast)
         if type(rtn).__name__ == 'tuple':
-            motif_node_dict[assignment.lvalue.name] = rtn[0]
+            motif_node_dict[assignment.lvalue.name] = [rtn[0]]
             return rtn[1]
         elif rtn != None:
             return rtn
@@ -166,7 +167,7 @@ def eval_declaration(declaration, motif_node_dict, ast):
     if type(declaration.init).__name__ == 'FuncCall':
         rtn = eval_prov_func_call(declaration.init, motif_node_dict, ast)
         if type(rtn).__name__ == 'tuple':
-            motif_node_dict[declaration.name] = rtn[0]
+            motif_node_dict[declaration.name] = [rtn[0]]
             return rtn[1]
         elif rtn != None:
             return rtn
@@ -268,8 +269,10 @@ def eval_function_body(function_body, motif_node_dict, ast):
 def eval_hook(function_body, ast):
     """
     Evaluate function body of each hook function to generate its RTM Tree.
+
+    motif_node_dict is a dictionary that maps a MotifNode's name to a list of MotifNode objects.
+    It is a list because a MotifNode could have multiple versions.
     """
-    # Need this dictionary to map MotifNode's names in the code to the object MotifNodes themselves. 
     # Each hook has one such dictionary.
     motif_node_dict = {}
     return eval_function_body(function_body, motif_node_dict, ast)
@@ -321,6 +324,7 @@ for ext in ast.ext:
         # with the exception that some calls "__mq_msgsnd", and "__mq_msgrcv" that contain real definitons. 
         # We deal with "__mq_msgsnd", and "__mq_msgrcv" first,
         # Then go through all the rest of the functions again.
+        
         if function_name.startswith("__mq_msgsnd") or function_name.startswith("__mq_msgrcv"):
             # The body of FuncDef is a Compound, which is a placeholder for a block surrounded by {}
             function_body = ext.body
