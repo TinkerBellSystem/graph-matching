@@ -12,7 +12,7 @@
 ## If No Other Operators But Concatenate (.) Operator:
 ### 1. We can match any leaf node of the tree. Once matched, we must check all of its ancestor (internal nodes) to make sure:
 ###		A. All leaf nodes to the left of the matched node have been matched before (join table has entries with smaller timestamps).
-###		B. The new match does not create conflicts with matches of all leaf nodes to its left (at least one join does not fail).
+###		B. The new match does not create conflicts with matches of all leaf nodes to its left (at least one join does not fail because of conflits).
 ### 2. If rule (1) is met, update all internal nodes to remember this partial matching. 
 ###
 ## With ? Operator:

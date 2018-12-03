@@ -330,6 +330,8 @@ for ext in ast.ext:
             # The body of FuncDef is a Compound, which is a placeholder for a block surrounded by {}
             function_body = ext.body
             # print(function_body)
+            MotifNode.node_id = 0
+            RTMTreeNode.nid = 0
             motif = eval_hook(function_body, record_ast)
             hooks[function_name] = motif
         

@@ -80,8 +80,6 @@ Parsing nodes from CamFlow JSON provenance.
 			_parse_nodes(line, nlm_G)
 		f.close()
 
-
-
 def parse_edges(filename, nlm_G, elm_G, E_G, G):
 """
 Parse timestamped edges from CamFlow JSON provenance.

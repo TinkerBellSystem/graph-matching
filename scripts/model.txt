@@ -1,0 +1,220 @@
+1. Assume all filters are turned off: `filter_update_node` is OFF for every type, `filter_node` is OFF for every node
+2. Assume no compression: `prov_policy.should_compress_node` is OFF
+3. Assume all failure checking passes
+4. Assume no opaqueness: `provenance_is_opaque` is OFF for every node
+5. Assume all are tracked: ``provenance_is_tracked` is ON for every node
+6. Assume every relation should be recorded: `should_record_relation` is TRUE for every edge
+
+# We can remove `provenance_has_outgoing` condition.
+
+# Can we remove `provenance_is_recorded` and `provenance_is_name_recorded` and `provenance_is_kernel_recorded` conditions? We cannot determine its value statically.
+# `apply target`?
+
+provenance_record.h:
+
+FUNCTION __update_version(type, prov):
+CHECKING: provenance_has_outgoing(@prov)
+CALLING: 
+IF node_identifier(@prov).type == ACT_TASK:
+__write_relation(RL_VERSION_TASK, @old_prov, @prov, NULL, 0)
+ELSE:
+__write_relation(RL_VERSION, @old_prov, @prov, NULL, 0)
+
+@old_prov can be identified by @prov
+
+FUNCTION record_relation(type, from, to, file, flags):
+CALLING:
+__update_version(@type, @to)
+__write_relation(@type, @from, @to, file, flags)
+
+FUNCTION record_terminate(type, prov):
+CHECKING:
+provenance_is_recorded(@prov)
+CALLING:
+__write_relation(@type, @old_prov, @prov, NULL, 0)
+
+@old_prov can be identified by @prov
+
+FUNCTION record_node_name(node, name, force):
+CHECKING:
+@force
+provenance_is_name_recorded(@node)
+provenance_is_recorded(@node)
+CALLING:
+IF prov_type(@node) == ACT_TASK:
+record_relation(RL_NAMED_PROCESS, @fname_prov, @node, NULL, 0) 
+ELSE:
+record_relation(RL_NAMED, @fname_prov, @node, NULL, 0)
+
+@fname_prov: statically allocated node with type ENT_PATH.
+
+FUNCTION record_kernel_link(node):
+CALLING:
+record_relation(RL_RAN_ON, @prov_machine, @node, NULL, 0)
+
+@prov_machine: statically allocated node with type MACHINE?
+
+FUNCTION uses(type, entity, activity, activity_men, file, flags):
+CALLING:
+record_relation(type, @entity, @activity, file, flags)
+record_relation(RL_PROC_WRITE, @activity, @activity_mem, NULL, 0)
+current_update_shst(@activity_mem, false)
+
+FUNCTION uses_two(type, entity, activity, file, flags):
+CALLING:
+record_relation(type, @entity, @activity, file, flags)
+
+FUNCTION generates(type, activity_men, activity, entity, file, flags):
+CALLING:
+current_update_shst(@activity_mem, true)
+record_relation(RL_PROC_READ, @activity_mem, @activity, NULL, 0)
+record_relation(@type, @activity, @entity, file, flags)
+
+FUNCTION derives(type, from, to, file, flags):
+CALLING:
+record_relation(@type, @from, @to, file, flags)
+
+FUNCTION informs(type, from, to, file, flags):
+CALLING:
+record_relation(@type, @from, @to, file, flags)
+
+FUNCTION influences_kernel(type, entity, activity, file):
+CALLING:
+record_relation(RL_LOAD_FILE, @entity, @activity, file, 0)
+record_relation(@type, @activity, @prov_machine, NULL, 0)
+
+@prov_machine: statically allocated node with type MACHINE?
+
+FUNCTION record_machine(void):
+CALLING:
+__write_node(@prov_machine)
+
+@prov_machine: statically allocated node with type MACHINE?
+
+
+provenance_task.h:
+
+FUNCTION current_update_shst(cprov, read):
+CALLING:
+mmprov = file_provenance(@mmapf, false)
+WHILE @vma:
+IF vm_read_exec_mayshare(@flags) AND read:
+record_relation(RL_SH_READ, @mmprov, @cprov, mmapf, flags)
+IF vm_write_mayshare(@flags) AND !read:
+record_relation(RL_SH_WRITE, @cprov, @mmprov, mmapf, flags)
+
+FINCTION record_task_name(task, prov):
+CALLING:
+fprov = file_provenance(@exe_file, false)
+record_node_name(@prov, @ptr, false)
+
+@ptr is a file path pointer. 
+
+FUNCTION get_cred_provenance(void):
+record_task_name(@current, @prov) 
+
+FUNCTION prov_record_arg(prov, vtype, etype, arg, len):
+CALLING:
+record_relation(@etype, @aprov, @prov, NULL, 0)
+
+@aprov = alloc_long_provenance(@vtype)
+
+FUNCTION prov_record_args(prov, bprm):
+WHILE @argc-- > 0:
+prov_record_arg(@prov, ENT_ARG, RL_ARG, @ptr, @size)
+WHILE @envc-- > 0:
+prov_record_arg(@prov, ENT_ENV, RL_ENV, @ptr, @size)
+
+
+provenance_inode.h:
+
+FUNCTION update_inode_type(mode, prov):
+CALLING:
+__write_relation(RL_VERSION, @old_prov, @prov, NULL, 0)
+@old_prov can be identified by @prov
+
+FUNCTION record_inode_name_from_dentry(dentry, prov, force):
+CALLING:
+record_node_name(@prov, @ptr, force)
+
+@ptr = dentry_path_raw(@dentry, buffer, PATH_MAX)
+
+FUNCTION record_inode_name(inode, prov):
+CALLING:
+record_inode_name_from_dentry(@dentry, @prov, false)
+
+@dentry = d_find_alias(@inode)
+
+FUNCTION refresh_inode_provenance(inode):
+CALLING:
+record_inode_name(@inode, @prov)
+update_inode_type(@inode->i_mode, @prov)
+
+inode_init_provenance(@inode, @opt_dentry):
+CALLING:
+update_inode_type(@inode->i_mode, @prov)
+
+@prov = @inode->i_provenance;
+
+FUNCTION inode_provenance(inode, may_sleep):
+CALLING:
+IF provenance_is_initialized(@prov) AND may_sleep:
+inode_init_provenance(@inode, NULL)
+ELSE:
+refresh_inode_provenance(@inode)
+
+FUNCTION dentry_provenance(dentry, may_sleep):
+CALLING:
+inode_provenance(inode, may_sleep)
+@inode = d_backing_inode(@dentry)
+
+FUNCTION file_provenance(file, may_sleep):
+CALLING:
+inode_provenance(@inode, may_sleep)
+@inode = file_inode(@file)
+
+FUNCTION record_write_xattr(type, iprov, tprov, cprov, name, value, size, flags):
+CALLING:
+record_relation(RL_PROC_READ, @cprov, @tprov, NULL, 0)
+record_relation(type, @tprov, @xattr, NULL, flags)
+IF @type == RL_SETXATTR:
+record_relation(RL_SETXATTR_INODE, @xattr, @iprov, NULL, flags)
+ELSE:
+record_relation(RL_RMVXATTR_INODE, @xattr, @iprov, NULL, flags)
+
+@xattr = alloc_long_provenance(ENT_XATTR)
+
+FUNCTION record_read_xattr(cprov, tprov, iprov, name):
+CALLING:
+record_relation(RL_GETXATTR_INODE, @iprov, @xattr, NULL, 0)
+record_relation(RL_GETXATTR, @xattr, @tprov, NULL, 0)
+record_relation(RL_PROC_WRITE, @tprov, @cprov, NULL, 0)
+
+@xattr = alloc_long_provenance(ENT_XATTR)
+
+
+provenance_net.h:
+
+FUNCTION socket_inode_provenance(sock):
+CALLING:
+inode_provenance(@inode, false)
+
+@inode = SOCK_INODE(sock)
+
+FUNCTION sk_inode_provenance(sk):
+CALLING:
+socket_inode_provenance(@sock)
+
+@sock = sk->sk_socket
+
+FUNCTION provenance_record_address(address, addrlen, prov):
+CALLING:
+record_relation(RL_NAMED, @addr_info, @prov, NULL, 0)
+
+@addr_info = alloc_long_provenance(ENT_ADDR)
+
+FUNCTION provenance_packet_content(skb, pckprov):
+CALLING:
+record_relation(RL_PCK_CNT, @cnt, @pckprov, NULL, 0)
+
+@cnt = alloc_long_provenance(ENT_PCKCNT)
