@@ -23,7 +23,7 @@ def relation_to_str(str):
 				if relation == str:
 					return matched.group(2)
 		# No matching
-		print('\33[103m' + '[error]: Unknown type: '+ str + '\033[0m')
+		print('\33[103m' + '[error][relation_to_str]: Unknown type: '+ str + '\033[0m')
 	f.close()
 
 def prov_to_type(str):
@@ -49,8 +49,10 @@ def prov_to_type(str):
 	elif str == 'pckprov':
 		return 'packet'
 	else:
-		print('\33[104m' + '[error]: Unknown provenance type: '+ str + '\033[0m')
+		print('\33[104m' + '[error][prov_to_type]: Unknown provenance type: '+ str + '\033[0m')
 
+# Functions that deals with RTM Tree.
+#####################################################################################################
 def create_leaf_node(motif_edge):
 	"""
 	The function that generates this leaf node at the lowest level is "__write_relation".
@@ -106,34 +108,43 @@ def create_alternation_node(left, right):
 	alternation_node.left = left
 	alternation_node.right = right
 	return alternation_node
+#####################################################################################################
 
-# Some building block functions
-########################################
+# Some building block functions that generates RTM motif nodes and edges (NOT THE SAME AS TREE NODES)
+#####################################################################################################
+# The lowest level of function is "__write_relation"
 ### provenance_filter.h
-def filter_update_node(type):
+def __filter_update_node(edge_type):
 	"""
+	For certain types of edge, calling update version makes no sense
+	So we identify them so that we do not call "update_version" function.
 	"""
+	if edge_type == 'RL_VERSION_TASK' or edge_type == "RL_VERSION" or edge_type == 'RL_NAMED' or edge_type == 'RL_NAMED_PROCESS':
+		return True
+	else:
+		return False
+
 ### provenance_record.h
-def update_version(motif_node, motif_node_dict):
+def update_version(edge_type, motif_node, motif_node_dict):
 	"""
 	RTM tree nodes for when "__update_version" (provenance_record.h) is called.
 	A new MotifNode is created, which is the updated version of the @motif_node.
 	A version edge between the new MotifNode and @motif_node is created.
-	This new node is also returned by this function.
 
 	We must update the @motif_node_dict with the corresponding entry name (the key of @motif_node).
 	This is appended to the value of the dictionary.
-
-	Question mark relation comes from the following check in CamFlow code:
-	1. provenance_has_outgoing(prov)
 
 	The following checks are ignored because we can easily decide CamFlow settings:
 	1. prov_policy.should_compress_node
 	2. filter_update_node(type)
 
 	Function signature: static __always_inline int __update_version(const uint64_t type, prov_entry_t *prov)
+	@edge_type --> type
 	@motif_node --> prov
 	"""
+	if __filter_update_node(edge_type):
+		return None
+
 	if motif_node.mn_ty == 'task':
 		new_motif_node = MotifNode(motif_node.mn_ty)
 		motif_edge = MotifEdge(motif_node, new_motif_node, relation_to_str('RL_VERSION_TASK'))
@@ -144,54 +155,60 @@ def update_version(motif_node, motif_node_dict):
 	if dict_key:
 		motif_node_dict[dict_key].append(new_motif_node)
 	else:
-		print('\33[103m' + '[error]: Motif Node: '+ str(motif_node.mn_id) + ' of the type ' + str(motif_node.mn_ty) + ' do not have a key in Motif Node Dictionary. \033[0m')
-	return new_motif_node, create_question_mark_node(create_leaf_node(motif_edge))
+		print('\33[103m' + '[error][update_version]: Motif Node: '+ str(motif_node.mn_id) + ' of the type ' + str(motif_node.mn_ty) + ' do not have a key in Motif Node Dictionary. \033[0m')
+	return create_leaf_node(motif_edge)
 
-def record_relation(from_node, to_node, edge_type, update, motif_node_dict):
+def record_relation(edge_type, from_node, to_node, motif_node_dict):
 	"""
 	RTM tree nodes for when "record_relation" (provenance_record.h) is called.
-	If and only if @update is True do we include possible edges corresponding to "update_version",
-	since "__update_version" function in CamFlow codebase contains uncertainty.
-	However, sometimes, we are sure that a new version is not needed, so we will not complicate the model.
 
 	The following checks are ignored because we can easily decide CamFlow settings:
 	1. prov_policy.should_compress_edge
 
 	Function signature: static __always_inline int record_relation(const uint64_t type, prov_entry_t *from, prov_entry_t *to, const struct file *file, const uint64_t flags)
+	@edge_type --> type
 	@from_node --> from
 	@to_node --> to
-	@edge_type --> type
+
+	"file" and "flags" are ignored in our analysis.
 	"""
-	if update:
-		new_motif_node, rtm_internal_node = update_version(to_node, motif_node_dict)
-		new_motif_edge = MotifEdge(from_node, new_motif_node, edge_type)
-	else:
+	rtm_tree_update_node = update_version(edge_type, to_node, motif_node_dict)
+
+	dict_key = getKeyByValue(motif_node_dict, to_node)
+	if dict_key:
+		new_motif_edge = MotifEdge(from_node, getLastValueFromKey(motif_node_dict, dict_key), edge_type)
+	else:	
 		new_motif_edge = MotifEdge(from_node, to_node, edge_type)
-	rtm_leaf_node = create_leaf_node(new_motif_edge)
+	rtm_tree_leaf_node = create_leaf_node(new_motif_edge)
 
-	if update:
-		return create_group_node(rtm_internal_node, rtm_leaf_node)
-	else:
-		return rtm_leaf_node
+	# from_node now has outgoing edges
+	from_node.mn_has_outgoing = True
 
-def record_terminate(motif_node, edge_type):
+	return create_group_node(rtm_tree_update_node, rtm_tree_leaf_node)
+
+def record_terminate(edge_type, motif_node, motif_node_dict):
 	"""
 	RTM tree nodes for when "record_terminate" (provenance_record.h) is called.
 	A new MotifNode is created, which is the final version of the @motif_node.
 	A version edge between the new MotifNode and @motif_node is created.
 	The new MotifNode retires immediately due to termination,
-	therefore, it is not added to the Motif Node Dictionary.
+	For completeness, we still add the new node to the Motif Node Dictionary.
 
 	The following checks are ignored because we can easily decide CamFlow settings:
-	1. provenance_is_recorded(prov_elt(prov))
-	2. prov_policy.prov_all
-	3. filter_node(prov_entry(prov))
+	1. prov_policy.prov_all
+	2. filter_node(prov_entry(prov))
 
 	Function signature: static __always_inline int record_terminate(uint64_t type, struct provenance *prov)
-	@motif_node --> prov
 	@edge_type --> type
+	@motif_node --> prov
 	"""
 	new_motif_node = MotifNode(motif_node.mn_ty)
+
+	dict_key = getKeyByValue(motif_node_dict, motif_node)
+	if dict_key:
+		motif_node_dict[dict_key].append(new_motif_node)
+	else:
+		print('\33[103m' + '[error][record_terminate]: Motif Node: '+ str(motif_node.mn_id) + ' of the type ' + str(motif_node.mn_ty) + ' do not have a key in Motif Node Dictionary. \033[0m')
 	motif_edge = MotifEdge(motif_node, new_motif_node, relation_to_str(edge_type))
 	return create_leaf_node(motif_edge)
 
@@ -201,58 +218,66 @@ def record_node_name(motif_node, force, motif_node_dict):
 	A new MotifNode is created for the path name.
 	The new MotifNode is a short-lived, so it is not needed to be remembered in @motif_node_dict.
 
-	The following check is ignored because we can easily decide CamFlow settings:
+	The following check is ignored:
 	1. provenance_is_recorded(prov_elt(node))
 
 	We check if @motif_node's name has been recorded before because of the check in CamFlow:
 	1. provenance_is_name_recorded(prov_elt(node))
 	We record the node name if 
-	1. @motif_node is the only value in @motif_node_dict or it is not in motif_node_dict, and
+	1. @motif_node's name has not been recorded, or
 	2. Force is True
-
-	We know that the @motif_node does not create a new version because of this operation.
 
 	Function signature: static inline int record_node_name(struct provenance *node,
 															const char *name,
 															bool force) 
 	@motif_node --> node
 	@force --> force
+
+	"name" is ignored in our analysis.
 	"""
-	dict_key = getKeyByValue(motif_node_dict, motif_node)
-	if (!dict_key or len(motif_node_dict[dict_key]:
+	if motif_node.mn_has_name_recorded and not force:
+		return None
 
 	new_motif_node = MotifNode('path')
 	if motif_node.mn_ty == 'task':
-		motif_edge = record_relation(new_motif_node, motif_node, relation_to_str('RL_NAMED_PROCESS'), False, motif_node_dict)
+		rtm_tree_node = record_relation(relation_to_str('RL_NAMED_PROCESS'), new_motif_node, motif_node, motif_node_dict)
 	else:
-		motif_edge = record_relation(new_motif_node, motif_node, relation_to_str('RL_NAMED'), False, motif_node_dict)
-	return create_leaf_node(motif_edge)
+		rtm_tree_node = record_relation(relation_to_str('RL_NAMED'), new_motif_node, motif_node, motif_node_dict)
+	# motif_node's name is now recorded
+	motif_node.mn_has_name_recorded = True
+	return rtm_tree_node
 
 def record_kernel_link(motif_node, motif_node_dict):
 	"""
 	RTM tree nodes for when "record_kernel_link" (provenance_record.h) is called.
-	A new MotifNode is created for the machine "prov_machine".
+	A new MotifNode is created for the machine "prov_machine" if it does not exist.
 	The new MotifNode is a kernel entry in @motif_node_dict.
 	The key value pair is (kernel, [MotifNode('machine'),...]).
 
-	We know that the @motif_node does not create a new version.
-
 	The following checks are ignored because we can easily decide CamFlow settings:
-	1. provenance_is_kernel_recorded(prov_elt(node))
-	2. provenance_is_recorded(prov_elt(node))
+	1. provenance_is_recorded(prov_elt(node))
 
 	Function signature: static inline int record_kernel_link(struct provenance *node)
 	@motif_node --> node
 	"""
-	if 'kernel' not in motif_node_dict:
+	# We only record kernel node if it does not exist or if its kernel version is outdated
+	if 'kernel' not in motif_node_dict or motif_node.mn_kernel_version < len(motif_node_dict['kernel']):
 		new_motif_node = MotifNode('machine')
-		motif_node_dict['kernel'] = [new_motif_node]
-	motif_edge = record_relation(getLastValueFromKey(motif_node_dict, 'kernel'), motif_node, relation_to_str('RL_RAN_ON'), False, motif_node_dict)
-	return create_question_mark_node(create_leaf_node(motif_edge))
+		if 'kernel' not in motif_node_dict:
+			motif_node_dict['kernel'] = [new_motif_node]
+		else:
+			motif_node_dict['kernel'].append(new_motif_node)
+		# update the node's kernel version
+		motif_node.mn_kernel_version = len(motif_node_dict['kernel'])
+		return record_relation(relation_to_str('RL_RAN_ON'), new_motif_node, motif_node, motif_node_dict)
 
-def influences_kernel_to_relation(edge_type, entity_node, activity_node, motif_node_dict):
+def influences_kernel(edge_type, entity_node, activity_node, motif_node_dict):
 	"""
 	RTM tree nodes for when 'influences_kernel' (provenance_record.h) is called.
+
+	The following checks are ignored because we can easily decide CamFlow settings:
+	1. apply_target(prov)
+	2. provenance_is_opaque(prov)
 
 	Function signature: static __always_inline int influences_kernel(const uint64_t type,
 																		struct provenance *entity,
@@ -262,18 +287,18 @@ def influences_kernel_to_relation(edge_type, entity_node, activity_node, motif_n
 	@entity_node -> entity
 	@activity_node -> activity
 
-	Precondition:
-	* In hooks (motifs) that call them, we assume it is always the first time a "machine" typed node is created.
+	'file' is ignored in our analysis.
 	"""
 	if 'kernel' not in motif_node_dict:
 		new_motif_node = MotifNode('machine')
 		motif_node_dict['kernel'] = [new_motif_node]
 	
-	load_file_rtm_node = record_relation(entity_node, activity_node, relation_to_str('RL_LOAD_FILE'), True, motif_node_dict)
-	machine_rtm_node = record_relation(activity_node, getLastValueFromKey(motif_node_dict, 'kernel'), relation_to_str(edge_type), True, motif_node_dict)
+	rtm_tree_load_node = record_relation(relation_to_str('RL_LOAD_FILE'), entity_node, activity_node, motif_node_dict)
+	rtm_tree_machine_node = record_relation(relation_to_str(edge_type), activity_node, getLastValueFromKey(motif_node_dict, 'kernel'), motif_node_dict)
 
-	return create_group_node(load_file_rtm_node, machine_rtm_node)
-##### Functions: uses, uses_two, generates, derives, informs will be handled through AST analysis on provenance_record.h
+	return create_group_node(rtm_tree_load_node, rtm_tree_machine_node)
+
+##### Functions: uses, uses_two, generates, derives, and informs will be handled through AST analysis on provenance_record.h
 
 ### provenance_inode.h
 def update_inode_type(motif_node, motif_node_dict):
@@ -291,58 +316,6 @@ def update_inode_type(motif_node, motif_node_dict):
 		motif_node_dict[dict_key].append(new_motif_node)
 	motif_edge = MotifEdge(motif_node, new_motif_node, relation_to_str('RL_VERSION'))
 	return create_question_mark_node(create_leaf_node(motif_edge))
-
-def record_inode_name_from_dentry(motif_node, force, motif_node_dict):
-	"""
-	RTM tree nodes for when "record_inode_name_from_dentry" (provenance_inode.h) is called.
-	
-	Question mark relation is from the following runtime check, which is already reflected in 'record_node_name' function:
-	provenance_is_name_recorded(prov_elt(node)). 
-
-	Function signature: static inline int record_inode_name_from_dentry(struct dentry *dentry,
-																		struct provenance *prov,
-																		bool force)
-	@motif_node --> prov
-	@force --> force
-	"""
-	return record_node_name(motif_node, force, motif_node_dict)
-
-def record_inode_name(motif_node, motif_node_dict):
-	"""
-	RTM tree nodes for when "record_inode_name" (provenance_inode.h) is called.
-
-	Question mark relation is from the following runtime check, which is already reflected in 'record_inode_name_from_dentry' function:
-	provenance_is_name_recorded(prov_elt(node)). 
-
-	Function signature: static inline int record_inode_name(struct inode *inode, struct provenance *prov)
-	@motif_node --> prov
-	"""
-	return record_inode_name_from_dentry(motif_node, False, motif_node_dict)
-
-def refresh_inode_provenance(motif_node, motif_node_dict):
-	"""
-	RTM tree nodes for when 'refresh_inode_provenance' (provenance_inode.h) is called.
-
-	Function signature: static inline void refresh_inode_provenance(struct inode *inode)
-	@motif_node must be an inode type.
-	"""
-	rtm_node = record_inode_name(motif_node, motif_node_dict)
-	return create_group_node(rtm_node, update_inode_type(motif_node, motif_node_dict))
-
-def inode_init_provenance(motif_node, motif_node_dict):
-	"""
-	RTM tree nodes for when 'inode_init_provenance' (provenance_inode.h) is called.
-
-	Question mark relation is from the following runtime check, which is already reflected in 'update_inode_type' function:
-	provenance_is_initialized(prov_elt(prov)).
-
-	Function signature: static inline int inode_init_provenance(struct inode *inode, struct dentry *opt_dentry)
-	@motif_node must be an inode type.
-	"""
-	return update_inode_type(motif_node, motif_node_dict)
-
-def inode_provenance(motif_node, may_sleep, motif_node_dict):
-
 
 ### provenance_task.h
 def current_update_shst(cprov_node, read, motif_node_dict):
@@ -363,6 +336,8 @@ def current_update_shst(cprov_node, read, motif_node_dict):
 		return create_group_node(create_leaf_node(motif_edge), create_asterisk_node(record_relation(new_inode_motif_node, cprov_node, relation_to_str('RL_SH_READ'), motif_node_dict)))
 	else:
 		return create_group_node(create_leaf_node(motif_edge), create_asterisk_node(record_relation(cprov_node, new_inode_motif_node, relation_to_str('RL_SH_WRITE'), motif_node_dict)))
+
+#####################################################################################################
 
 def record_write_xattr(iprov_node, tprov_node, cprov_node, edge_type, motif_node_dict):
 	"""
