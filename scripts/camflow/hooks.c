@@ -117,6 +117,7 @@ static int provenance_task_alloc(struct task_struct *task,
 	return 0;
 }
 
+
 /*!
  * @brief Record provenance when task_free hook is triggered.
  *

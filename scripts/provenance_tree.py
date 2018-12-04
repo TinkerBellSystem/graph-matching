@@ -300,6 +300,26 @@ def influences_kernel(edge_type, entity_node, activity_node, motif_node_dict):
 
 ##### Functions: uses, uses_two, generates, derives, and informs will be handled through AST analysis on provenance_record.h
 
+### provenance_task.h
+def current_update_shst(cprov_node, read, motif_node_dict):
+	"""
+	RTM tree nodes for when "current_update_shst" (provenance_task.h) is called.
+	
+	Two new MotifNodes and a MotifEdge between them is created for mmap file.
+	
+	Function signature: int current_update_shst(struct provenance *cprov, bool read)
+	@cprov_node --> cprov
+	@read --> read
+	"""
+	new_path_motif_node = MotifNode('path')
+	new_inode_motif_node = MotifNode('inode')
+	motif_edge = MotifEdge(new_path_motif_node, new_inode_motif_node, relation_to_str('RL_NAMED'))
+
+	if read:
+		return create_group_node(create_leaf_node(motif_edge), create_asterisk_node(record_relation(new_inode_motif_node, cprov_node, relation_to_str('RL_SH_READ'), motif_node_dict)))
+	else:
+		return create_group_node(create_leaf_node(motif_edge), create_asterisk_node(record_relation(cprov_node, new_inode_motif_node, relation_to_str('RL_SH_WRITE'), motif_node_dict)))
+
 ### provenance_inode.h
 def update_inode_type(motif_node, motif_node_dict):
 	"""
@@ -316,26 +336,6 @@ def update_inode_type(motif_node, motif_node_dict):
 		motif_node_dict[dict_key].append(new_motif_node)
 	motif_edge = MotifEdge(motif_node, new_motif_node, relation_to_str('RL_VERSION'))
 	return create_question_mark_node(create_leaf_node(motif_edge))
-
-### provenance_task.h
-def current_update_shst(cprov_node, read, motif_node_dict):
-	"""
-	RTM tree nodes for when "current_update_shst" (provenance_task.h) is called.
-	@read: if False, then it is "write"
-	Two new MotifNodes and a MotifEdge between them is created for mmap file.
-	
-	Function signature: int current_update_shst(struct provenance *cprov, bool read)
-	@cprov_node --> cprov
-	@read --> read
-	"""
-	new_path_motif_node = MotifNode('path')
-	new_inode_motif_node = MotifNode('inode')
-	motif_edge = MotifEdge(new_path_motif_node, new_inode_motif_node, relation_to_str('RL_NAMED'))
-
-	if read:
-		return create_group_node(create_leaf_node(motif_edge), create_asterisk_node(record_relation(new_inode_motif_node, cprov_node, relation_to_str('RL_SH_READ'), motif_node_dict)))
-	else:
-		return create_group_node(create_leaf_node(motif_edge), create_asterisk_node(record_relation(cprov_node, new_inode_motif_node, relation_to_str('RL_SH_WRITE'), motif_node_dict)))
 
 #####################################################################################################
 
