@@ -103,7 +103,7 @@ record_relation(RL_SH_READ, @mmprov, @cprov, mmapf, flags)
 IF vm_write_mayshare(@flags) AND !read:
 record_relation(RL_SH_WRITE, @cprov, @mmprov, mmapf, flags)
 
-FINCTION record_task_name(task, prov):
+FUNCTION record_task_name(task, prov):
 CALLING:
 fprov = file_provenance(@exe_file, false)
 record_node_name(@prov, @ptr, false)
