@@ -10,7 +10,7 @@
 from __future__ import print_function
 import sys
 import os
-import provenance_tree as prov
+import provenance_tree as provenance
 from rtm_tree import *
 from helper import *
 from graph_tree import *
@@ -19,7 +19,7 @@ from pycparser import c_parser, c_ast, parse_file
 
 def get_arg_name(args):
     """
-    Get names of function arguments.
+    Get names of function arguments in a function call.
     """
     names = []
     for arg in args:
@@ -29,254 +29,609 @@ def get_arg_name(args):
             names.append(arg.expr.name)
     return names
 
-def eval_prov_func_call(func_call, motif_node_dict, ast):
+def eval_function_call(func_call, motif_node_dict):
     """
-    Evaluate a single function call that directly generates relations.
+    Evaluate a single subroutine function call in hook functions.
+    All evaluated function calls should return a tuple: (New Motif Node, New RTM Tree Node), either or both of which can be None
     """
-    if func_call.name.name == 'uses' or func_call.name.name == 'generates':
+    # CamFlow "alloc_provenance" take two arguments but only the first is needed for modeling.
+    if func_call.name.name == 'alloc_provenance':
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
-        func = None
-        for ext in ast.ext:
-            if type(ext).__name__ == 'FuncDef':
-                function_decl = ext.decl
-                function_name = function_decl.name
-                if function_name == func_call.name.name:
-                    func = ext
-        if func == None:
-            print('\33[103m' + '[error]: cannot find: '+ func_call.name.name + '\033[0m')
-            exit()
-        else:
-            arg1 = arg_names[1]
-            arg2 = arg_names[2]
-            arg3 = arg_names[3]
-            if arg1 not in motif_node_dict:
-                motif_node_dict[arg1] = [prov.alloc_motif_node(arg1)]
-            if arg2 not in motif_node_dict:
-                motif_node_dict[arg2] = [prov.alloc_motif_node(arg2)]
-            if arg3 not in motif_node_dict:
-                motif_node_dict[arg3] = [prov.alloc_motif_node(arg3)]
-            return prov.relation_with_four_args(func, arg_names[0], getLastValueFromKey(motif_node_dict, arg1), getLastValueFromKey(motif_node_dict, arg2), getLastValueFromKey(motif_node_dict, arg3), motif_node_dict)
-    elif func_call.name.name == 'derives' or func_call.name.name == 'informs' or func_call.name.name == 'uses_two':
+        return provenance.alloc_provenance(arg_names[0])
+    # CamFlow "uses_two" function takes five arguments but only the first three are needed for modeling.
+    elif func_call.name.name == 'uses_two':
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
-        func = None
-        for ext in ast.ext:
-            if type(ext).__name__ == 'FuncDef':
-                function_decl = ext.decl
-                function_name = function_decl.name
-                if function_name == func_call.name.name:
-                    func = ext
-        if func == None:
-            print('\33[103m' + '[error]: cannot find: '+ func_call.name.name + '\033[0m')
-            exit()
-        else:
-            arg1 = arg_names[1]
-            arg2 = arg_names[2]
-            if arg1 not in motif_node_dict:
-                motif_node_dict[arg1] = [prov.alloc_motif_node(arg1)]
-            if arg2 not in motif_node_dict:
-                motif_node_dict[arg2] = [prov.alloc_motif_node(arg2)]
-            return prov.relation_with_three_args(func, arg_names[0], getLastValueFromKey(motif_node_dict, arg1), getLastValueFromKey(motif_node_dict, arg2), motif_node_dict)
-    elif func_call.name.name == 'alloc_provenance':
+        # The second and third arguments must be converted to MotifNode objects first.
+        arg1 = arg_names[1]
+        arg2 = arg_names[2]
+        if arg1 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in uses_two must exist in the dictionary.\033[0m')
+            exit(1)
+        val1 = getLastValueFromKey(motif_node_dict, arg1)
+        if not val1:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in uses_two must have values in the dictionary.\033[0m')
+            exit(1)
+        if arg2 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg2 + ' in uses_two must exist in the dictionary.\033[0m')
+            exit(1)
+        val2 = getLastValueFromKey(motif_node_dict, arg2)
+        if not val2:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg2 + ' in uses_two must have values in the dictionary.\033[0m')
+            exit(1)
+        return provenance.uses_two(arg_names[0], val1, val2, motif_node_dict)
+    # CamFlow "informs" function takes five arguments but only the first three are needed for modeling.
+    elif func_call.name.name == 'informs':
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
-        return prov.alloc_provenance(arg_names[0])
-    elif func_call.name.name == 'get_cred_provenance':
-        return prov.get_cred_provenance_to_relation()
-    elif func_call.name.name == 'inode_provenance':
-        return prov.inode_provenance_to_relation()
-    elif func_call.name.name == 'dentry_provenance':
-        return prov.inode_provenance_to_relation()
-    elif func_call.name.name == 'file_provenance':
-        return prov.inode_provenance_to_relation()
-    elif func_call.name.name == 'refresh_inode_provenance':
-        return prov.inode_provenance_to_relation()
-    elif func_call.name.name == 'provenance_record_address':
-        args = func_call.args.exprs
-        arg_names = get_arg_name(args)
-        if arg_names[2] not in motif_node_dict:
-            motif_node_dict[arg_names[2]] = [prov.alloc_motif_node(arg_names[2])]
-        return prov.provenance_record_address_to_relation(getLastValueFromKey(motif_node_dict, arg_names[2]), motif_node_dict)
-    elif func_call.name.name == 'record_write_xattr':
-        args = func_call.args.exprs
-        arg_names = get_arg_name(args)
-        if arg_names[1] not in motif_node_dict:
-            motif_node_dict[arg_names[1]] = [prov.alloc_motif_node(arg_names[1])]
-        if arg_names[2] not in motif_node_dict:
-            motif_node_dict[arg_names[2]] = [prov.alloc_motif_node(arg_names[2])]
-        if arg_names[3] not in motif_node_dict:
-            motif_node_dict[arg_names[3]] = [prov.alloc_motif_node(arg_names[3])]
-        return prov.record_write_xattr(getLastValueFromKey(motif_node_dict, arg_names[1]), getLastValueFromKey(motif_node_dict, arg_names[2]), getLastValueFromKey(motif_node_dict, arg_names[3]), arg_names[0], motif_node_dict)
-    elif func_call.name.name == 'record_read_xattr':
-        args = func_call.args.exprs
-        arg_names = get_arg_name(args)
-        if arg_names[0] not in motif_node_dict:
-            motif_node_dict[arg_names[0]] = [prov.alloc_motif_node(arg_names[0])]
-        if arg_names[1] not in motif_node_dict:
-            motif_node_dict[arg_names[1]] = [prov.alloc_motif_node(arg_names[1])]
-        if arg_names[2] not in motif_node_dict:
-            motif_node_dict[arg_names[2]] = [prov.alloc_motif_node(arg_names[2])]
-        return prov.record_read_xattr(getLastValueFromKey(motif_node_dict, arg_names[0]), getLastValueFromKey(motif_node_dict, arg_names[1]), getLastValueFromKey(motif_node_dict, arg_names[2]), motif_node_dict)
-    elif func_call.name.name == 'provenance_packet_content':
-        args = func_call.args.exprs
-        arg_names = get_arg_name(args)
-        if arg_names[1] not in motif_node_dict:
-            motif_node_dict[arg_names[1]] = [prov.alloc_motif_node(arg_names[1])]
-        return prov.provenance_packet_content_to_relation(getLastValueFromKey(motif_node_dict, arg_names[1]), motif_node_dict)
-    elif func_call.name.name == 'prov_record_args':
-        args = func_call.args.exprs
-        arg_names = get_arg_name(args)
-        if arg_names[0] not in motif_node_dict:
-            motif_node_dict[arg_names[0]] = [prov.alloc_motif_node(arg_names[0])]
-        return prov.prov_record_args_to_relation(getLastValueFromKey(motif_node_dict, arg_names[0]), motif_node_dict)
+        # The second and third arguments must be converted to MotifNode objects first.
+        arg1 = arg_names[1]
+        arg2 = arg_names[2]
+        if arg1 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in informs must exist in the dictionary.\033[0m')
+            exit(1)
+        val1 = getLastValueFromKey(motif_node_dict, arg1)
+        if not val1:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in informs must have values in the dictionary.\033[0m')
+            exit(1)
+        if arg2 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg2 + ' in informs must exist in the dictionary.\033[0m')
+            exit(1)
+        val2 = getLastValueFromKey(motif_node_dict, arg2)
+        if not val2:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg2 + ' in informs must have values in the dictionary.\033[0m')
+            exit(1)
+        return provenance.informs(arg_names[0], val1, val2, motif_node_dict)
+    # CamFlow "record_terminate" function takes two arguments.
     elif func_call.name.name == 'record_terminate':
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
-        if arg_names[1] not in motif_node_dict:
-            motif_node_dict[arg_names[1]] = [prov.alloc_motif_node(arg_names[1])]
-        return prov.record_terminate(getLastValueFromKey(motif_node_dict, arg_names[1]), arg_names[0])
+        # The second arguments must be converted to MotifNode object first.
+        arg1 = arg_names[1]
+        if arg1 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in record_terminate must exist in the dictionary.\033[0m')
+            exit(1)
+        val1 = getLastValueFromKey(motif_node_dict, arg1)
+        if not val1:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in record_terminate must have values in the dictionary.\033[0m')
+            exit(1)
+        return provenance.record_terminate(arg_names[0], val1, motif_node_dict)
+    # CamFlow "generates" function takes six arguments but only the first four are needed for modeling.
+    elif func_call.name.name == 'generates':
+        args = func_call.args.exprs
+        arg_names = get_arg_name(args)
+        # The second, third, and fourth arguments must be converted to MotifNode objects first.
+        arg1 = arg_names[1]
+        arg2 = arg_names[2]
+        arg3 = arg_names[3]
+        if arg1 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in generates must exist in the dictionary.\033[0m')
+            exit(1)
+        val1 = getLastValueFromKey(motif_node_dict, arg1)
+        if not val1:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in generates must have values in the dictionary.\033[0m')
+            exit(1)
+        if arg2 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg2 + ' in generates must exist in the dictionary.\033[0m')
+            exit(1)
+        val2 = getLastValueFromKey(motif_node_dict, arg2)
+        if not val2:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg2 + ' in generates must have values in the dictionary.\033[0m')
+            exit(1)
+        if arg3 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg3 + ' in generates must exist in the dictionary.\033[0m')
+            exit(1)
+        val3 = getLastValueFromKey(motif_node_dict, arg3)
+        if not val3:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg3 + ' in generates must have values in the dictionary.\033[0m')
+            exit(1)
+        return provenance.generates(arg_names[0], val1, val2, val3, motif_node_dict)
+    # CamFlow "get_task_provenance" takes no arguments.
+    elif func_call.name.name == 'get_task_provenance':
+        return provenance.get_task_provenance()
+    # CamFlow "get_cred_provenance" takes no arguments.
+    elif func_call.name.name == 'get_cred_provenance':
+        return provenance.get_cred_provenance()
+    # CamFlow "uses" takes six arguments but only the first four are needed for modeling.
+    elif func_call.name.name == 'uses':
+        args = func_call.args.exprs
+        arg_names = get_arg_name(args)
+        # The second, third, and fourth arguments must be converted to MotifNode objects first.
+        arg1 = arg_names[1]
+        arg2 = arg_names[2]
+        arg3 = arg_names[3]
+        if arg1 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in uses must exist in the dictionary.\033[0m')
+            exit(1)
+        val1 = getLastValueFromKey(motif_node_dict, arg1)
+        if not val1:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in uses must have values in the dictionary.\033[0m')
+            exit(1)
+        if arg2 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg2 + ' in uses must exist in the dictionary.\033[0m')
+            exit(1)
+        val2 = getLastValueFromKey(motif_node_dict, arg2)
+        if not val2:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg2 + ' in uses must have values in the dictionary.\033[0m')
+            exit(1)
+        if arg3 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg3 + ' in uses must exist in the dictionary.\033[0m')
+            exit(1)
+        val3 = getLastValueFromKey(motif_node_dict, arg3)
+        if not val3:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg3 + ' in uses must have values in the dictionary.\033[0m')
+            exit(1)
+        return provenance.uses(arg_names[0], val1, val2, val3, motif_node_dict)
+    # CamFlow "refresh_inode_provenance" takes two arguments but only the second one is needed for modeling.
+    elif func_call.name.name == 'refresh_inode_provenance':
+        args = func_call.args.exprs
+        arg_names = get_arg_name(args)
+        # The second argument must be converted to MotifNode objects first.
+        arg1 = arg_names[1]
+        if arg1 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in refresh_inode_provenance must exist in the dictionary.\033[0m')
+            exit(1)
+        val1 = getLastValueFromKey(motif_node_dict, arg1)
+        if not val1:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in refresh_inode_provenance must have values in the dictionary.\033[0m')
+            exit(1)
+        return provenance.refresh_inode_provenance(val1, motif_node_dict)
+    # CamFlow "get_inode_provenance" takes two arguments but only the second argument is needed for modeling.
+    elif func_call.name.name == 'get_inode_provenance':
+        args = func_call.args.exprs
+        arg_names = get_arg_name(args)
+        return provenance.get_inode_provenance(arg_names[1])
+    # CamFlow "get_dentry_provenance" takes two arguments but only the second argument is needed for modeling.  
+    elif func_call.name.name == 'get_dentry_provenance':
+        args = func_call.args.exprs
+        arg_names = get_arg_name(args)
+        return provenance.get_dentry_provenance(arg_names[1])
+    # CamFlow "record_inode_name_from_dentry" takes three arguments, but only the second and the third arguments are needed for modeling.
+    elif func_call.name.name == 'record_inode_name_from_dentry':
+        args = func_call.args.exprs
+        arg_names = get_arg_name(args)
+        # The second argument must be converted to MotifNode objects first.
+        arg1 = arg_names[1]
+        if arg1 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in record_inode_name_from_dentry must exist in the dictionary.\033[0m')
+            exit(1)
+        val1 = getLastValueFromKey(motif_node_dict, arg1)
+        if not val1:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in record_inode_name_from_dentry must have values in the dictionary.\033[0m')
+            exit(1)
+        return provenance.record_inode_name_from_dentry(val1, arg_names[2], motif_node_dict)
+    # CamFlow "record_node_name" takes three arguments, but only the first and the third arguments are needed for modeling.
+    elif func_call.name.name == 'record_node_name':
+        args = func_call.args.exprs
+        arg_names = get_arg_name(args)
+        # The second argument must be converted to MotifNode objects first.
+        arg0 = arg_names[0]
+        if arg0 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg0 + ' in record_node_name must exist in the dictionary.\033[0m')
+            exit(1)
+        val0 = getLastValueFromKey(motif_node_dict, arg0)
+        if not val0:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg0 + ' in record_node_name must have values in the dictionary.\033[0m')
+            exit(1)
+        return provenance.record_node_name(val0, arg_names[2], motif_node_dict)
+    # CamFlow "derives" function takes five arguments but only the first three are needed for modeling.
+    elif func_call.name.name == 'derives':
+        args = func_call.args.exprs
+        arg_names = get_arg_name(args)
+        # The second and third arguments must be converted to MotifNode objects first.
+        arg1 = arg_names[1]
+        arg2 = arg_names[2]
+        if arg1 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in derives must exist in the dictionary.\033[0m')
+            exit(1)
+        val1 = getLastValueFromKey(motif_node_dict, arg1)
+        if not val1:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in derives must have values in the dictionary.\033[0m')
+            exit(1)
+        if arg2 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg2 + ' in derives must exist in the dictionary.\033[0m')
+            exit(1)
+        val2 = getLastValueFromKey(motif_node_dict, arg2)
+        if not val2:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg2 + ' in derives must have values in the dictionary.\033[0m')
+            exit(1)
+        return provenance.derives(arg_names[0], val1, val2, motif_node_dict)
+    # CamFlow "record_write_xattr" function takes eight arguments but only the first four are needed for modeling.
+    elif func_call.name.name == 'record_write_xattr':
+        args = func_call.args.exprs
+        arg_names = get_arg_name(args)
+        # The second, third, and fourth arguments must be converted to MotifNode objects first.
+        arg1 = arg_names[1]
+        arg2 = arg_names[2]
+        arg3 = arg_names[3]
+        if arg1 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in record_write_xattr must exist in the dictionary.\033[0m')
+            exit(1)
+        val1 = getLastValueFromKey(motif_node_dict, arg1)
+        if not val1:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in record_write_xattr must have values in the dictionary.\033[0m')
+            exit(1)
+        if arg2 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg2 + ' in record_write_xattr must exist in the dictionary.\033[0m')
+            exit(1)
+        val2 = getLastValueFromKey(motif_node_dict, arg2)
+        if not val2:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg2 + ' in record_write_xattr must have values in the dictionary.\033[0m')
+            exit(1)
+        if arg3 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg3 + ' in record_write_xattr must exist in the dictionary.\033[0m')
+            exit(1)
+        val3 = getLastValueFromKey(motif_node_dict, arg3)
+        if not val3:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg3 + ' in record_write_xattr must have values in the dictionary.\033[0m')
+            exit(1)
+        return provenance.record_write_xattr(arg_names[0], val1, val2, val3, motif_node_dict)
+    # CamFlow "record_read_xattr" function takes four arguments but only the first three are needed for modeling.
+    elif func_call.name.name == 'record_read_xattr':
+        args = func_call.args.exprs
+        arg_names = get_arg_name(args)
+        arg0 = arg_names[0]
+        arg1 = arg_names[1]
+        arg2 = arg_names[2]
+        if arg0 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg0 + ' in record_read_xattr must exist in the dictionary.\033[0m')
+            exit(1)
+        val0 = getLastValueFromKey(motif_node_dict, arg0)
+        if not val0:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg0 + ' in record_read_xattr must have values in the dictionary.\033[0m')
+            exit(1)
+        if arg1 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in record_read_xattr must exist in the dictionary.\033[0m')
+            exit(1)
+        val1 = getLastValueFromKey(motif_node_dict, arg1)
+        if not val1:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in record_read_xattr must have values in the dictionary.\033[0m')
+            exit(1)
+        if arg2 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg2 + ' in record_read_xattr must exist in the dictionary.\033[0m')
+            exit(1)
+        val2 = getLastValueFromKey(motif_node_dict, arg2)
+        if not val2:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg2 + ' in record_read_xattr must have values in the dictionary.\033[0m')
+            exit(1)
+        return provenance.record_read_xattr(val0, val1, val2, motif_node_dict)
+    # CamFlow "get_file_provenance" takes two arguments but only the second argument is needed for modeling.  
+    elif func_call.name.name == 'get_file_provenance':
+        args = func_call.args.exprs
+        arg_names = get_arg_name(args)
+        return provenance.get_file_provenance(arg_names[1])
+    # CamFlow "influences_kernel" function takes four arguments but only the first three are needed for modeling.
     elif func_call.name.name == 'influences_kernel':
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
-        if arg_names[1] not in motif_node_dict:
-            motif_node_dict[arg_names[1]] = [prov.alloc_motif_node(arg_names[1])]
-        if arg_names[2] not in motif_node_dict:
-            motif_node_dict[arg_names[2]] = [prov.alloc_motif_node(arg_names[2])]
-        return prov.influences_kernel_to_relation(arg_names[0], getLastValueFromKey(motif_node_dict, arg_names[1]), getLastValueFromKey(motif_node_dict, arg_names[2]), motif_node_dict)
+        # The second and third arguments must be converted to MotifNode objects first.
+        arg1 = arg_names[1]
+        arg2 = arg_names[2]
+        if arg1 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in influences_kernel must exist in the dictionary.\033[0m')
+            exit(1)
+        val1 = getLastValueFromKey(motif_node_dict, arg1)
+        if not val1:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in influences_kernel must have values in the dictionary.\033[0m')
+            exit(1)
+        if arg2 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg2 + ' in influences_kernel must exist in the dictionary.\033[0m')
+            exit(1)
+        val2 = getLastValueFromKey(motif_node_dict, arg2)
+        if not val2:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg2 + ' in influences_kernel must have values in the dictionary.\033[0m')
+            exit(1)
+        return provenance.influences_kernel(arg_names[0], val1, val2, motif_node_dict)
+    # CamFlow "get_socket_inode_provenance" takes one argument but it is not needed for modeling.  
+    elif func_call.name.name == 'get_socket_inode_provenance':
+        return provenance.get_socket_inode_provenance()
+    # CamFlow "record_address" takes three arguments but only the last argument is needed for modeling. 
+    elif func_call.name.name == 'record_address':
+        args = func_call.args.exprs
+        arg_names = get_arg_name(args)
+        arg2 = arg_names[2]
+        if arg2 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg2 + ' in record_address must exist in the dictionary.\033[0m')
+            exit(1)
+        val2 = getLastValueFromKey(motif_node_dict, arg2)
+        if not val2:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg2 + ' in record_address must have values in the dictionary.\033[0m')
+            exit(1)
+        return provenance.record_address(val2, motif_node_dict)
+    # CamFlow "get_sk_inode_provenance" takes one argument but it is not needed for modeling.  
+    elif func_call.name.name == 'get_sk_inode_provenance':
+        return provenance.get_sk_inode_provenance()
+    # CamFlow "record_packet_content" takes two arguments but only the second argument is needed for modeling. 
+    elif func_call.name.name == 'record_packet_content':
+        args = func_call.args.exprs
+        arg_names = get_arg_name(args)
+        arg1 = arg_names[1]
+        if arg1 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in record_packet_content must exist in the dictionary.\033[0m')
+            exit(1)
+        val1 = getLastValueFromKey(motif_node_dict, arg1)
+        if not val1:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in record_packet_content must have values in the dictionary.\033[0m')
+            exit(1)
+        return provenance.record_packet_content(val1, motif_node_dict)
+    # CamFlow "record_args" takes two arguments but only the first argument is needed for modeling.
+    elif func_call.name.name == 'record_args':
+        args = func_call.args.exprs
+        arg_names = get_arg_name(args)
+        arg0 = arg_names[0]
+        if arg0 not in motif_node_dict:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg0 + ' in record_args must exist in the dictionary.\033[0m')
+            exit(1)
+        val0 = getLastValueFromKey(motif_node_dict, arg0)
+        if not val0:
+            print('\33[103m' + '[error][eval_function_call]:  ' + arg0 + ' in record_args must have values in the dictionary.\033[0m')
+            exit(1)
+        return provenance.record_args(val0, motif_node_dict)
     else:
-        return None
+        return None, None
 
-def eval_assignment(assignment, motif_node_dict, ast):
+def eval_assignment(assignment, motif_node_dict):
     """
-    Evaluate a single assignment that directly generates a relation.
+    Evaluate a single assignment that directly creates new MotifNodes or TreeNodes.
     """
     if type(assignment.rvalue).__name__ == 'FuncCall':
-        rtn = eval_prov_func_call(assignment.rvalue, motif_node_dict, ast)
-        if type(rtn).__name__ == 'tuple':
-            motif_node_dict[assignment.lvalue.name] = [rtn[0]]
-            return rtn[1]
-        elif rtn != None:
-            return rtn
+        motif_node, tree_node = eval_function_call(assignment.rvalue, motif_node_dict)
+        if motif_node:
+            if assignment.lvalue.name not in motif_node_dict:
+                print('\33[103m' + '[error][eval_assignment]:  ' + assignment.lvalue.name + ' must be in the dictionary.\033[0m')
+                exit(1)
+            else:
+                motif_node_dict[assignment.lvalue.name].append(motif_node)
+        return tree_node
+    # In a case where a provenance node was declared but then assigned or reassigned. For example:
+    #   struct provenance *tprov;
+    #   ...
+    #   tprov = t->provenance;
+    # tprov must then be in the motif_node_dict.
+    elif assignment.lvalue.name in motif_node_dict:
+        # we can only infer its type from the name of the variable
+        motif_node = provenance.create_motif_node(assignment.lvalue.name)
+        motif_node_dict[assignment.lvalue.name].append(motif_node)
+        return None
+    else:
+        #######################################################
+        # We will consider other conditions if we ever see them
+        # POSSIBLE CODE HERE.
+        #######################################################
+        return None
+
+def eval_declaration(declaration, motif_node_dict):
+    """
+    Evaluate a single declaration that directly generates new MotifNodes or TreeNodes.
+    """
+    # We are only concerned with declaration type "struct provenance" or "struct provenance *"
+    if declaration.type.type.type.name == 'provenance':
+        # if it is immediately assigned by a function call
+        if type(declaration.init).__name__ == 'FuncCall':
+            motif_node, tree_node = eval_function_call(declaration.init, motif_node_dict)
+            if not motif_node:
+                print('\33[103m' + '[error][eval_declaration]:  ' + declaration.name + ' must be associated with a MotifNode.\033[0m')
+                exit(1)
+            else:
+                # it should be the first time we see the name in the dictionary
+                if declaration.name in motif_node_dict:
+                    print('\33[103m' + '[error][eval_declaration]:  ' + declaration.name + ' should not already be in the dictionary.\033[0m')                    
+                    exit(1)
+                else:
+                    motif_node_dict[declaration.name] = [motif_node]
+            return tree_node
+        # if it is set to NULL first
+        elif type(declaration.init).__name__ == 'ID':
+            if declaration.init.name == 'NULL':
+                # it should be the first time we see the name in the dictionary
+                if declaration.name in motif_node_dict:
+                    print('\33[103m' + '[error][eval_declaration]:  ' + declaration.name + ' is set to NULL and should not already be in the dictionary.\033[0m')                    
+                    exit(1)
+                else:
+                    motif_node_dict[declaration.name] = []
+            else:
+                #######################################################
+                # We will consider other conditions if we ever see them
+                # POSSIBLE CODE HERE.
+                #######################################################
+                print('\33[103m' + '[error][eval_declaration]:  ' + declaration.name + ' is set to an unknown condition that is not considered yet.\033[0m')                    
+                exit(1)
+            return None
+        # if it is not set at all, then it must be set later
+        elif type(declaration.init).__name__ == 'NoneType':
+            if declaration.name in motif_node_dict:
+                print('\33[103m' + '[error][eval_declaration]:  ' + declaration.name + ' is not set and should not already be in the dictionary.\033[0m')                    
+                exit(1)
+            else:
+                #######################################################
+                # We encounter an exception here
+                # TODO: WHAT CAN WE DO?
+                #######################################################
+                if declaration.name == 'pckprov':
+                    motif_node_dict[declaration.name] = [provenance.create_motif_node(declaration.name)]
+                else:
+                    motif_node_dict[declaration.name] = []
+            return None
+        # it must be set through other methods, so we can only infer the type from its name
+        else:
+            if declaration.name in motif_node_dict:
+                print('\33[103m' + '[error][eval_declaration]:  ' + declaration.name + ' is not set in an unknown way but should not already be in the dictionary.\033[0m')                    
+                exit(1)
+            else:
+                motif_node_dict[declaration.name] = [provenance.create_motif_node(declaration.name)]
+            return None
+            
     else:
         return None
 
-def eval_declaration(declaration, motif_node_dict, ast):
+def eval_return(statement, motif_node_dict):
     """
-    Evaluate a single declaration that directly generates a relation.
+    Evaluate a single return statement that directly generates new TreeNodes.
+    Return statement should not generate new MotifNode at the hook level, because it does not make sense.
     """
-    if type(declaration.init).__name__ == 'FuncCall':
-        rtn = eval_prov_func_call(declaration.init, motif_node_dict, ast)
-        if type(rtn).__name__ == 'tuple':
-            motif_node_dict[declaration.name] = [rtn[0]]
-            return rtn[1]
-        elif rtn != None:
-            return rtn
-    else:
-        return None
-
-def eval_return(statement, motif_node_dict, ast):
-    """
-    Evaluate a single return statement that directly generates a relation.
-    """
+    # the only way to generate new TreeNodes is though a function call
     if type(statement.expr).__name__ == 'FuncCall':
-        return eval_prov_func_call(statement.expr, motif_node_dict, ast)
+        motif_node, tree_node = eval_function_call(statement.expr, motif_node_dict)
+        if not motif_node:
+            print('\33[103m' + '[error][eval_return]: return statement should not generate a new MotifNode.\033[0m')                    
+            exit(1)
+        else:
+            return tree_node
     else:
         return None
 
-def eval_if_else(item, motif_node_dict, ast):
+def eval_if_condition(condition):
+    """
+    Evaluate `if` condition.
+    Returns True if the `if` condition requires alternation consideration.
+    Otherwise, return False.
+    """
+    if type(condition).__name__ == 'BinaryOp':
+        if type(condition.left).__name__ == 'ID':
+            # case: if (mask & XXX) {...} in "provenance_inode_permission"; mask can only be determined at runtime
+            if condition.left.name == 'mask':
+                return True
+            # case: if (shmflg & SHM_RDONLY) {...} in "provenance_shm_shmat"; shmflg can be only be determined at runtime
+            if condition.left.name == 'shmflg':
+                return True
+        elif type(condition.left).__name__ == 'BinaryOp':
+            if type(condition.left.left).__name__ == 'ID':
+                # case: if ((perms & (DIR__WRITE)) != 0) in "provenance_file_permission"; perms can only be determined at runtime
+                if condition.left.left.name == 'perms':
+                    return True
+                # case: if ((prot & (PROT_WRITE)) != 0) in "provenance_mmap_file"; prot can only be determined at runtime
+                elif condition.left.left.name == 'prot':
+                    return True
+            elif type(condition.left.left).__name__ == 'BinaryOp':
+                if type(condition.left.left.left).__name__ == 'ID':
+                    # case: if ((flags & MAP_TYPE) == MAP_SHARED...) in "provenance_mmap_file"; flags can only be determined at runtime
+                    if condition.left.left.left.name == 'flags':
+                        return True
+            elif type(condition.left.right).__name__ == 'ID':
+                # case: if (sock->sk->sk_family == PF_UNIX &&...) in "provenance_socket_recvmsg", "provenance_socket_recvmsg_always", "provenance_socket_sendmsg", "provenance_socket_sendmsg_always"; sock->sk->sk_family can only be determined at runtime
+                if condition.left.right.name == 'PF_UNIX':
+                    return True
+    elif type(condition).__name__ == 'FuncCall':
+        # case: if (is_inode_dir(inode)) in "provenance_file_permission"; inode type can only be determined at runtime
+        if condition.name.name == 'is_inode_dir':
+            return True
+        # case: else if (is_inode_socket(inode)) in "provenance_file_permission"
+        elif condition.name.name == 'is_inode_socket':
+            return True
+        # case: if ( vm_mayshare(flags) ) in "provenance_mmap_munmap"; flags can only be determined at runtime
+        elif condition.name.name == 'vm_mayshare':
+            return True
+    elif type(condition).__name__ == 'ID':
+        # case: if (iprovb) in "provenance_socket_sendmsg", "provenance_socket_sendmsg_always"
+        if condition.name == 'iprovb':
+            return True
+        # case: if (pprov) in "provenance_socket_recvmsg", "provenance_socket_recvmsg_always"
+        elif condition.name == 'pprov':
+            return True
+    #######################################################
+    # We will consider other conditions if we ever see them
+    # POSSIBLE CODE HERE.
+    #######################################################
+    else:
+        return False
+    
+def eval_if_else(item, motif_node_dict):
     """
     Evaluate (nesting) if/else blocks.
+    Only if/else blocks that contain statements that create MotifNodes/TreeNodes are of interest here.
+    Within those blocks, only specific if/else condition checks are of interest here.
+    Most if/else are for error handling only. 
     """
+    # evaluate the `if` branch first
     true_branch = item.iftrue
-
     if type(true_branch).__name__ == 'FuncCall':
-        left = eval_prov_func_call(true_branch, motif_node_dict, ast)
+        motif_node, left = eval_function_call(true_branch, motif_node_dict)
+        if not motif_node:
+            print('\33[103m' + '[error][eval_if_else]: if statement true branch should not generate a new MotifNode.\033[0m')                    
+            exit(1)
     elif type(true_branch).__name__ == 'Assignment':
-        left = eval_assignment(true_branch, motif_node_dict, ast)
+        left = eval_assignment(true_branch, motif_node_dict)
     elif type(true_branch).__name__ == 'Decl':
-        left = eval_declaration(true_branch, motif_node_dict, ast)
+        left = eval_declaration(true_branch, motif_node_dict)
     elif type(true_branch).__name__ == 'Return':
-        left = eval_return(true_branch, motif_node_dict, ast)
+        left = eval_return(true_branch, motif_node_dict)
     elif type(true_branch).__name__ == 'Compound':
-        left = eval_function_body(true_branch, motif_node_dict, ast)
+        left = eval_function_body(true_branch, motif_node_dict)
     else:
         left = None
-    
+    # evaluate the `else` branch if it exists
     false_branch = item.iffalse
-
     if type(false_branch).__name__ == 'FuncCall':
-        right = eval_prov_func_call(false_branch, motif_node_dict, ast)
+        motif_node, right = eval_function_call(false_branch, motif_node_dict)
+        if not motif_node:
+            print('\33[103m' + '[error][eval_if_else]: if statement false branch should not generate a new MotifNode.\033[0m')                    
+            exit(1)
     elif type(false_branch).__name__ == 'Assignment':
-        right = eval_assignment(false_branch, motif_node_dict, ast)
+        right = eval_assignment(false_branch, motif_node_dict)
     elif type(false_branch).__name__ == 'Decl':
-        right = eval_declaration(false_branch, motif_node_dict, ast)
+        right = eval_declaration(false_branch, motif_node_dict)
     elif type(false_branch).__name__ == 'Return':
-        right = eval_return(false_branch, motif_node_dict, ast)
+        right = eval_return(false_branch, motif_node_dict)
     elif type(false_branch).__name__ == 'Compound':
-        right = eval_function_body(false_branch, motif_node_dict, ast)
+        right = eval_function_body(false_branch, motif_node_dict)
     elif type(false_branch).__name__ == 'If':   # else if case
-        right = eval_if_else(false_branch, motif_node_dict, ast)
+        right = eval_if_else(false_branch, motif_node_dict)
     else:
         right = None
 
-    if left != None or right != None:
-        return prov.create_alternation_node(left, right)
+    if left or right:
+        # only under certain circumstances do we actually create alternation node
+        if eval_if_condition(item.cond):
+            return provenance.create_alternation_node(left, right)
+        else:
+            # if only one branch is not None, we need not create a group node
+            if not left:
+                return right
+            if not right:
+                return left
+            return provenance.create_group_node(left, right)
     else:
         return None
 
-def eval_function_body(function_body, motif_node_dict, ast):
+def eval_function_body(function_body, motif_node_dict):
     """
     Evaluate a Compound function body.
     """
     # The body of FuncDef is a Compound, which is a placeholder for a block surrounded by {}
     # The following goes through the declarations and statements in the function body
-    relation = None
+    tree = None
     for item in function_body.block_items:
         if type(item).__name__ == 'FuncCall':   # Case 1: provenance-graph-related function call
-            right = eval_prov_func_call(item, motif_node_dict, ast)
-            if type(right).__name__ == 'tuple': # If we do not care about the new node because we are not assigning to anything.
-                right = right[1]
-            if right == None and relation == None:
-                relation = None
-            elif right != None:
-                relation = prov.create_group_node(relation, right)
+            motif_node, tree_node = eval_function_call(item, motif_node_dict)
+            if tree_node != None:
+                tree = provenance.create_group_node(tree, tree_node)
         elif type(item).__name__ == 'Assignment': # Case 2: rc = provenance-graph-related function call
-            right = eval_assignment(item, motif_node_dict, ast)
-            if right == None and relation == None:
-                relation = None
-            elif right != None:
-                relation = prov.create_group_node(relation, right)
+            tree_node = eval_assignment(item, motif_node_dict)
+            if tree_node != None:
+                tree = provenance.create_group_node(tree, tree_node)
         elif type(item).__name__ == 'Decl': # Case 3: declaration with initialization
-            right = eval_declaration(item, motif_node_dict, ast)
-            if right == None and relation == None:
-                relation = None
-            elif right != None:
-                relation = prov.create_group_node(relation, right)
-        elif type(item).__name__ == 'If':   # Case 4: if
-            right = eval_if_else(item, motif_node_dict, ast)
-            if right == None and relation == None:
-                relation = None
-            elif right != None:
-                relation = prov.create_group_node(relation, right)
+            tree_node = eval_declaration(item, motif_node_dict)
+            if tree_node != None:
+                tree = provenance.create_group_node(tree, tree_node)
+        elif type(item).__name__ == 'If':   # Case 4: if/else
+            tree_node = eval_if_else(item, motif_node_dict)
+            if tree_node != None:
+                tree = provenance.create_group_node(tree, tree_node)
         elif type(item).__name__ == 'Return':   # Case 5: return with function call
-            right = eval_return(item, motif_node_dict, ast)
-            if right == None and relation == None:
-                relation = None
-            elif right != None:
-                relation = prov.create_group_node(relation, right)
-    return relation
+            tree_node = eval_return(item, motif_node_dict)
+            if tree_node != None:
+                tree = provenance.create_group_node(tree, tree_node)
+    return tree
 
-def eval_hook(function_body, ast):
+def eval_hook(function_body, motif_node_dict):
     """
     Evaluate function body of each hook function to generate its RTM Tree.
 
     motif_node_dict is a dictionary that maps a MotifNode's name to a list of MotifNode objects.
     It is a list because a MotifNode could have multiple versions.
     """
-    # Each hook has one such dictionary.
-    motif_node_dict = {}
-    return eval_function_body(function_body, motif_node_dict, ast)
+    return eval_function_body(function_body, motif_node_dict)
 
 # PyCParser must begin at the top level of the C files,
 # with either declarations or function definitions.
@@ -286,7 +641,6 @@ def eval_hook(function_body, ast):
 
 # Parse the preprocessed hooks.c file.
 ast = parse_file("./camflow/hooks_pp.c")
-record_ast = parse_file("./camflow/provenance_record_pp.h")
 # Uncomment the following line to see the AST in a nice, human
 # readable way. show() is the most useful tool in exploring ASTs
 # created by pycparser. See the c_ast.py file for the options you
@@ -330,9 +684,13 @@ for ext in ast.ext:
             # The body of FuncDef is a Compound, which is a placeholder for a block surrounded by {}
             function_body = ext.body
             # print(function_body)
+            # Each hook's RTM MotifNode ID starts from 0
             MotifNode.node_id = 0
+            # Each hook's RTM TreeNode ID starts from 0
             RTMTreeNode.nid = 0
-            motif = eval_hook(function_body, record_ast)
+            # Each hook has a dictionary.
+            motif_node_dict = {}
+            motif = eval_hook(function_body, motif_node_dict)
             hooks[function_name] = motif
         
 # We go through each hook function again to draw model graphs.
@@ -344,10 +702,11 @@ for ext in ast.ext:
         # We skip those that are not explicitly defined
         if function_name != 'provenance_socket_sendmsg' and function_name != 'provenance_socket_recvmsg' and function_name != 'provenance_inode_rename' and function_name != 'provenance_msg_queue_msgsnd' and function_name != 'provenance_mq_timedsend' and function_name != 'provenance_msg_queue_msgrcv' and function_name != 'provenance_mq_timedreceive' and function_name != "__mq_msgsnd" and function_name != "__mq_msgrcv" and function_name != 'provenance_inode_rename':
             function_body = ext.body
-            if function_body.block_items != None:
+            if function_body.block_items != None:   # make sure the function is not empty
                 MotifNode.node_id = 0
                 RTMTreeNode.nid = 0
-                motif = eval_hook(function_body, record_ast)
+                motif_node_dict = {}
+                motif = eval_hook(function_body, motif_node_dict)
                 if motif != None:
                     hooks[function_name] = motif
                 else:

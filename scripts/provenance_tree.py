@@ -10,6 +10,8 @@ import re
 from rtm_tree import *
 from helper import *
 
+# Functions that deal provenance
+#####################################################################################################
 def relation_to_str(str):
 	"""
 	Returns a corresponding relation string given the relation name.
@@ -26,7 +28,7 @@ def relation_to_str(str):
 		print('\33[103m' + '[error][relation_to_str]: Unknown type: '+ str + '\033[0m')
 	f.close()
 
-def prov_to_type(str):
+def provenance_to_type(str):
 	"""
 	Convert provenance name to provenance type in string.
 	"""
@@ -49,9 +51,10 @@ def prov_to_type(str):
 	elif str == 'pckprov':
 		return 'packet'
 	else:
-		print('\33[104m' + '[error][prov_to_type]: Unknown provenance type: '+ str + '\033[0m')
+		print('\33[104m' + '[error][provenance_to_type]: Unknown provenance type: '+ str + '\033[0m')
+#####################################################################################################
 
-# Functions that deals with RTM Tree.
+# Functions that deal with RTM Tree
 #####################################################################################################
 def create_leaf_node(motif_edge):
 	"""
@@ -110,9 +113,37 @@ def create_alternation_node(left, right):
 	return alternation_node
 #####################################################################################################
 
-# Some building block functions that generates RTM motif nodes and edges (NOT THE SAME AS TREE NODES)
+# Functions that deal with Motifs
 #####################################################################################################
-# The lowest level of function is "__write_relation"
+def create_motif_node(node_type):
+	"""
+	If a motif node is never explicitly defined by e.g., alloc_provenance() or get_cred_provenance() function calls,
+	we will create a new motif node on the fly.
+	"""
+	return MotifNode(provenance_to_type(node_type))
+#####################################################################################################
+
+
+# Some building block functions that generates RTM motif nodes and edges (NOT THE SAME AS TREE NODES)
+# These functions returns a tuple (MotifNode, RTM Tree Node)
+# because some functions actually return a new MotifNode object.
+#####################################################################################################
+### provenance.h
+def alloc_provenance(node_type):
+	"""
+	A new MotifNode is created given the @node_type when 'alloc_provenance' (provenance.h) is called.
+
+	Return:
+	The second element in the returned tuple is None since no RTM tree node is generated in this function.
+
+	Function signature: static __always_inline struct provenance *alloc_provenance(uint64_t ntype, gfp_t gfp)
+	@node_type --> ntype
+
+	"gfp" is ignored in our analysis.
+	"""
+	return MotifNode(provenance_to_type(node_type)), None
+
+# The lowest level of function that generates RTM motif edges is "__write_relation"
 ### provenance_filter.h
 def __filter_update_node(edge_type):
 	"""
@@ -195,8 +226,13 @@ def record_terminate(edge_type, motif_node, motif_node_dict):
 	For completeness, we still add the new node to the Motif Node Dictionary.
 
 	The following checks are ignored because we can easily decide CamFlow settings:
-	1. prov_policy.prov_all
-	2. filter_node(prov_entry(prov))
+	1. provenance_is_recorded(prov_elt(prov))
+	2. prov_policy.prov_all
+	3. filter_node(prov_entry(prov))
+
+	Return:
+	The first element in the returned tuple is None since no Motif node needs to be returned in this function.
+	(record_terminate() in CamFlow does not return a provenance node object.)
 
 	Function signature: static __always_inline int record_terminate(uint64_t type, struct provenance *prov)
 	@edge_type --> type
@@ -210,7 +246,7 @@ def record_terminate(edge_type, motif_node, motif_node_dict):
 	else:
 		print('\33[103m' + '[error][record_terminate]: Motif Node: '+ str(motif_node.mn_id) + ' of the type ' + str(motif_node.mn_ty) + ' do not have a key in Motif Node Dictionary. \033[0m')
 	motif_edge = MotifEdge(motif_node, new_motif_node, relation_to_str(edge_type))
-	return create_leaf_node(motif_edge)
+	return None, create_leaf_node(motif_edge)
 
 def record_node_name(motif_node, force, motif_node_dict):
 	"""
@@ -236,7 +272,7 @@ def record_node_name(motif_node, force, motif_node_dict):
 	"name" is ignored in our analysis.
 	"""
 	if motif_node.mn_has_name_recorded and not force:
-		return None
+		return None, None
 
 	new_motif_node = MotifNode('path')
 	if motif_node.mn_ty == 'task':
@@ -245,7 +281,7 @@ def record_node_name(motif_node, force, motif_node_dict):
 		rtm_tree_node = record_relation(relation_to_str('RL_NAMED'), new_motif_node, motif_node, motif_node_dict)
 	# motif_node's name is now recorded
 	motif_node.mn_has_name_recorded = True
-	return rtm_tree_node
+	return None, rtm_tree_node
 
 def record_kernel_link(motif_node, motif_node_dict):
 	"""
@@ -270,6 +306,22 @@ def record_kernel_link(motif_node, motif_node_dict):
 		# update the node's kernel version
 		motif_node.mn_kernel_version = len(motif_node_dict['kernel'])
 		return record_relation(relation_to_str('RL_RAN_ON'), new_motif_node, motif_node, motif_node_dict)
+
+def uses():
+	#TODO
+
+def uses_two(edge_type, entity_node, activity_node, motif_node_dict):
+	#TODO
+
+def generates(edge_type, activity_mem_node, activity_node, entity_node, motif_node_dict):
+	#TODO
+
+def derives():
+	#TODO
+
+def informs(edge_type, from_node, to_node, motif_node_dict):
+	#TODO
+
 
 def influences_kernel(edge_type, entity_node, activity_node, motif_node_dict):
 	"""
@@ -320,6 +372,41 @@ def current_update_shst(cprov_node, read, motif_node_dict):
 	else:
 		return create_group_node(create_leaf_node(motif_edge), create_asterisk_node(record_relation(cprov_node, new_inode_motif_node, relation_to_str('RL_SH_WRITE'), motif_node_dict)))
 
+def get_cred_provenance():
+	#TODO
+	"""
+	RTM tree nodes for when 'get_cred_provenance' (provenance_task.h) is called.
+	This function returns a new MotifNode of type process_memory.
+
+	Function signature: static inline struct provenance *get_cred_provenance(void)
+	"""
+	# new_process_memory_motif_node = MotifNode('process_memory')
+	# task_name_rtm_node = record_task_name(new_process_memory_motif_node)
+	# kernel_link_rtm_node = record_kernel_link(new_process_memory_motif_node)
+	
+	# new_path_motif_node = MotifNode('path')
+	# new_process_memory_motif_node = MotifNode('process_memory')
+	# process_motif_edge = MotifEdge(new_path_motif_node, new_process_memory_motif_node, relation_to_str('RL_NAMED_PROCESS'))
+	# process_rtm_node = create_leaf_node(process_motif_edge)
+	
+	# new_machine_node = MotifNode('machine')
+	# machine_motif_edge = MotifEdge(new_machine_node, new_process_memory_motif_node, relation_to_str('RL_RAN_ON'))
+	# machine_rtm_node = create_leaf_node(machine_motif_edge)
+	# return new_process_memory_motif_node, create_group_node(task_name_rtm_node, kernel_link_rtm_node)
+
+
+def get_task_provenance():
+	"""
+	A new MotifNode is created of type 'task' when 'get_task_provenance' (provenance_task.h) is called.
+
+	Return:
+	The second element in the returned tuple is None since no RTM tree node is generated in this function.
+
+	Function signature: static inline struct provenance *get_task_provenance( void )
+	"""
+	return MotifNode('task'), None
+
+
 ### provenance_inode.h
 def update_inode_type(motif_node, motif_node_dict):
 	"""
@@ -337,7 +424,6 @@ def update_inode_type(motif_node, motif_node_dict):
 	motif_edge = MotifEdge(motif_node, new_motif_node, relation_to_str('RL_VERSION'))
 	return create_question_mark_node(create_leaf_node(motif_edge))
 
-#####################################################################################################
 
 def record_write_xattr(iprov_node, tprov_node, cprov_node, edge_type, motif_node_dict):
 	"""
@@ -389,8 +475,6 @@ def record_read_xattr(cprov_node, tprov_node, iprov_node, motif_node_dict):
 	return create_group_node(create_group_node(getxattr_inode_rtm_node, getxattr_rtm_node), proc_write_rtm_node)
 ########################################
 
-# Building block functions to parse higher-level functions such as 'uses', 'generates', etc.
-###########################################################################################
 def match_arguments(arg, arguments):
 	"""
 	Each @arg in low-level functions such as 'record_relation' is matched to the position
@@ -573,7 +657,6 @@ def eval_function_body(function_body, caller_arguments, params, motif_node_dict)
 			elif right != None:
 				relation = create_group_node(relation, right)
 	return relation
-###########################################################################################
 
 def relation_with_four_args(function, rel, arg1, arg2, arg3, motif_node_dict):
 	"""
@@ -604,46 +687,6 @@ def relation_with_three_args(function, rel, arg1, arg2, motif_node_dict):
 
 	function_body = function.body
 	return eval_function_body(function_body, caller_arguments, params, motif_node_dict)
-
-def alloc_motif_node(prov_type):
-	"""
-	If a motif node name in the hooks.c code is never explicitly defined by e.g., alloc_provenance() or get_cred_provenance() function calls
-	meaning they are never explicitly pushed into the motif_node_dictionary.
-	We will have to use its variable name in hooks.c code and create a new motif node on the fly.
-	"""
-	return MotifNode(prov_to_type(prov_type))
-
-def alloc_provenance(prov_type):
-	"""
-	A new MotifNode is created given the @prov_type when 'alloc_provenance' is called.
-
-	The first argument of the function determines the type.
-	Its second return is None since no RTM tree node is generated.
-	"""
-	return MotifNode(prov_to_type(prov_type)), None
-
-def get_cred_provenance_to_relation():
-	"""
-	RTM tree nodes for when 'get_cred_provenance' (provenance_task.h) is called.
-	Two new MotifNodes and a MotifEdge between them is created for process memory.
-	A new MotifNode is created for machine.
-	This function also returns the new process_memory MotifNode.
-
-	Function signature: static inline struct provenance *get_cred_provenance(void)
-
-	Precondition:
-	* In hooks (motifs) that call get_cred_provenance(), we assume it is always the first time a "process_memory" typed node is created.
-	* We also assume it is always the first time a "machine" typed node is created.
-	"""
-	new_path_motif_node = MotifNode('path')
-	new_process_memory_motif_node = MotifNode('process_memory')
-	process_motif_edge = MotifEdge(new_path_motif_node, new_process_memory_motif_node, relation_to_str('RL_NAMED_PROCESS'))
-	process_rtm_node = create_leaf_node(process_motif_edge)
-	
-	new_machine_node = MotifNode('machine')
-	machine_motif_edge = MotifEdge(new_machine_node, new_process_memory_motif_node, relation_to_str('RL_RAN_ON'))
-	machine_rtm_node = create_leaf_node(machine_motif_edge)
-	return new_process_memory_motif_node, create_group_node(process_rtm_node, machine_rtm_node)
 
 def inode_provenance_to_relation():
 	"""
@@ -703,3 +746,4 @@ def prov_record_args_to_relation(prov_node, motif_node_dict):
 	rtm_argv_node = record_relation(new_argv_motif_node, prov_node, relation_to_str('RL_ARG'), motif_node_dict)
 	rtm_envp_node = record_relation(new_envp_motif_node, prov_node, relation_to_str('RL_ENV'), motif_node_dict)
 	return create_group_node(create_asterisk_node(rtm_argv_node), create_asterisk_node(rtm_envp_node))
+#####################################################################################################
