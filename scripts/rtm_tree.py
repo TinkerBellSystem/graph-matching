@@ -18,6 +18,7 @@ class MotifNode():
 	* mn_has_outgoing: whether the node has outgoing edges (default to False when it is initialized)
 	* mn_has_name_recorded: whether the node has its path name recorded already (default to False when it is initialized) 
 	* mn_kernel_version: the kernel version associated with the node (default to 0)
+	* mn_is_initialized: if the node is initialized (default to False)
 	"""
 	node_id = 0	# Unique motif node ID for each new node.
 
@@ -27,6 +28,7 @@ class MotifNode():
 		self.mn_has_outgoing = False
 		self.mn_has_name_recorded = False
 		self.mn_kernel_version = 0
+		self.mn_is_initialized = False
 		MotifNode.node_id += 1
 
 	@property
@@ -44,6 +46,10 @@ class MotifNode():
 	@property
 	def mn_has_name_recorded(self):
 		return self.__mn_has_name_recorded
+
+	@property
+	def mn_is_initialized(self):
+		return self.__mn_is_initialized
 
 	def __eq__(self, other):
 		return self.mn_id == other.mn_id and self.mn_ty == other.mn_ty

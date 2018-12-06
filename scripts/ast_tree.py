@@ -38,7 +38,7 @@ def eval_function_call(func_call, motif_node_dict):
     if func_call.name.name == 'alloc_provenance':
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
-        return provenance.alloc_provenance(arg_names[0])
+        return provenance.alloc_provenance(arg_names[0], None)
     # CamFlow "uses_two" function takes five arguments but only the first three are needed for modeling.
     elif func_call.name.name == 'uses_two':
         args = func_call.args.exprs
@@ -60,7 +60,7 @@ def eval_function_call(func_call, motif_node_dict):
         if not val2:
             print('\33[103m' + '[error][eval_function_call]:  ' + arg2 + ' in uses_two must have values in the dictionary.\033[0m')
             exit(1)
-        return provenance.uses_two(arg_names[0], val1, val2, motif_node_dict)
+        return provenance.uses_two(arg_names[0], val1, val2, None, None, motif_node_dict)
     # CamFlow "informs" function takes five arguments but only the first three are needed for modeling.
     elif func_call.name.name == 'informs':
         args = func_call.args.exprs
@@ -82,7 +82,7 @@ def eval_function_call(func_call, motif_node_dict):
         if not val2:
             print('\33[103m' + '[error][eval_function_call]:  ' + arg2 + ' in informs must have values in the dictionary.\033[0m')
             exit(1)
-        return provenance.informs(arg_names[0], val1, val2, motif_node_dict)
+        return provenance.informs(arg_names[0], val1, val2, None, None, motif_node_dict)
     # CamFlow "record_terminate" function takes two arguments.
     elif func_call.name.name == 'record_terminate':
         args = func_call.args.exprs
@@ -126,7 +126,7 @@ def eval_function_call(func_call, motif_node_dict):
         if not val3:
             print('\33[103m' + '[error][eval_function_call]:  ' + arg3 + ' in generates must have values in the dictionary.\033[0m')
             exit(1)
-        return provenance.generates(arg_names[0], val1, val2, val3, motif_node_dict)
+        return provenance.generates(arg_names[0], val1, val2, val3, None, None, motif_node_dict)
     # CamFlow "get_task_provenance" takes no arguments.
     elif func_call.name.name == 'get_task_provenance':
         return provenance.get_task_provenance()
@@ -162,7 +162,7 @@ def eval_function_call(func_call, motif_node_dict):
         if not val3:
             print('\33[103m' + '[error][eval_function_call]:  ' + arg3 + ' in uses must have values in the dictionary.\033[0m')
             exit(1)
-        return provenance.uses(arg_names[0], val1, val2, val3, motif_node_dict)
+        return provenance.uses(arg_names[0], val1, val2, val3, None, None, motif_node_dict)
     # CamFlow "refresh_inode_provenance" takes two arguments but only the second one is needed for modeling.
     elif func_call.name.name == 'refresh_inode_provenance':
         args = func_call.args.exprs
@@ -176,17 +176,17 @@ def eval_function_call(func_call, motif_node_dict):
         if not val1:
             print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in refresh_inode_provenance must have values in the dictionary.\033[0m')
             exit(1)
-        return provenance.refresh_inode_provenance(val1, motif_node_dict)
+        return provenance.refresh_inode_provenance(None, val1, motif_node_dict)
     # CamFlow "get_inode_provenance" takes two arguments but only the second argument is needed for modeling.
     elif func_call.name.name == 'get_inode_provenance':
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
-        return provenance.get_inode_provenance(arg_names[1])
+        return provenance.get_inode_provenance(None, arg_names[1], motif_node_dict)
     # CamFlow "get_dentry_provenance" takes two arguments but only the second argument is needed for modeling.  
     elif func_call.name.name == 'get_dentry_provenance':
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
-        return provenance.get_dentry_provenance(arg_names[1])
+        return provenance.get_dentry_provenance(None, arg_names[1], motif_node_dict)
     # CamFlow "record_inode_name_from_dentry" takes three arguments, but only the second and the third arguments are needed for modeling.
     elif func_call.name.name == 'record_inode_name_from_dentry':
         args = func_call.args.exprs
@@ -200,7 +200,7 @@ def eval_function_call(func_call, motif_node_dict):
         if not val1:
             print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in record_inode_name_from_dentry must have values in the dictionary.\033[0m')
             exit(1)
-        return provenance.record_inode_name_from_dentry(val1, arg_names[2], motif_node_dict)
+        return provenance.record_inode_name_from_dentry(None, val1, arg_names[2], motif_node_dict)
     # CamFlow "record_node_name" takes three arguments, but only the first and the third arguments are needed for modeling.
     elif func_call.name.name == 'record_node_name':
         args = func_call.args.exprs
@@ -214,7 +214,7 @@ def eval_function_call(func_call, motif_node_dict):
         if not val0:
             print('\33[103m' + '[error][eval_function_call]:  ' + arg0 + ' in record_node_name must have values in the dictionary.\033[0m')
             exit(1)
-        return provenance.record_node_name(val0, arg_names[2], motif_node_dict)
+        return provenance.record_node_name(val0, None, arg_names[2], motif_node_dict)
     # CamFlow "derives" function takes five arguments but only the first three are needed for modeling.
     elif func_call.name.name == 'derives':
         args = func_call.args.exprs
@@ -236,7 +236,7 @@ def eval_function_call(func_call, motif_node_dict):
         if not val2:
             print('\33[103m' + '[error][eval_function_call]:  ' + arg2 + ' in derives must have values in the dictionary.\033[0m')
             exit(1)
-        return provenance.derives(arg_names[0], val1, val2, motif_node_dict)
+        return provenance.derives(arg_names[0], val1, val2, None, None, motif_node_dict)
     # CamFlow "record_write_xattr" function takes eight arguments but only the first four are needed for modeling.
     elif func_call.name.name == 'record_write_xattr':
         args = func_call.args.exprs
@@ -266,7 +266,7 @@ def eval_function_call(func_call, motif_node_dict):
         if not val3:
             print('\33[103m' + '[error][eval_function_call]:  ' + arg3 + ' in record_write_xattr must have values in the dictionary.\033[0m')
             exit(1)
-        return provenance.record_write_xattr(arg_names[0], val1, val2, val3, motif_node_dict)
+        return provenance.record_write_xattr(arg_names[0], val1, val2, val3, None, None, None, None, motif_node_dict)
     # CamFlow "record_read_xattr" function takes four arguments but only the first three are needed for modeling.
     elif func_call.name.name == 'record_read_xattr':
         args = func_call.args.exprs
@@ -295,12 +295,12 @@ def eval_function_call(func_call, motif_node_dict):
         if not val2:
             print('\33[103m' + '[error][eval_function_call]:  ' + arg2 + ' in record_read_xattr must have values in the dictionary.\033[0m')
             exit(1)
-        return provenance.record_read_xattr(val0, val1, val2, motif_node_dict)
+        return provenance.record_read_xattr(val0, val1, val2, None, motif_node_dict)
     # CamFlow "get_file_provenance" takes two arguments but only the second argument is needed for modeling.  
     elif func_call.name.name == 'get_file_provenance':
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
-        return provenance.get_file_provenance(arg_names[1])
+        return provenance.get_file_provenance(None, arg_names[1], motif_node_dict)
     # CamFlow "influences_kernel" function takes four arguments but only the first three are needed for modeling.
     elif func_call.name.name == 'influences_kernel':
         args = func_call.args.exprs
@@ -322,10 +322,10 @@ def eval_function_call(func_call, motif_node_dict):
         if not val2:
             print('\33[103m' + '[error][eval_function_call]:  ' + arg2 + ' in influences_kernel must have values in the dictionary.\033[0m')
             exit(1)
-        return provenance.influences_kernel(arg_names[0], val1, val2, motif_node_dict)
+        return provenance.influences_kernel(arg_names[0], val1, val2, None, motif_node_dict)
     # CamFlow "get_socket_inode_provenance" takes one argument but it is not needed for modeling.  
     elif func_call.name.name == 'get_socket_inode_provenance':
-        return provenance.get_socket_inode_provenance()
+        return provenance.get_socket_inode_provenance(None)
     # CamFlow "record_address" takes three arguments but only the last argument is needed for modeling. 
     elif func_call.name.name == 'record_address':
         args = func_call.args.exprs
@@ -338,10 +338,10 @@ def eval_function_call(func_call, motif_node_dict):
         if not val2:
             print('\33[103m' + '[error][eval_function_call]:  ' + arg2 + ' in record_address must have values in the dictionary.\033[0m')
             exit(1)
-        return provenance.record_address(val2, motif_node_dict)
+        return provenance.record_address(None, None, val2, motif_node_dict)
     # CamFlow "get_sk_inode_provenance" takes one argument but it is not needed for modeling.  
     elif func_call.name.name == 'get_sk_inode_provenance':
-        return provenance.get_sk_inode_provenance()
+        return provenance.get_sk_inode_provenance(None)
     # CamFlow "record_packet_content" takes two arguments but only the second argument is needed for modeling. 
     elif func_call.name.name == 'record_packet_content':
         args = func_call.args.exprs
@@ -354,7 +354,7 @@ def eval_function_call(func_call, motif_node_dict):
         if not val1:
             print('\33[103m' + '[error][eval_function_call]:  ' + arg1 + ' in record_packet_content must have values in the dictionary.\033[0m')
             exit(1)
-        return provenance.record_packet_content(val1, motif_node_dict)
+        return provenance.record_packet_content(None, val1, motif_node_dict)
     # CamFlow "record_args" takes two arguments but only the first argument is needed for modeling.
     elif func_call.name.name == 'record_args':
         args = func_call.args.exprs
@@ -367,7 +367,7 @@ def eval_function_call(func_call, motif_node_dict):
         if not val0:
             print('\33[103m' + '[error][eval_function_call]:  ' + arg0 + ' in record_args must have values in the dictionary.\033[0m')
             exit(1)
-        return provenance.record_args(val0, motif_node_dict)
+        return provenance.record_args(val0, None, motif_node_dict)
     else:
         return None, None
 
