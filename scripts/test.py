@@ -15,7 +15,8 @@ def version(ast):
 			# print(function_decl)
 			function_name = function_decl.name
 			function_arguments = function_decl.type.args.params
-			if function_name == 'provenance_task_setpgid':
+			if function_name == 'provenance_socket_sock_rcv_skb':
+				# print(function_decl)
 				function_body = ext.body
 				print(function_body)
 				# print(function_arguments[0].name)

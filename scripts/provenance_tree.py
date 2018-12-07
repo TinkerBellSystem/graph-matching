@@ -26,7 +26,7 @@ def relation_to_str(str):
 				if relation == str:
 					return matched.group(2)
 		# No matching
-		print('\33[103m' + '[error][relation_to_str]: Unknown type: '+ str + '\033[0m')
+		print('\33[5;30;103m' + '[warning][relation_to_str]: Unknown type: '+ str + '\033[0m')
 	f.close()
 
 def provenance_to_type(str):
@@ -47,12 +47,16 @@ def provenance_to_type(str):
 		return 'directory'
 	elif str == 'iattrprov' or str == 'ENT_IATTR':
 		return 'iattr'
-	elif str == 'bprov':
+	elif str == 'bprov' or str == 'ENT_INODE_MMAP':
 		return 'mmaped_file'
 	elif str == 'pckprov':
 		return 'packet'
+	elif str == 'ENT_ARG':
+		return 'arg'
+	elif str == 'ENT_ENV':
+		return 'env'
 	else:
-		print('\33[104m' + '[error][provenance_to_type]: Unknown provenance type: '+ str + '\033[0m')
+		print('\33[5;30;103m' + '[warning][provenance_to_type]: Unknown provenance type: '+ str + '\033[0m')
 #####################################################################################################
 
 # Functions that deal with RTM Tree
@@ -155,7 +159,7 @@ def caller_parameter_names(function_decl):
 		# We will consider other conditions if we ever see them
 		# POSSIBLE CODE HERE.
 		#######################################################
-		print('\33[103m' + '[error][caller_parameter_names]:  ' + type(function_decl.type.args).__name__ + ' is not yet considered.\033[0m')
+		print('\33[101m' + '[error][caller_parameter_names]:  ' + type(function_decl.type.args).__name__ + ' is not yet considered.\033[0m')
 		exit(1)
 
 def extract_function_argument_names(function_call):
@@ -186,7 +190,7 @@ def extract_function_argument_names(function_call):
 		# We will consider other conditions if we ever see them
 		# POSSIBLE CODE HERE.
 		#######################################################
-		print('\33[103m' + '[error][extract_function_argument_names]:  ' + type(function_call.args).__name__ + ' is not yet considered.\033[0m')
+		print('\33[101m' + '[error][extract_function_argument_names]:  ' + type(function_call.args).__name__ + ' is not yet considered.\033[0m')
 		exit(1)
 
 def eval_function_call(func_call, caller_parameters, caller_arguments, motif_node_dict, local_dict):
@@ -194,11 +198,12 @@ def eval_function_call(func_call, caller_parameters, caller_arguments, motif_nod
 	Evaluate a single function call within the lower-level functions called by hook functions.
 	All evaluated function calls should return None, a new MotifNode and/or a new RTM Tree Node.
 	"""
+	print("\x1b[6;30;42m" + 'Evaluating ' + func_call.name.name + ' function...' + '\x1b[0m')
 	if func_call.name.name == 'record_relation':
 		arg_names = extract_function_argument_names(func_call)
 		# Only the first three arguments are of interest
 		edge_type_index = match_arg(arg_names[0], caller_parameters)
-		if not edge_type_index:	# edge type is hard-coded in `record_relation` subroutine.
+		if edge_type_index == None:	# edge type is hard-coded in `record_relation` subroutine.
 			edge_type = relation_to_str(str(arg_names[0]))
 		else:
 			edge_type = caller_arguments[edge_type_index]
@@ -215,7 +220,7 @@ def eval_function_call(func_call, caller_parameters, caller_arguments, motif_nod
 		to_key = getKeyByValue(motif_node_dict, to_node)
 		if to_key:
 			to_node = getLastValueFromKey(motif_node_dict, to_key)
-		return record_relation(from_node, to_node, edge_type, None, None, motif_node_dict)
+		return record_relation(edge_type, from_node, to_node, None, None, motif_node_dict)
 	elif func_call.name.name == 'current_update_shst':
 		arg_names = extract_function_argument_names(func_call)
 		cprov_index = match_arg(arg_names[0], caller_parameters)
@@ -228,7 +233,7 @@ def eval_function_call(func_call, caller_parameters, caller_arguments, motif_nod
 		else:
 			return current_update_shst(cprov_node, False, motif_node_dict)
 	else:
-		return None
+		return None, None
 
 def eval_assignment(assignment, caller_parameters, caller_arguments, motif_node_dict, local_dict):
 	"""
@@ -238,7 +243,7 @@ def eval_assignment(assignment, caller_parameters, caller_arguments, motif_node_
 		motif_node, tree_node = eval_function_call(assignment.rvalue, caller_parameters, caller_arguments, motif_node_dict, local_dict)
 		if motif_node:
 			if assignment.lvalue.name not in local_dict:
-				print('\33[103m' + '[error][eval_assignment/provenance]:  ' + assignment.lvalue.name + ' must be in the local dictionary.\033[0m')
+				print('\33[101m' + '[error][eval_assignment/provenance]:  ' + assignment.lvalue.name + ' must be in the local dictionary.\033[0m')
 				exit(1)
 			else:
 				local_dict[assignment.lvalue.name].append(motif_node)
@@ -249,10 +254,16 @@ def eval_assignment(assignment, caller_parameters, caller_arguments, motif_node_
 	#   ...
 	#   tprov = t->provenance;
 	# tprov must then be in the motif_node_dict.
-	elif assignment.lvalue.name in local_dict:
+	elif type(assignment.lvalue).__name__ == 'ID' and assignment.lvalue.name in local_dict:
 		# we can only infer its type from the name of the variable
 		motif_node = create_motif_node(assignment.lvalue.name)
 		local_dict[assignment.lvalue.name].append(motif_node)
+		return None
+	elif type(assignment.lvalue).__name__ == 'UnaryOp' and type(assignment.lvalue.expr).__name__ == 'ID' and assignment.lvalue.expr.name in local_dict:
+		# similar case as the previous one, except that we have: *tprov = ...
+		# we can only infer its type from the name of the variable
+		motif_node = create_motif_node(assignment.lvalue.expr.name)
+		local_dict[assignment.lvalue.expr.name].append(motif_node)
 		return None
 	else:
 		#######################################################
@@ -266,24 +277,24 @@ def eval_declaration(declaration, caller_parameters, caller_arguments, motif_nod
 	Evaluate a single declaration that directly generates new MotifNodes or TreeNodes.
 	"""
 	# We are only concerned with declaration type "struct provenance" or "struct provenance *"
-    if declaration.type.type.type.name == 'provenance':
+	if type(declaration.type).__name__ == 'PtrDecl' and type(declaration.type.type).__name__ == 'TypeDecl' and type(declaration.type.type.type).__name__ == 'Struct' and declaration.type.type.type.name == 'provenance':
 		if type(declaration.init).__name__ == 'FuncCall':
 			motif_node, tree_node = eval_function_call(declaration.init, caller_parameters, caller_arguments, motif_node_dict, local_dict)
 			if not motif_node:
-				print('\33[103m' + '[error][eval_declaration/provenance]:  ' + declaration.name + ' must be associated with a MotifNode.\033[0m')
+				print('\33[101m' + '[error][eval_declaration/provenance]:  ' + declaration.name + ' must be associated with a MotifNode.\033[0m')
 				exit(1)
 			else:
 				# it should be the first time we see the name in the dictionary
 				if declaration.name in local_dict:
-                    print('\33[103m' + '[error][eval_declaration/provenance]:  ' + declaration.name + ' should not already be in the local dictionary.\033[0m')                    
+					print('\33[101m' + '[error][eval_declaration/provenance]:  ' + declaration.name + ' should not already be in the local dictionary.\033[0m')                    
 					exit(1)
 				else:
 					local_dict[declaration.name] = [motif_node]
 			return tree_node
 		# it must be set through other methods, 'inode' is the only case for now.
-        else:
-            if declaration.name in local_dict:
-				print('\33[103m' + '[error][eval_declaration/provenance]:  ' + declaration.name + ' is not set in an unknown way but should not already be in the local dictionary.\033[0m')                    
+		else:
+			if declaration.name in local_dict:
+				print('\33[101m' + '[error][eval_declaration/provenance]:  ' + declaration.name + ' is not set in an unknown way but should not already be in the local dictionary.\033[0m')                    
 				exit(1)
 			else:
 				local_dict[declaration.name] = [MotifNode('inode')]
@@ -320,27 +331,27 @@ def eval_if_else(item, caller_parameters, caller_arguments, motif_node_dict, loc
 	Within those blocks, only specific if/else condition checks are of interest here.
 	Most if/else are for error handling only. 
 
-	We assume that if/else block do not create new MotifNode
+	We assume that if/else block do not create new MotifNode.
 	"""
 	true_branch = item.iftrue
 	if type(true_branch).__name__ == 'FuncCall':
 		motif_node, left = eval_function_call(true_branch, caller_parameters, caller_arguments, motif_node_dict, local_dict)
-		if not motif_node:
-			print('\33[103m' + '[error][eval_if_else/provenance]: if statement true branch should not generate a new MotifNode.\033[0m')                    
+		if motif_node:
+			print('\33[101m' + '[error][eval_if_else/provenance]: if statement true branch should not generate a new MotifNode.\033[0m')                    
 			exit(1)
 	elif type(true_branch).__name__ == 'Assignment':
-		left = eval_assignment((true_branch, caller_parameters, caller_arguments, motif_node_dict, local_dict)
+		left = eval_assignment(true_branch, caller_parameters, caller_arguments, motif_node_dict, local_dict)
 	elif type(true_branch).__name__ == 'Decl':
 		left = eval_declaration(true_branch, caller_parameters, caller_arguments, motif_node_dict, local_dict)
 	elif type(true_branch).__name__ == 'Return':
 		motif_node, left = eval_return(true_branch, caller_parameters, caller_arguments, motif_node_dict, local_dict)
-		if not motif_node:
-			print('\33[103m' + '[error][eval_if_else/provenance]: if statement true branch should not generate a new MotifNode at return.\033[0m')                    
+		if motif_node:
+			print('\33[101m' + '[error][eval_if_else/provenance]: if statement true branch should not generate a new MotifNode at return.\033[0m')                    
 			exit(1)
 	elif type(true_branch).__name__ == 'Compound':
 		motif_node, left = eval_function_body(true_branch, caller_parameters, caller_arguments, motif_node_dict, local_dict)
-		if not motif_node:
-			print('\33[103m' + '[error][eval_if_else/provenance]: if statement true branch should not generate a new MotifNode at Compound.\033[0m')                    
+		if motif_node:
+			print('\33[101m' + '[error][eval_if_else/provenance]: if statement true branch should not generate a new MotifNode at Compound.\033[0m')                    
 			exit(1)
 	else:
 		left = None
@@ -348,8 +359,8 @@ def eval_if_else(item, caller_parameters, caller_arguments, motif_node_dict, loc
 	false_branch = item.iffalse
 	if type(false_branch).__name__ == 'FuncCall':
 		motif_node, right = eval_function_call(false_branch, caller_parameters, caller_arguments, motif_node_dict, local_dict)
-		if not motif_node:
-			('\33[103m' + '[error][eval_if_else/provenance]: if statement false branch should not generate a new MotifNode.\033[0m')                    
+		if motif_node:
+			('\33[101m' + '[error][eval_if_else/provenance]: if statement false branch should not generate a new MotifNode.\033[0m')                    
 			exit(1)
 	elif type(false_branch).__name__ == 'Assignment':
 		right = eval_assignment(false_branch, caller_parameters, caller_arguments, motif_node_dict, local_dict)
@@ -357,13 +368,13 @@ def eval_if_else(item, caller_parameters, caller_arguments, motif_node_dict, loc
 		right = eval_declaration(false_branch, caller_parameters, caller_arguments, motif_node_dict, local_dict)
 	elif type(false_branch).__name__ == 'Return':
 		motif_node, right = eval_return(false_branch, caller_parameters, caller_arguments, motif_node_dict, local_dict)
-		if not motif_node:
-			print('\33[103m' + '[error][eval_if_else/provenance]: if statement false branch should not generate a new MotifNode at return.\033[0m')                    
+		if motif_node:
+			print('\33[101m' + '[error][eval_if_else/provenance]: if statement false branch should not generate a new MotifNode at return.\033[0m')                    
 			exit(1)
 	elif type(false_branch).__name__ == 'Compound':
 		motif_node, right = eval_function_body(false_branch, caller_parameters, caller_arguments, motif_node_dict, local_dict)
-		if not motif_node:
-			print('\33[103m' + '[error][eval_if_else/provenance]: if statement false branch should not generate a new MotifNode at Compound.\033[0m')                    
+		if motif_node:
+			print('\33[101m' + '[error][eval_if_else/provenance]: if statement false branch should not generate a new MotifNode at Compound.\033[0m')                    
 			exit(1)
 	elif type(false_branch).__name__ == 'If':   # else if case
 		right = eval_if_else(false_branch, caller_parameters, caller_arguments, motif_node_dict, local_dict)
@@ -424,6 +435,13 @@ def eval_function_body(function_body, caller_parameters, caller_arguments, motif
 # because some functions actually return a new MotifNode object.
 # These function does not run static analysis using AST.
 #####################################################################################################
+### cred.h
+def task_cred_xxx(task, xxx):
+	"""
+	Simply return a new MotifNode of type 'task'
+	"""
+	return MotifNode('task'), None
+
 ### provenance.h
 def alloc_provenance(node_type, gfp):
 	"""
@@ -437,8 +455,8 @@ def alloc_provenance(node_type, gfp):
 
 	@gfp is ignored in our analysis.
 	"""
-	if not gfp:
-		print('\33[103m' + '[error][alloc_provenance]:  parameter "gfp" is not ignored.\033[0m')
+	if gfp:
+		print('\33[101m' + '[error][alloc_provenance]:  parameter "gfp" is not ignored.\033[0m')
 		exit(1)
 	return create_motif_node(node_type), None
 
@@ -448,7 +466,7 @@ def __filter_update_node(edge_type):
 	For certain types of edge, calling update version makes no sense
 	So we identify them so that we do not call "update_version" function.
 	"""
-	if edge_type == 'RL_VERSION_TASK' or edge_type == "RL_VERSION" or edge_type == 'RL_NAMED' or edge_type == 'RL_NAMED_PROCESS':
+	if edge_type == 'RL_VERSION_TASK' or edge_type == 'RL_VERSION' or edge_type == 'RL_NAMED' or edge_type == 'RL_NAMED_PROCESS':
 		return True
 	else:
 		return False
@@ -485,8 +503,6 @@ def __update_version(edge_type, motif_node, motif_node_dict):
 	dict_key = getKeyByValue(motif_node_dict, motif_node)
 	if dict_key:
 		motif_node_dict[dict_key].append(new_motif_node)
-	else:
-		print('\33[103m' + '[error][update_version]: Motif Node: '+ str(motif_node.mn_id) + ' of the type ' + str(motif_node.mn_ty) + ' do not have a key in Motif Node Dictionary. \033[0m')
 	return new_motif_node, create_leaf_node(motif_edge)
 
 def record_relation(edge_type, from_node, to_node, file, flags, motif_node_dict):
@@ -503,7 +519,7 @@ def record_relation(edge_type, from_node, to_node, file, flags, motif_node_dict)
 
 	@file and @flags are ignored in our analysis.
 	"""
-	new_to_node, rtm_tree_update_node = update_version(edge_type, to_node, motif_node_dict)
+	new_to_node, rtm_tree_update_node = __update_version(edge_type, to_node, motif_node_dict)
 	new_motif_edge = MotifEdge(from_node, new_to_node, edge_type)
 	rtm_tree_leaf_node = create_leaf_node(new_motif_edge)
 
@@ -542,7 +558,7 @@ def record_terminate(edge_type, motif_node, motif_node_dict):
 	if dict_key:
 		motif_node_dict[dict_key].append(new_motif_node)
 	else:
-		print('\33[103m' + '[error][record_terminate]: Motif Node: '+ str(motif_node.mn_id) + ' of the type ' + str(motif_node.mn_ty) + ' do not have a key in Motif Node Dictionary. \033[0m')
+		print('\33[101m' + '[error][record_terminate]: Motif Node: '+ str(motif_node.mn_id) + ' of the type ' + str(motif_node.mn_ty) + ' do not have a key in Motif Node Dictionary. \033[0m')
 	motif_edge = MotifEdge(motif_node, new_motif_node, relation_to_str(edge_type))
 	return None, create_leaf_node(motif_edge)
 
@@ -575,9 +591,9 @@ def record_node_name(motif_node, name, force, motif_node_dict):
 
 	new_motif_node = MotifNode('path')
 	if motif_node.mn_ty == 'task':
-		rtm_tree_node = record_relation(relation_to_str('RL_NAMED_PROCESS'), new_motif_node, motif_node, None, None, motif_node_dict)
+		_, rtm_tree_node = record_relation(relation_to_str('RL_NAMED_PROCESS'), new_motif_node, motif_node, None, None, motif_node_dict)
 	else:
-		rtm_tree_node = record_relation(relation_to_str('RL_NAMED'), new_motif_node, motif_node, None, None, motif_node_dict)
+		_, rtm_tree_node = record_relation(relation_to_str('RL_NAMED'), new_motif_node, motif_node, None, None, motif_node_dict)
 	# motif_node's name is now recorded
 	motif_node.mn_has_name_recorded = True
 	return None, rtm_tree_node
@@ -592,15 +608,41 @@ def record_kernel_link(motif_node, motif_node_dict):
 	Function signature: static inline int record_kernel_link(struct provenance *node)
 	@motif_node --> node
 	"""
-	# Kernel node must exist in the dictionary
+	# TODO: Kernel Node is a global variable.
 	if 'kernel' not in motif_node_dict:
-		print('\33[103m' + '[error][record_kernel_link]: Kernel node must exist in Motif Node Dictionary. \033[0m')
-		exit(1)
+		motif_node_dict['kernel'] = [MotifNode('machine')]
 
 	if motif_node.mn_kernel_version < len(motif_node_dict['kernel']):
 		# update the node's kernel version
 		motif_node.mn_kernel_version = len(motif_node_dict['kernel'])
-		return None, record_relation(relation_to_str('RL_RAN_ON'), getLastValueFromKey(motif_node_dict, 'kernel'), motif_node, None, None, motif_node_dict)
+		return record_relation(relation_to_str('RL_RAN_ON'), getLastValueFromKey(motif_node_dict, 'kernel'), motif_node, None, None, motif_node_dict)
+
+def influences_kernel(edge_type, entity_node, activity_node, file, motif_node_dict):
+	"""
+	RTM tree nodes for when 'influences_kernel' (provenance_record.h) is called.
+
+	The following checks are ignored because we can easily decide CamFlow settings:
+	1. apply_target(prov)
+	2. provenance_is_opaque(prov)
+
+	Function signature: static __always_inline int influences_kernel(const uint64_t type,
+																		struct provenance *entity,
+																		struct provenance *activity,
+																		const struct file *file)
+	@edge_type -> type
+	@entity_node -> entity
+	@activity_node -> activity
+
+	@file is ignored in our analysis.
+	"""
+	# TODO: Kernel Node is a global variable.
+	if 'kernel' not in motif_node_dict:
+		motif_node_dict['kernel'] = [MotifNode('machine')]
+	
+	_, rtm_tree_load_node = record_relation(relation_to_str('RL_LOAD_FILE'), entity_node, activity_node, None, None,motif_node_dict)
+	_, rtm_tree_type_node = record_relation(relation_to_str(edge_type), activity_node, getLastValueFromKey(motif_node_dict, 'kernel'), None, None, motif_node_dict)
+
+	return None, create_group_node(rtm_tree_load_node, rtm_tree_type_node)
 
 ### provenance_inode.h
 def update_inode_type(mode, motif_node, motif_node_dict):
@@ -627,7 +669,7 @@ def update_inode_type(mode, motif_node, motif_node_dict):
 	if dict_key:
 		motif_node_dict[dict_key].append(new_motif_node)
 	else:
-		print('\33[103m' + '[error][update_version]: Motif Node: '+ str(motif_node.mn_id) + ' of the type ' + str(motif_node.mn_ty) + ' do not have a key in Motif Node Dictionary. \033[0m')
+		print('\33[5;30;103m' + '[warning][update_inode_type]: Motif Node: '+ str(motif_node.mn_id) + ' of the type ' + str(motif_node.mn_ty) + ' do not have a key in Motif Node Dictionary. \033[0m')
 	return new_motif_node, create_question_mark_node(create_leaf_node(motif_edge))
 
 def record_inode_name_from_dentry(dentry, motif_node, force, motif_node_dict):
@@ -688,6 +730,20 @@ def refresh_inode_provenance(inode, motif_node, motif_node_dict):
 	_, rtm_tree_record_node = record_inode_name(None, motif_node, motif_node_dict)
 	new_motif_node, rtm_tree_update_node = update_inode_type(None, motif_node, motif_node_dict)
 	return new_motif_node, create_group_node(rtm_tree_record_node, rtm_tree_update_node)
+
+def branch_mmap(iprov, cprov):
+	"""
+	A new MotifNode is created, which is also returned and used by hook functions.
+
+	The following check is ignored:
+	1. provenance_is_tracked(prov_elt(iprov/cprov))
+	2. prov_policy.prov_all
+
+	Function signature: static inline struct provenance *branch_mmap(struct provenance *iprov, struct provenance *cprov)
+	@iprov and @cprov are ignored.	
+	"""
+	new_motif_node = create_motif_node('ENT_INODE_MMAP')
+	return new_motif_node, None
 
 def inode_init_provenance(inode, opt_dentry, motif_node, motif_node_dict):
 	"""
@@ -762,26 +818,278 @@ def get_file_provenance(file, may_sleep, motif_node_dict):
 	"""
 	return get_inode_provenance(None, may_sleep, motif_node_dict)
 
+def record_write_xattr(edge_type, iprov_node, tprov_node, cprov_node, name, value, size, flags, motif_node_dict):
+	"""
+	RTM tree nodes for when "record_write_xattr" (provenance_inode.h) is called.
+	A new MotifNode is created for 'xattr' type.
+
+	The following check is ignored:
+	1. provenance_is_tracked(prov_elt(iprov/tprov/cprov))
+	2. prov_policy.prov_all
+	3. should_record_relation
+
+	Function signature: int record_write_xattr(uint64_t type,
+												struct provenance *iprov,
+												struct provenance *tprov,
+												struct provenance *cprov,
+												const char *name,
+												const void *value,
+												size_t size,
+												const uint64_t flags)
+	@edge_type --> type
+	@iprov_node --> iprov
+	@tprov_node --> tprov
+	@cprov_node --> cprov
+
+	@name, @value, @size, @flags are ignored.
+	"""
+	ty = relation_to_str(edge_type)
+
+	new_motif_node = MotifNode('xattr')
+	_, rtm_tree_proc_read_node = record_relation(relation_to_str('RL_PROC_READ'), cprov_node, tprov_node, None, None, motif_node_dict)
+	_, rtm_tree_type_node = record_relation(ty, tprov_node, new_motif_node, None, None, motif_node_dict)
+	rtm_tree_group_node = create_group_node(rtm_tree_proc_read_node, rtm_tree_type_node)
+	
+	if edge_type == 'RL_SETXATTR':
+		_, rtm_tree_set_node = record_relation(relation_to_str('RL_SETXATTR_INODE'), new_motif_node, iprov_node, None, None, motif_node_dict)
+		return None, create_group_node(rtm_tree_group_node, rtm_tree_set_node)
+	else:
+		_, rtm_tree_rmv_node = record_relation(relation_to_str('RL_RMVXATTR_INODE'), new_motif_node, iprov_node, None, None, motif_node_dict)
+		return None, create_group_node(rtm_tree_group_node, rtm_tree_rmv_node)
+
+def record_read_xattr(cprov_node, tprov_node, iprov_node, name, motif_node_dict):
+	"""
+	RTM tree nodes for when "record_read_xattr" (provenance_inode.h) is called.
+	A new MotifNode is created for 'xattr' type.
+
+	The following check is ignored:
+	1. provenance_is_tracked(prov_elt(iprov/tprov/cprov))
+	2. prov_policy.prov_all
+	3. should_record_relation
+
+	Function signature: int record_read_xattr(struct provenance *cprov,
+												struct provenance *tprov,
+												struct provenance *iprov,
+												const char *name)
+	@cprov_node --> cprov
+	@tprov_node --> tprov
+	@iprov_node --> iprov
+
+	@name is ignore.
+	"""
+	new_motif_node = MotifNode('xattr')
+	_, rtm_tree_get_inode_node = record_relation(relation_to_str('RL_GETXATTR_INODE'), iprov_node, new_motif_node, None, None, motif_node_dict)
+	_, rtm_tree_get_node = record_relation(relation_to_str('RL_GETXATTR'), new_motif_node, tprov_node, None, None, motif_node_dict)
+	rtm_tree_group_node = create_group_node(rtm_tree_get_inode_node, rtm_tree_get_node)
+	
+	_, rtm_tree_proc_write_node = record_relation(relation_to_str('RL_PROC_WRITE'), tprov_node, cprov_node, None, None, motif_node_dict)
+	return None, create_group_node(rtm_tree_group_node, rtm_tree_proc_write_node)
+
 ### provenance_task.h
-def current_update_shst(cprov_node, read, motif_node_dict):
+def current_update_shst(motif_node, read, motif_node_dict):
 	"""
 	RTM tree nodes for when "current_update_shst" (provenance_task.h) is called.
+
+	"flags" value is only known at time, so we include a question mark node while checking:
+	1. vm_read_exec_mayshare(flags)
+	2. vm_write_mayshare(flags)
 	
-	Two new MotifNodes and a MotifEdge between them is created for mmap file.
-	
-	Function signature: int current_update_shst(struct provenance *cprov, bool read)
-	@cprov_node --> cprov
+	Function signature: static __always_inline int current_update_shst(struct provenance *cprov, bool read)
+	@motif_node --> cprov
 	@read --> read
 	"""
-	new_path_motif_node = MotifNode('path')
-	new_inode_motif_node = MotifNode('inode')
-	motif_edge = MotifEdge(new_path_motif_node, new_inode_motif_node, relation_to_str('RL_NAMED'))
-
+	mmprov_motif_node, rtm_tree_mmprov_node = get_file_provenance(None, False, motif_node_dict)
+	# We did not include "rtm_tree_mmprov_node" because we know it is None
+	if rtm_tree_mmprov_node:
+		print('\33[101m' + '[error][current_update_shst]: get_file_provenance should not return a non-None RTM TreeNode. \033[0m')
+		exit(1)
 	if read:
-		return create_group_node(create_leaf_node(motif_edge), create_asterisk_node(record_relation(new_inode_motif_node, cprov_node, relation_to_str('RL_SH_READ'), motif_node_dict)))
+		_, rtm_tree_read_node = record_relation(relation_to_str('RL_SH_READ'), mmprov_motif_node, motif_node, None, None, motif_node_dict)
+		return None, create_asterisk_node(create_question_mark_node(rtm_tree_read_node))
 	else:
-		return create_group_node(create_leaf_node(motif_edge), create_asterisk_node(record_relation(cprov_node, new_inode_motif_node, relation_to_str('RL_SH_WRITE'), motif_node_dict)))
+		_, rtm_tree_write_node = record_relation(relation_to_str('RL_SH_WRITE'), motif_node, mmprov_motif_node, None, None, motif_node_dict)
+		return None, create_asterisk_node(create_question_mark_node(rtm_tree_write_node))
 
+def record_task_name(task, motif_node, motif_node_dict):
+	"""
+	RTM tree nodes for when "record_task_name" (provenance_task.h) is called.
+
+	The following check is ignored:
+	1. provenance_is_recorded(prov_elt(prov))
+	2. provenance_is_opaque(prov_elt(fprov))
+
+	"exe_file" value is only known at time, so we include a question mark node while checking:
+	1. if (exe_file)
+
+	Function signature: static inline int record_task_name(struct task_struct *task,
+															struct provenance *prov)
+	@motif_node --> prov
+	
+	@task is ignored.
+	"""
+	if motif_node.mn_has_name_recorded:
+		return None, None
+	else:
+		fprov_motif_node, rtm_tree_fprov_node = get_file_provenance(None, False, motif_node_dict)
+		if rtm_tree_fprov_node:
+			print('\33[101m' + '[error][record_task_name]: get_file_provenance should not return a non-None RTM TreeNode. \033[0m')
+			exit(1)
+		_, rtm_tree_name_node = record_node_name(motif_node, None, False, motif_node_dict)
+		if not rtm_tree_name_node:
+			return None, create_question_mark_node(rtm_tree_name_node)
+		else:
+			return None, None
+
+def get_task_provenance():
+	"""
+	A new MotifNode is created of type 'task' when 'get_task_provenance' (provenance_task.h) is called.
+
+	Return:
+	The second element in the returned tuple is None since no RTM tree node is generated in this function.
+
+	Function signature: static inline struct provenance *get_task_provenance( void )
+	"""
+	return MotifNode('task'), None
+
+def get_cred_provenance(motif_node_dict):
+	"""
+	RTM tree nodes for when 'get_cred_provenance' (provenance_task.h) is called.
+	This function returns a new MotifNode of type 'process_memory'.
+
+	The following check is ignored:
+	1. provenance_is_opaque(prov_elt(prov))
+
+	Function signature: static inline struct provenance *get_cred_provenance(void)
+	"""
+	new_process_memory_motif_node = MotifNode('process_memory')
+
+	_, rtm_tree_task_name_node = record_task_name(None, new_process_memory_motif_node, motif_node_dict)
+	_, rtm_tree_kernel_link_node = record_kernel_link(new_process_memory_motif_node, motif_node_dict)
+
+	if rtm_tree_task_name_node and rtm_tree_kernel_link_node:
+		return new_process_memory_motif_node, create_group_node(rtm_tree_task_name_node, rtm_tree_kernel_link_node)
+	elif not rtm_tree_task_name_node and rtm_tree_kernel_link_node:
+		return new_process_memory_motif_node, rtm_tree_kernel_link_node
+	elif rtm_tree_task_name_node and not rtm_tree_kernel_link_node:
+		return new_process_memory_motif_node, rtm_tree_task_name_node
+	else:
+		return new_process_memory_motif_node, None
+
+### provenance_net.h
+def get_sk_provenance(sk, motif_node_dict):
+	"""
+	RTM tree nodes for when 'get_sk_provenance' (provenance_net.h) is called.
+	This function returns a new MotifNode of type 'inode'.
+
+	Function signature: static inline struct provenance *get_sk_provenance(struct sock *sk)
+	@sk is ignored.
+	"""
+	return MotifNode('inode'), None
+
+def get_socket_provenance(sock, motif_node_dict):
+	"""
+	RTM tree nodes for when 'get_socket_provenance' (provenance_net.h) is called.
+	This function simply calls get_sk_provenance, which returns a new MotifNode of type 'inode'.
+
+	Function signature: static inline struct provenance *get_socket_provenance(struct socket *sock)
+	@sock is ignored.
+	"""
+	return get_sk_provenance(None, motif_node_dict)
+
+def get_socket_inode_provenance(sock, motif_node_dict):
+	"""
+	RTM tree nodes for when 'get_socket_inode_provenance' (provenance_net.h) is called.
+	This function returns a new MotifNode of type 'inode'.
+
+	Function signature: static inline struct provenance *get_socket_inode_provenance(struct socket *sock)
+	@sock is ignored.
+	"""
+	return get_inode_provenance(None, False, motif_node_dict)
+
+def record_address(address, addrlen, motif_node, motif_node_dict):
+	"""
+	RTM tree nodes for when 'record_address' (provenance_net.h) is called.
+	A new MotifNode is created for 'address' type.
+
+	The following check is ignored:
+	1. provenance_is_recorded(prov_elt(prov))
+
+	Function signature: static __always_inline int provenance_record_address(struct sockaddr *address, int addrlen, struct provenance *prov)
+	@motif_node --> prov
+
+	@address, @addrlen are ignored.
+	"""
+	if motif_node.mn_has_name_recorded:
+		return None, None
+	else:
+		new_motif_node = MotifNode('address')
+		_, rtm_tree_named_node = record_relation(relation_to_str('RL_NAMED'), new_motif_node, motif_node, None, None, motif_node_dict)
+		motif_node.mn_has_name_recorded = True
+	return None, rtm_tree_named_node
+
+def get_sk_inode_provenance(sk, motif_node_dict):
+	"""
+	RTM tree nodes for when 'get_sk_inode_provenance' (provenance_net.h) is called.
+	This function returns a new MotifNode of type 'inode'.
+
+	Function signature: static inline struct provenance *get_sk_inode_provenance(struct sock *sk)
+	@sk is ignored.
+	"""
+	return get_socket_inode_provenance(None, motif_node_dict)
+
+def record_packet_content(skb, motif_node, motif_node_dict):
+	"""
+	RTM tree nodes for when 'record_packet_content' (provenance_net.h) is called.
+	A new MotifNode is created for packet.
+	
+	Function signature: static __always_inline void provenance_packet_content(struct sk_buff *skb,
+																				struct provenance *pckprov)
+	@motif_node --> pckprov
+
+	@skb is ignored.
+	"""
+	new_motif_node = MotifNode('packet_content')
+	return record_relation(relation_to_str('RL_PCK_CNT'), new_motif_node, motif_node, None, None, motif_node_dict)
+
+def record_arg(motif_node, vtype, etype, arg, len, motif_node_dict):
+	"""
+	RTM tree node(s) for when 'record_arg' (provenance_task.h) is called.
+	A new MotifNode is created based on @vtype.
+
+	Function signature: static __always_inline int prov_record_arg(struct provenance *prov,
+																	uint64_t vtype,
+																	uint64_t etype,
+																	const char *arg,
+																	size_t len)
+	@motif_node --> prov
+	@vtype --> vtype
+	@etype --> etype
+
+	@arg and @len are ignored.
+	"""
+	new_motif_node = create_motif_node(vtype)
+	return record_relation(relation_to_str(etype), new_motif_node, motif_node, None, None, motif_node_dict)
+
+def record_args(motif_node, bprm, motif_node_dict):
+	"""
+	RTM tree node(s) for when 'record_args' (provenance_task.h) is called.
+
+	The following check is ignored:
+	1. provenance_is_tracked(prov_elt(prov))
+	2. prov_policy.prov_all
+
+	Function signature: prov_record_args(struct provenance *prov,
+										struct linux_binprm *bprm)
+	@motif_node --> prov
+
+	@bprm is ignored.
+	"""
+	_, rtm_tree_arg_node = record_arg(motif_node, 'ENT_ARG', 'RL_ARG', None, None, motif_node_dict)
+	rtm_tree_arg_asterisk_node = create_asterisk_node(rtm_tree_arg_node)
+	_, rtm_tree_env_node = record_arg(motif_node, 'ENT_ENV', 'RL_ENV', None, None, motif_node_dict)
+	rtm_tree_env_asterisk_node = create_asterisk_node(rtm_tree_env_node)
+
+	return None, create_group_node(rtm_tree_arg_asterisk_node, rtm_tree_env_asterisk_node)	
 #####################################################################################################
 
 # Functions that run static analysis using AST to generate a tuple (MotifNode, RTM Tree Node)
@@ -793,13 +1101,26 @@ def parser(file_name, function_name):
 	"""
 	ast = parse_file(file_name)
 	for ext in ast.ext:
-    	if type(ext).__name__ == 'FuncDef':
-    		function_decl = ext.decl
-    		func_name = function_decl.name
-    		if func_name == function_name:
-    			return function_decl, ext.body
-    print('\33[103m' + '[error][parser]: Function: '+ function_name + ' does not exist in ' + file_name + ' .\033[0m')
-    exit(1)
+		if type(ext).__name__ == 'FuncDef':
+			function_decl = ext.decl
+			func_name = function_decl.name
+			if func_name == function_name:
+				return function_decl, ext.body
+	print('\33[101m' + '[error][parser]: Function: '+ function_name + ' does not exist in ' + file_name + ' .\033[0m')
+	exit(1)
+
+### provenance_record.h
+def uses(edge_type, entity_node, activity_node, activity_mem_node, file, flags, motif_node_dict):
+	"""
+	Parse and analyze "uses" function in "provenance_record.h".
+	"""
+	function_decl, function_body = parser('./camflow/provenance_record_pp.h', 'uses')
+
+	ty = relation_to_str(edge_type)
+	caller_parameters = caller_parameter_names(function_decl)
+	caller_arguments = [ty, entity_node, activity_node, activity_mem_node, file, flags]
+	local_dict = {}
+	return eval_function_body(function_body, caller_parameters, caller_arguments, motif_node_dict, local_dict)
 
 def uses_two(edge_type, entity_node, activity_node, file, flags, motif_node_dict):
 	"""
@@ -813,248 +1134,39 @@ def uses_two(edge_type, entity_node, activity_node, file, flags, motif_node_dict
 	local_dict = {}
 	return eval_function_body(function_body, caller_parameters, caller_arguments, motif_node_dict, local_dict)
 
-def uses(edge_type, entity_node, activity_node, activity_mem_node, file, flags, motif_node_dict):
+def generates(edge_type, activity_mem_node, activity_node, entity_node, file, flags, motif_node_dict):
 	"""
-	Parse and analyze "uses" function in "provenance_record.h".
+	Parse and analyze "generates" function in "provenance_record.h".
 	"""
-	function_decl, function_body = parser('./camflow/provenance_record_pp.h', 'uses')
-
+	function_decl, function_body = parser('./camflow/provenance_record_pp.h', 'generates')
+	
 	ty = relation_to_str(edge_type)
 	caller_parameters = caller_parameter_names(function_decl)
-	caller_arguments = [ty, entity_node, activity_node, activity_mem_node, file, flags]
+	caller_arguments = [ty, activity_mem_node, activity_node, entity_node, file, flags]
 	local_dict = {}
 	return eval_function_body(function_body, caller_parameters, caller_arguments, motif_node_dict, local_dict)
 
-def generates(edge_type, activity_mem_node, activity_node, entity_node, motif_node_dict):
-	#TODO
-
-def derives():
-	#TODO
-
-def informs(edge_type, from_node, to_node, motif_node_dict):
-	#TODO
-
-
-def influences_kernel(edge_type, entity_node, activity_node, motif_node_dict):
+def derives(edge_type, from_node, to_node, file, flags, motif_node_dict):
 	"""
-	RTM tree nodes for when 'influences_kernel' (provenance_record.h) is called.
-
-	The following checks are ignored because we can easily decide CamFlow settings:
-	1. apply_target(prov)
-	2. provenance_is_opaque(prov)
-
-	Function signature: static __always_inline int influences_kernel(const uint64_t type,
-																		struct provenance *entity,
-																		struct provenance *activity,
-																		const struct file *file)
-	@edge_type -> type
-	@entity_node -> entity
-	@activity_node -> activity
-
-	'file' is ignored in our analysis.
+	Parse and analyze "derives" function in "provenance_record.h".
 	"""
-	if 'kernel' not in motif_node_dict:
-		new_motif_node = MotifNode('machine')
-		motif_node_dict['kernel'] = [new_motif_node]
+	function_decl, function_body = parser('./camflow/provenance_record_pp.h', 'derives')
 	
-	rtm_tree_load_node = record_relation(relation_to_str('RL_LOAD_FILE'), entity_node, activity_node, motif_node_dict)
-	rtm_tree_machine_node = record_relation(relation_to_str(edge_type), activity_node, getLastValueFromKey(motif_node_dict, 'kernel'), motif_node_dict)
+	ty = relation_to_str(edge_type)
+	caller_parameters = caller_parameter_names(function_decl)
+	caller_arguments = [ty, from_node, to_node, file, flags]
+	local_dict = {}
+	return eval_function_body(function_body, caller_parameters, caller_arguments, motif_node_dict, local_dict)
 
-	return create_group_node(rtm_tree_load_node, rtm_tree_machine_node)
-
-##### Functions: uses, uses_two, generates, derives, and informs will be handled through AST analysis on provenance_record.h
-
-### provenance_task.h
-
-def get_cred_provenance():
-	#TODO
+def informs(edge_type, from_node, to_node, file, flags, motif_node_dict):
 	"""
-	RTM tree nodes for when 'get_cred_provenance' (provenance_task.h) is called.
-	This function returns a new MotifNode of type process_memory.
-
-	Function signature: static inline struct provenance *get_cred_provenance(void)
+	Parse and analyze "informs" function in "provenance_record.h".
 	"""
-	# new_process_memory_motif_node = MotifNode('process_memory')
-	# task_name_rtm_node = record_task_name(new_process_memory_motif_node)
-	# kernel_link_rtm_node = record_kernel_link(new_process_memory_motif_node)
-
-	# new_path_motif_node = MotifNode('path')
-	# new_process_memory_motif_node = MotifNode('process_memory')
-	# process_motif_edge = MotifEdge(new_path_motif_node, new_process_memory_motif_node, relation_to_str('RL_NAMED_PROCESS'))
-	# process_rtm_node = create_leaf_node(process_motif_edge)
+	function_decl, function_body = parser('./camflow/provenance_record_pp.h', 'informs')
 	
-	# new_machine_node = MotifNode('machine')
-	# machine_motif_edge = MotifEdge(new_machine_node, new_process_memory_motif_node, relation_to_str('RL_RAN_ON'))
-	# machine_rtm_node = create_leaf_node(machine_motif_edge)
-	# return new_process_memory_motif_node, create_group_node(task_name_rtm_node, kernel_link_rtm_node)
-
-
-def get_task_provenance():
-	"""
-	A new MotifNode is created of type 'task' when 'get_task_provenance' (provenance_task.h) is called.
-
-	Return:
-	The second element in the returned tuple is None since no RTM tree node is generated in this function.
-
-	Function signature: static inline struct provenance *get_task_provenance( void )
-	"""
-	return MotifNode('task'), None
-
-
-### provenance_inode.h
-def update_inode_type(motif_node, motif_node_dict):
-	"""
-	RTM tree nodes for when "update_inode_type" (provenance_inode.h) is called.
-	Update inode type (except "task" inode).
-	Question mark relation because whether the inode type is updated is unknown statically, depending on runtime "mode" value. 
-
-	Function signature: static inline void update_inode_type(uint16_t mode, struct provenance *prov)
-	@motif_node -> prov 
-	"""
-	new_motif_node = MotifNode(motif_node.mn_ty)
-	dict_key = getKeyByValue(motif_node_dict, motif_node)
-	if dict_key:
-		motif_node_dict[dict_key].append(new_motif_node)
-	motif_edge = MotifEdge(motif_node, new_motif_node, relation_to_str('RL_VERSION'))
-	return create_question_mark_node(create_leaf_node(motif_edge))
-
-
-def record_write_xattr(iprov_node, tprov_node, cprov_node, edge_type, motif_node_dict):
-	"""
-	RTM tree nodes for when "record_write_xattr" (provenance_inode.h) is called.
-	A new MotifNode is created for 'xattr' type.
-
-	Function signature: int record_write_xattr(uint64_t type,
-												struct provenance *iprov,
-												struct provenance *tprov,
-												struct provenance *cprov,
-												const char *name,
-												const void *value,
-												size_t size,
-												const uint64_t flags)
-	@iprov_node --> iprov
-	@tprov_node --> tprov
-	@cprov_node --> cprov
-	@edge_type --> type
-	"""
-	relation = relation_to_str(edge_type)
-	proc_read_rtm_node = record_relation(cprov_node, tprov_node, relation_to_str('RL_PROC_READ'), motif_node_dict)
-
-	new_motif_node = MotifNode('xattr')
-	edge_type_rtm_node = record_relation(tprov_node, new_motif_node, relation, motif_node_dict)
-	
-	group_rtm_node = create_group_node(proc_read_rtm_node, edge_type_rtm_node)
-	if relation == 'setxattr':
-		return create_group_node(group_rtm_node, record_relation(new_motif_node, iprov_node, relation_to_str('RL_SETXATTR_INODE'), motif_node_dict))
-	else:
-		return create_group_node(group_rtm_node, record_relation(new_motif_node, iprov_node, relation_to_str('RL_RMVXATTR_INODE'), motif_node_dict))
-
-def record_read_xattr(cprov_node, tprov_node, iprov_node, motif_node_dict):
-	"""
-	RTM tree nodes for when "record_read_xattr" (provenance_inode.h) is called.
-	A new MotifNode is created for 'xattr' type.
-
-	Function signature: int record_read_xattr(struct provenance *cprov,
-												struct provenance *tprov,
-												struct provenance *iprov,
-												const char *name)
-	@cprov_node --> cprov
-	@tprov_node --> tprov
-	@iprov_node --> iprov
-	"""
-	new_motif_node = MotifNode('xattr')
-	getxattr_inode_rtm_node = record_relation(iprov_node, new_motif_node, relation_to_str('RL_GETXATTR_INODE'), motif_node_dict)
-	getxattr_rtm_node = record_relation(new_motif_node, tprov_node, relation_to_str('RL_GETXATTR'), motif_node_dict)
-	proc_write_rtm_node = record_relation(tprov_node, cprov_node, relation_to_str('RL_PROC_WRITE'), motif_node_dict)
-	return create_group_node(create_group_node(getxattr_inode_rtm_node, getxattr_rtm_node), proc_write_rtm_node)
-########################################
-
-def relation_with_four_args(function, rel, arg1, arg2, arg3, motif_node_dict):
-	"""
-	For relations: uses, generates
-	@rel (edge_type): from type.c
-	@arg1, @arg2, @arg3: MotifNodes from hooks.c
-	"""
-	relation = relation_to_str(rel)
-
-	function_decl = function.decl
-	caller_arguments = caller_argument_names(function_decl)
-	params = [relation, arg1, arg2, arg3]
-
-	function_body = function.body
-	return eval_function_body(function_body, caller_arguments, params, motif_node_dict)
-
-def relation_with_three_args(function, rel, arg1, arg2, motif_node_dict):
-	"""
-	For relations: derives, informs, uses_two
-	@rel (edge_type): from type.c
-	@arg1, @arg2: MotifNodes from hooks.c
-	"""
-	relation = relation_to_str(rel)
-	
-	function_decl = function.decl
-	caller_arguments = caller_argument_names(function_decl)
-	params = [relation, arg1, arg2]
-
-	function_body = function.body
-	return eval_function_body(function_body, caller_arguments, params, motif_node_dict)
-
-def inode_provenance_to_relation():
-	"""
-	RTM tree leaf node for when 'inode_provenance', 'dentry_provenance', 'file_provenance', 'refresh_inode_provenance' (provenance_inode.h) are called.
-	Two new MotifNodes and a MotifEdge between them is created for inode.
-	This function also returns the new inode MotifNode.
-
-	Function signature:
-	static __always_inline struct provenance *inode_provenance(struct inode *inode, bool may_sleep)
-	static __always_inline struct provenance *dentry_provenance(struct dentry *dentry, bool may_sleep)
-	static __always_inline struct provenance *file_provenance(struct file *file, bool may_sleep)
-	static inline void refresh_inode_provenance(struct inode *inode)
-
-	Precondition:
-	* In hooks that call them, we assume it is always the first time an "inode" typed node is created.
-	"""
-	new_path_motif_node = MotifNode('path')
-	new_inode_motif_node = MotifNode('inode')
-	motif_edge = MotifEdge(new_path_motif_node, new_inode_motif_node, relation_to_str('RL_NAMED'))
-
-	return new_inode_motif_node, create_leaf_node(motif_edge)
-
-def provenance_record_address_to_relation(prov_node, motif_node_dict):
-	"""
-	RTM tree nodes for when 'provenance_record_address' (provenance_net.h) is called.
-	A new MotifNode is created for 'address' type.
-
-	Function signature: static __always_inline int provenance_record_address(struct sockaddr *address, int addrlen, struct provenance *prov)
-	@prov_node --> prov
-	"""
-	new_address_motif_node = MotifNode('address')
-	return record_relation(new_address_motif_node, prov_node, relation_to_str('RL_NAMED'), motif_node_dict)
-
-def provenance_packet_content_to_relation(prov_node, motif_node_dict):
-	"""
-	RTM tree node(s) for when 'provenance_packet_content' (provenance_net.h) is called.
-	A new MotifNode and a MotifEdge between them are created for packet.
-	
-	Function signature: static __always_inline void provenance_packet_content(struct sk_buff *skb,
-																				struct provenance *pckprov)
-	@prov_node --> pckprov
-	"""
-	new_packet_content_motif_node = MotifNode('packet_content')
-	return record_relation(new_packet_content_motif_node, prov_node, relation_to_str('RL_PCK_CNT'), motif_node_dict)
-
-def prov_record_args_to_relation(prov_node, motif_node_dict):
-	"""
-	RTM tree node(s) for when 'prov_record_args' (provenance_task.h) is called.
-	Two new MotifNodes are created for arg and env.
-
-	Function signature: prov_record_args(struct provenance *prov,
-											struct linux_binprm *bprm)
-	@prov_node --> prov
-	"""
-	new_argv_motif_node = MotifNode('argv')
-	new_envp_motif_node = MotifNode('envp')
-	rtm_argv_node = record_relation(new_argv_motif_node, prov_node, relation_to_str('RL_ARG'), motif_node_dict)
-	rtm_envp_node = record_relation(new_envp_motif_node, prov_node, relation_to_str('RL_ENV'), motif_node_dict)
-	return create_group_node(create_asterisk_node(rtm_argv_node), create_asterisk_node(rtm_envp_node))
+	ty = relation_to_str(edge_type)
+	caller_parameters = caller_parameter_names(function_decl)
+	caller_arguments = [ty, from_node, to_node, file, flags]
+	local_dict = {}
+	return eval_function_body(function_body, caller_parameters, caller_arguments, motif_node_dict, local_dict)
 #####################################################################################################

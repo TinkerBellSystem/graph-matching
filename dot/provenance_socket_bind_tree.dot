@@ -1,64 +1,56 @@
-digraph RGL__DirectedAdjacencyGraph {27[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
+digraph RGL__DirectedAdjacencyGraph {25[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-27 -> 8[fontsize = 8, color="#000000"]
+25 -> 10[fontsize = 8, color="#000000"]
 
-8[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
+10[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-8 -> 3[fontsize = 8, color="#000000"]
+10 -> 6[fontsize = 8, color="#000000"]
 
-3[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
+6[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-3 -> 2[fontsize = 8, color="#000000"]
+6 -> 5[fontsize = 8, color="#000000"]
 
-2[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
+5[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-2 -> 0[fontsize = 8, color="#000000"]
+5 -> 3[fontsize = 8, color="#000000"]
 
-0[fontsize = 8,label = "0/path-named_process->1/process_memory",shape = rectangle, fillcolor="#fffacd", style = filled]
-
-2 -> 1[fontsize = 8, color="#000000"]
-
-1[fontsize = 8,label = "2/machine-ran_on->1/process_memory",shape = rectangle, fillcolor="#fffacd", style = filled]
-
-8 -> 7[fontsize = 8, color="#000000"]
-
-7[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-7 -> 5[fontsize = 8, color="#000000"]
-
-5[fontsize = 8,label = "?",shape = ellipse, fillcolor="#e6e6fa", style = filled]
+3[fontsize = 8,label = "0/process_memory-version_entity->5/process_memory",shape = rectangle, fillcolor="#fffacd", style = filled]
 
 5 -> 4[fontsize = 8, color="#000000"]
 
-4[fontsize = 8,label = "3/inode-version_entity->5/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
+4[fontsize = 8,label = "4/machine-ran_on->5/process_memory",shape = rectangle, fillcolor="#fffacd", style = filled]
 
-7 -> 6[fontsize = 8, color="#000000"]
+10 -> 9[fontsize = 8, color="#000000"]
 
-6[fontsize = 8,label = "4/address-named->5/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
+9[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-27 -> 26[fontsize = 8, color="#000000"]
+9 -> 7[fontsize = 8, color="#000000"]
 
-26[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
+7[fontsize = 8,label = "7/inode-version_entity->9/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
 
-26 -> 21[fontsize = 8, color="#000000"]
+9 -> 8[fontsize = 8, color="#000000"]
 
-21[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
+8[fontsize = 8,label = "8/address-named->9/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
 
-21 -> 16[fontsize = 8, color="#000000"]
+25 -> 24[fontsize = 8, color="#000000"]
+
+24[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
+
+24 -> 20[fontsize = 8, color="#000000"]
+
+20[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
+
+20 -> 16[fontsize = 8, color="#000000"]
 
 16[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
 16 -> 15[fontsize = 8, color="#000000"]
 
-15[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-15 -> 9[fontsize = 8, color="#000000"]
-
-9[fontsize = 8,label = "7/path-named->8/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
+15[fontsize = 8,label = "*",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
 15 -> 14[fontsize = 8, color="#000000"]
 
-14[fontsize = 8,label = "*",shape = ellipse, fillcolor="#e6e6fa", style = filled]
+14[fontsize = 8,label = "?",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
 14 -> 13[fontsize = 8, color="#000000"]
 
@@ -66,46 +58,34 @@ digraph RGL__DirectedAdjacencyGraph {27[fontsize = 8,label = ".",shape = ellipse
 
 13 -> 11[fontsize = 8, color="#000000"]
 
-11[fontsize = 8,label = "?",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-11 -> 10[fontsize = 8, color="#000000"]
-
-10[fontsize = 8,label = "1/process_memory-version_entity->9/process_memory",shape = rectangle, fillcolor="#fffacd", style = filled]
+11[fontsize = 8,label = "0/process_memory-version_entity->11/process_memory",shape = rectangle, fillcolor="#fffacd", style = filled]
 
 13 -> 12[fontsize = 8, color="#000000"]
 
-12[fontsize = 8,label = "8/inode-sh_read->9/process_memory",shape = rectangle, fillcolor="#fffacd", style = filled]
-
-21 -> 20[fontsize = 8, color="#000000"]
-
-20[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-20 -> 18[fontsize = 8, color="#000000"]
-
-18[fontsize = 8,label = "?",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-18 -> 17[fontsize = 8, color="#000000"]
-
-17[fontsize = 8,label = "6/task-version_activity->10/task",shape = rectangle, fillcolor="#fffacd", style = filled]
+12[fontsize = 8,label = "10/inode-sh_read->11/process_memory",shape = rectangle, fillcolor="#fffacd", style = filled]
 
 20 -> 19[fontsize = 8, color="#000000"]
 
-19[fontsize = 8,label = "9/process_memory-memory_read->10/task",shape = rectangle, fillcolor="#fffacd", style = filled]
+19[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-26 -> 25[fontsize = 8, color="#000000"]
+19 -> 17[fontsize = 8, color="#000000"]
 
-25[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
+17[fontsize = 8,label = "6/task-version_activity->12/task",shape = rectangle, fillcolor="#fffacd", style = filled]
 
-25 -> 23[fontsize = 8, color="#000000"]
+19 -> 18[fontsize = 8, color="#000000"]
 
-23[fontsize = 8,label = "?",shape = ellipse, fillcolor="#e6e6fa", style = filled]
+18[fontsize = 8,label = "11/process_memory-memory_read->12/task",shape = rectangle, fillcolor="#fffacd", style = filled]
+
+24 -> 23[fontsize = 8, color="#000000"]
+
+23[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
+
+23 -> 21[fontsize = 8, color="#000000"]
+
+21[fontsize = 8,label = "9/inode-version_entity->13/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
 
 23 -> 22[fontsize = 8, color="#000000"]
 
-22[fontsize = 8,label = "5/inode-version_entity->11/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
-
-25 -> 24[fontsize = 8, color="#000000"]
-
-24[fontsize = 8,label = "10/task-bind->11/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
+22[fontsize = 8,label = "12/task-bind->13/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
 
 }

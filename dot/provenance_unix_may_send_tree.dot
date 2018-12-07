@@ -1,23 +1,19 @@
-digraph RGL__DirectedAdjacencyGraph {5[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-5 -> 4[fontsize = 8, color="#000000"]
-
-4[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
+digraph RGL__DirectedAdjacencyGraph {4[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
 4 -> 3[fontsize = 8, color="#000000"]
 
 3[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-3 -> 1[fontsize = 8, color="#000000"]
+3 -> 2[fontsize = 8, color="#000000"]
 
-1[fontsize = 8,label = "?",shape = ellipse, fillcolor="#e6e6fa", style = filled]
+2[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-1 -> 0[fontsize = 8, color="#000000"]
+2 -> 0[fontsize = 8, color="#000000"]
 
 0[fontsize = 8,label = "1/inode-version_entity->2/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
 
-3 -> 2[fontsize = 8, color="#000000"]
+2 -> 1[fontsize = 8, color="#000000"]
 
-2[fontsize = 8,label = "0/inode-send_unix->2/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
+1[fontsize = 8,label = "0/inode-send_unix->2/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
 
 }

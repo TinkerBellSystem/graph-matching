@@ -175,7 +175,7 @@ static int provenance_inode_alloc_security(struct inode *inode)
  sprov = inode->i_sb->s_provenance;
  memcpy(prov_elt(iprov)->inode_info.sb_uuid, prov_elt(sprov)->sb_info.uuid, 16 * sizeof(int));
  inode->i_provenance = iprov;
- refresh_inode_provenance(inode);
+ refresh_inode_provenance(inode, iprov);
  return 0;
 }
 # 394 "./camflow/hooks.c"
@@ -195,7 +195,7 @@ static int provenance_inode_create(struct inode *dir,
 {
  struct provenance *cprov = get_cred_provenance();
  struct provenance *tprov = get_task_provenance();
- struct provenance *iprov = inode_provenance(dir, true);
+ struct provenance *iprov = get_inode_provenance(dir, true);
  unsigned long irqflags;
  int rc;
 
@@ -211,8 +211,8 @@ static int provenance_inode_create(struct inode *dir,
 # 461 "./camflow/hooks.c"
 static int provenance_inode_permission(struct inode *inode, int mask)
 {
- struct provenance *cprov = get_cred_provenance();
- struct provenance *tprov = get_task_provenance();
+ struct provenance *cprov = NULL;
+ struct provenance *tprov = NULL;
  struct provenance *iprov = NULL;
  unsigned long irqflags;
  int rc = 0;
@@ -221,7 +221,9 @@ static int provenance_inode_permission(struct inode *inode, int mask)
   return 0;
  if (unlikely(IS_PRIVATE(inode)))
   return 0;
- iprov = inode_provenance(inode, false);
+ cprov = get_cred_provenance();
+ tprov = get_task_provenance();
+ iprov = get_inode_provenance(inode, false);
  if (!iprov)
   return -ENOMEM;
 
@@ -252,7 +254,7 @@ out:
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
  return rc;
 }
-# 524 "./camflow/hooks.c"
+# 526 "./camflow/hooks.c"
 static int provenance_inode_link(struct dentry *old_dentry,
      struct inode *dir,
      struct dentry *new_dentry)
@@ -264,11 +266,11 @@ static int provenance_inode_link(struct dentry *old_dentry,
  unsigned long irqflags;
  int rc;
 
- iprov = dentry_provenance(old_dentry, true);
+ iprov = get_dentry_provenance(old_dentry, true);
  if (!iprov)
   return -ENOMEM;
 
- dprov = inode_provenance(dir, true);
+ dprov = get_inode_provenance(dir, true);
  if (!dprov)
   return -ENOMEM;
 
@@ -302,11 +304,11 @@ static int provenance_inode_unlink(struct inode *dir, struct dentry *dentry)
  unsigned long irqflags;
  int rc;
 
- iprov = dentry_provenance(dentry, true);
+ iprov = get_dentry_provenance(dentry, true);
  if (!iprov)
   return -ENOMEM;
 
- dprov = inode_provenance(dir, true);
+ dprov = get_inode_provenance(dir, true);
  if (!dprov)
   return -ENOMEM;
 
@@ -323,7 +325,7 @@ out:
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
  return rc;
 }
-# 603 "./camflow/hooks.c"
+# 605 "./camflow/hooks.c"
 static int provenance_inode_symlink(struct inode *dir,
         struct dentry *dentry,
         const char *name)
@@ -335,11 +337,11 @@ static int provenance_inode_symlink(struct inode *dir,
  unsigned long irqflags;
  int rc;
 
- iprov = dentry_provenance(dentry, true);
+ iprov = get_dentry_provenance(dentry, true);
  if (!iprov)
   return 0;
 
- dprov = inode_provenance(dir, true);
+ dprov = get_inode_provenance(dir, true);
  if (!dprov)
   return 0;
 
@@ -357,7 +359,7 @@ out:
  record_node_name(iprov, name, true);
  return rc;
 }
-# 649 "./camflow/hooks.c"
+# 651 "./camflow/hooks.c"
 static int provenance_inode_rename(struct inode *old_dir,
        struct dentry *old_dentry,
        struct inode *new_dir,
@@ -365,7 +367,7 @@ static int provenance_inode_rename(struct inode *old_dir,
 {
  return provenance_inode_link(old_dentry, new_dir, new_dentry);
 }
-# 676 "./camflow/hooks.c"
+# 678 "./camflow/hooks.c"
 static int provenance_inode_setattr(struct dentry *dentry, struct iattr *iattr)
 {
  struct provenance *cprov = get_cred_provenance();
@@ -375,7 +377,7 @@ static int provenance_inode_setattr(struct dentry *dentry, struct iattr *iattr)
  unsigned long irqflags;
  int rc;
 
- iprov = dentry_provenance(dentry, true);
+ iprov = get_dentry_provenance(dentry, true);
  if (!iprov)
   return -ENOMEM;
  iattrprov = alloc_provenance(ENT_IATTR, GFP_KERNEL);
@@ -404,12 +406,12 @@ out:
  free_provenance(iattrprov);
  return rc;
 }
-# 725 "./camflow/hooks.c"
+# 727 "./camflow/hooks.c"
 static int provenance_inode_getattr(const struct path *path)
 {
  struct provenance *cprov = get_cred_provenance();
  struct provenance *tprov = get_task_provenance();
- struct provenance *iprov = dentry_provenance(path->dentry, true);
+ struct provenance *iprov = get_dentry_provenance(path->dentry, true);
  unsigned long irqflags;
  int rc;
 
@@ -423,12 +425,12 @@ static int provenance_inode_getattr(const struct path *path)
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
  return rc;
 }
-# 754 "./camflow/hooks.c"
+# 756 "./camflow/hooks.c"
 static int provenance_inode_readlink(struct dentry *dentry)
 {
  struct provenance *cprov = get_cred_provenance();
  struct provenance *tprov = get_task_provenance();
- struct provenance *iprov = dentry_provenance(dentry, true);
+ struct provenance *iprov = get_dentry_provenance(dentry, true);
  unsigned long irqflags;
  int rc;
 
@@ -442,7 +444,7 @@ static int provenance_inode_readlink(struct dentry *dentry)
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
  return rc;
 }
-# 785 "./camflow/hooks.c"
+# 787 "./camflow/hooks.c"
 static int provenance_inode_setxattr(struct dentry *dentry,
          const char *name,
          const void *value,
@@ -455,7 +457,7 @@ static int provenance_inode_setxattr(struct dentry *dentry,
  if (strcmp(name, XATTR_NAME_PROVENANCE) == 0) {
   if (size != sizeof(union prov_elt))
    return -ENOMEM;
-  prov = dentry_provenance(dentry, true);
+  prov = get_dentry_provenance(dentry, true);
   setting = (union prov_elt*)value;
 
   if (provenance_is_tracked(setting))
@@ -477,7 +479,7 @@ static int provenance_inode_setxattr(struct dentry *dentry,
  }
  return 0;
 }
-# 836 "./camflow/hooks.c"
+# 838 "./camflow/hooks.c"
 static void provenance_inode_post_setxattr(struct dentry *dentry,
         const char *name,
         const void *value,
@@ -486,7 +488,7 @@ static void provenance_inode_post_setxattr(struct dentry *dentry,
 {
  struct provenance *cprov = get_cred_provenance();
  struct provenance *tprov = get_task_provenance();
- struct provenance *iprov = dentry_provenance(dentry, true);
+ struct provenance *iprov = get_dentry_provenance(dentry, true);
  unsigned long irqflags;
 
  if (strcmp(name, XATTR_NAME_PROVENANCE) == 0)
@@ -501,12 +503,12 @@ static void provenance_inode_post_setxattr(struct dentry *dentry,
  spin_unlock(prov_lock(iprov));
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
 }
-# 873 "./camflow/hooks.c"
+# 875 "./camflow/hooks.c"
 static int provenance_inode_getxattr(struct dentry *dentry, const char *name)
 {
  struct provenance *cprov = get_cred_provenance();
  struct provenance *tprov = get_task_provenance();
- struct provenance *iprov = dentry_provenance(dentry, true);
+ struct provenance *iprov = get_dentry_provenance(dentry, true);
  int rc = 0;
  unsigned long irqflags;
 
@@ -522,12 +524,12 @@ static int provenance_inode_getxattr(struct dentry *dentry, const char *name)
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
  return rc;
 }
-# 905 "./camflow/hooks.c"
+# 907 "./camflow/hooks.c"
 static int provenance_inode_listxattr(struct dentry *dentry)
 {
  struct provenance *cprov = get_cred_provenance();
  struct provenance *tprov = get_task_provenance();
- struct provenance *iprov = dentry_provenance(dentry, true);
+ struct provenance *iprov = get_dentry_provenance(dentry, true);
  unsigned long irqflags;
  int rc = 0;
 
@@ -540,12 +542,12 @@ static int provenance_inode_listxattr(struct dentry *dentry)
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
  return rc;
 }
-# 936 "./camflow/hooks.c"
+# 938 "./camflow/hooks.c"
 static int provenance_inode_removexattr(struct dentry *dentry, const char *name)
 {
  struct provenance *cprov = get_cred_provenance();
  struct provenance *tprov = get_task_provenance();
- struct provenance *iprov = dentry_provenance(dentry, true);
+ struct provenance *iprov = get_dentry_provenance(dentry, true);
  unsigned long irqflags;
  int rc = 0;
 
@@ -563,13 +565,13 @@ static int provenance_inode_removexattr(struct dentry *dentry, const char *name)
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
  return rc;
 }
-# 973 "./camflow/hooks.c"
+# 975 "./camflow/hooks.c"
 static int provenance_inode_getsecurity(struct inode *inode,
      const char *name,
      void **buffer,
      int alloc)
 {
- struct provenance *iprov = inode_provenance(inode, true);
+ struct provenance *iprov = get_inode_provenance(inode, true);
 
  if (unlikely(!iprov))
   return -ENOMEM;
@@ -582,7 +584,7 @@ static int provenance_inode_getsecurity(struct inode *inode,
 out:
  return sizeof(union prov_elt);
 }
-# 1006 "./camflow/hooks.c"
+# 1008 "./camflow/hooks.c"
 static int provenance_inode_listsecurity(struct inode *inode,
       char *buffer,
       int buffer_size)
@@ -593,12 +595,12 @@ static int provenance_inode_listsecurity(struct inode *inode,
   memcpy(buffer, XATTR_NAME_PROVENANCE, len);
  return len;
 }
-# 1039 "./camflow/hooks.c"
+# 1041 "./camflow/hooks.c"
 static int provenance_file_permission(struct file *file, int mask)
 {
  struct provenance *cprov = get_cred_provenance();
  struct provenance *tprov = get_task_provenance();
- struct provenance *iprov = file_provenance(file, true);
+ struct provenance *iprov = get_file_provenance(file, true);
  struct inode *inode = file_inode(file);
  int perms;
  unsigned long irqflags;
@@ -660,13 +662,13 @@ out:
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
  return rc;
 }
-# 1118 "./camflow/hooks.c"
+# 1120 "./camflow/hooks.c"
 static int provenance_file_splice_pipe_to_pipe(struct file *in, struct file *out)
 {
  struct provenance *cprov = get_cred_provenance();
  struct provenance *tprov = get_task_provenance();
- struct provenance *inprov = file_provenance(in, true);
- struct provenance *outprov = file_provenance(out, true);
+ struct provenance *inprov = get_file_provenance(in, true);
+ struct provenance *outprov = get_file_provenance(out, true);
  unsigned long irqflags;
  int rc = 0;
 
@@ -690,7 +692,7 @@ static int provenance_kernel_read_file(struct file *file
                       , enum kernel_read_file_id id)
 {
  struct provenance *tprov = get_task_provenance();
- struct provenance *iprov = file_provenance(file, true);
+ struct provenance *iprov = get_file_provenance(file, true);
  unsigned long irqflags;
  int rc = 0;
 
@@ -705,12 +707,12 @@ static int provenance_kernel_read_file(struct file *file
  spin_unlock_irqrestore(prov_lock(tprov), irqflags);
  return rc;
 }
-# 1175 "./camflow/hooks.c"
+# 1177 "./camflow/hooks.c"
 static int provenance_file_open(struct file *file)
 {
  struct provenance *cprov = get_cred_provenance();
  struct provenance *tprov = get_task_provenance();
- struct provenance *iprov = file_provenance(file, true);
+ struct provenance *iprov = get_file_provenance(file, true);
  unsigned long irqflags;
  int rc = 0;
 
@@ -723,12 +725,12 @@ static int provenance_file_open(struct file *file)
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
  return rc;
 }
-# 1203 "./camflow/hooks.c"
+# 1205 "./camflow/hooks.c"
 static int provenance_file_receive(struct file *file)
 {
  struct provenance *cprov = get_cred_provenance();
  struct provenance *tprov = get_task_provenance();
- struct provenance *iprov = file_provenance(file, true);
+ struct provenance *iprov = get_file_provenance(file, true);
  unsigned long irqflags;
  int rc = 0;
 
@@ -741,12 +743,12 @@ static int provenance_file_receive(struct file *file)
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
  return rc;
 }
-# 1229 "./camflow/hooks.c"
+# 1231 "./camflow/hooks.c"
 static int provenance_file_lock(struct file *file, unsigned int cmd)
 {
  struct provenance *cprov = get_cred_provenance();
  struct provenance *tprov = get_task_provenance();
- struct provenance *iprov = file_provenance(file, false);
+ struct provenance *iprov = get_file_provenance(file, false);
  unsigned long irqflags;
  int rc = 0;
 
@@ -759,12 +761,12 @@ static int provenance_file_lock(struct file *file, unsigned int cmd)
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
  return rc;
 }
-# 1258 "./camflow/hooks.c"
+# 1260 "./camflow/hooks.c"
 static int provenance_file_send_sigiotask(struct task_struct *task,
        struct fown_struct *fown, int signum)
 {
  struct file *file = container_of(fown, file, f_owner);
- struct provenance *iprov = file_provenance(file, false);
+ struct provenance *iprov = get_file_provenance(file, false);
  struct provenance *tprov = task->provenance;
  struct provenance *cprov = task_cred_xxx(task, provenance);
  unsigned long irqflags;
@@ -781,7 +783,7 @@ static int provenance_file_send_sigiotask(struct task_struct *task,
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
  return rc;
 }
-# 1308 "./camflow/hooks.c"
+# 1310 "./camflow/hooks.c"
 static int provenance_mmap_file(struct file *file,
     unsigned long reqprot,
     unsigned long prot,
@@ -796,7 +798,7 @@ static int provenance_mmap_file(struct file *file,
 
  if (unlikely(!file))
   return rc;
- iprov = file_provenance(file, true);
+ iprov = get_file_provenance(file, true);
  if (!iprov)
   return -ENOMEM;
  spin_lock_irqsave_nested(prov_lock(cprov), irqflags, PROVENANCE_LOCK_PROC);
@@ -840,7 +842,7 @@ out:
   free_provenance(bprov);
  return rc;
 }
-# 1382 "./camflow/hooks.c"
+# 1384 "./camflow/hooks.c"
 static void provenance_mmap_munmap(struct mm_struct *mm,
        struct vm_area_struct *vma,
        unsigned long start,
@@ -856,7 +858,7 @@ static void provenance_mmap_munmap(struct mm_struct *mm,
  if ( vm_mayshare(flags) ) {
   mmapf = vma->vm_file;
   if (mmapf) {
-   iprov = file_provenance(mmapf, false);
+   iprov = get_file_provenance(mmapf, false);
    spin_lock_irqsave_nested(prov_lock(cprov), irqflags, PROVENANCE_LOCK_PROC);
    spin_lock_nested(prov_lock(iprov), PROVENANCE_LOCK_INODE);
    generates(RL_MUNMAP, cprov, tprov, iprov, mmapf, flags);
@@ -865,14 +867,14 @@ static void provenance_mmap_munmap(struct mm_struct *mm,
   }
  }
 }
-# 1424 "./camflow/hooks.c"
+# 1426 "./camflow/hooks.c"
 static int provenance_file_ioctl(struct file *file,
      unsigned int cmd,
      unsigned long arg)
 {
  struct provenance *cprov = get_cred_provenance();
  struct provenance *tprov = get_task_provenance();
- struct provenance *iprov = file_provenance(file, true);
+ struct provenance *iprov = get_file_provenance(file, true);
  unsigned long irqflags;
  int rc = 0;
 
@@ -890,7 +892,7 @@ out:
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
  return rc;
 }
-# 1464 "./camflow/hooks.c"
+# 1466 "./camflow/hooks.c"
 static int provenance_msg_msg_alloc_security(struct msg_msg *msg)
 {
  struct provenance *cprov = get_cred_provenance();
@@ -910,7 +912,7 @@ static int provenance_msg_msg_alloc_security(struct msg_msg *msg)
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
  return rc;
 }
-# 1493 "./camflow/hooks.c"
+# 1495 "./camflow/hooks.c"
 static void provenance_msg_msg_free_security(struct msg_msg *msg)
 {
  struct provenance *mprov = msg->provenance;
@@ -920,7 +922,7 @@ static void provenance_msg_msg_free_security(struct msg_msg *msg)
  }
  msg->provenance = NULL;
 }
-# 1512 "./camflow/hooks.c"
+# 1514 "./camflow/hooks.c"
 static inline int __mq_msgsnd(struct msg_msg *msg)
 {
  struct provenance *cprov = get_cred_provenance();
@@ -936,20 +938,20 @@ static inline int __mq_msgsnd(struct msg_msg *msg)
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
  return rc;
 }
-# 1539 "./camflow/hooks.c"
+# 1541 "./camflow/hooks.c"
 static int provenance_msg_queue_msgsnd(struct kern_ipc_perm *msq,
            struct msg_msg *msg,
            int msqflg)
 {
  return __mq_msgsnd(msg);
 }
-# 1558 "./camflow/hooks.c"
+# 1560 "./camflow/hooks.c"
 static int provenance_mq_timedsend(struct inode *inode, struct msg_msg *msg,
        struct timespec64 *ts)
 {
  return __mq_msgsnd(msg);
 }
-# 1575 "./camflow/hooks.c"
+# 1577 "./camflow/hooks.c"
 static inline int __mq_msgrcv(struct provenance *cprov, struct msg_msg *msg)
 {
  struct provenance *mprov = msg->provenance;
@@ -964,7 +966,7 @@ static inline int __mq_msgrcv(struct provenance *cprov, struct msg_msg *msg)
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
  return rc;
 }
-# 1607 "./camflow/hooks.c"
+# 1609 "./camflow/hooks.c"
 static int provenance_msg_queue_msgrcv(struct kern_ipc_perm *msq,
            struct msg_msg *msg,
            struct task_struct *target,
@@ -975,7 +977,7 @@ static int provenance_msg_queue_msgrcv(struct kern_ipc_perm *msq,
 
  return __mq_msgrcv(cprov, msg);
 }
-# 1631 "./camflow/hooks.c"
+# 1633 "./camflow/hooks.c"
 static int provenance_mq_timedreceive(struct inode *inode, struct msg_msg *msg,
           struct timespec64 *ts)
 {
@@ -983,7 +985,7 @@ static int provenance_mq_timedreceive(struct inode *inode, struct msg_msg *msg,
 
  return __mq_msgrcv(cprov, msg);
 }
-# 1656 "./camflow/hooks.c"
+# 1658 "./camflow/hooks.c"
 static int provenance_shm_alloc_security(struct kern_ipc_perm *shp)
 {
  struct provenance *cprov = get_cred_provenance();
@@ -1005,7 +1007,7 @@ out:
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
  return 0;
 }
-# 1686 "./camflow/hooks.c"
+# 1688 "./camflow/hooks.c"
 static void provenance_shm_free_security(struct kern_ipc_perm *shp)
 {
  struct provenance *sprov = shp->provenance;
@@ -1015,7 +1017,7 @@ static void provenance_shm_free_security(struct kern_ipc_perm *shp)
  }
  shp->provenance = NULL;
 }
-# 1714 "./camflow/hooks.c"
+# 1716 "./camflow/hooks.c"
 static int provenance_shm_shmat(struct kern_ipc_perm *shp, char int *shmaddr, int shmflg)
 {
  struct provenance *cprov = get_cred_provenance();
@@ -1041,7 +1043,7 @@ out:
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
  return rc;
 }
-# 1751 "./camflow/hooks.c"
+# 1753 "./camflow/hooks.c"
 static void provenance_shm_shmdt(struct kern_ipc_perm *shp)
 {
  struct provenance *cprov = get_cred_provenance();
@@ -1057,7 +1059,7 @@ static void provenance_shm_shmdt(struct kern_ipc_perm *shp)
  spin_unlock(prov_lock(sprov));
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
 }
-# 1781 "./camflow/hooks.c"
+# 1783 "./camflow/hooks.c"
 static int provenance_sk_alloc_security(struct sock *sk,
      int family,
      int priority)
@@ -1069,7 +1071,7 @@ static int provenance_sk_alloc_security(struct sock *sk,
  sk->sk_provenance = skprov;
  return 0;
 }
-# 1817 "./camflow/hooks.c"
+# 1819 "./camflow/hooks.c"
 static int provenance_socket_post_create(struct socket *sock,
       int family,
       int type,
@@ -1078,7 +1080,7 @@ static int provenance_socket_post_create(struct socket *sock,
 {
  struct provenance *cprov = get_cred_provenance();
  struct provenance *tprov = get_task_provenance();
- struct provenance *iprov = socket_inode_provenance(sock);
+ struct provenance *iprov = get_socket_inode_provenance(sock);
  unsigned long irqflags;
  int rc = 0;
 
@@ -1097,8 +1099,8 @@ static int provenance_socket_post_create(struct socket *sock,
 static int provenance_socket_socketpair(struct socket *socka, struct socket *sockb) {
  struct provenance *cprov = get_cred_provenance();
  struct provenance *tprov = get_task_provenance();
- struct provenance *iprova = socket_inode_provenance(socka);
- struct provenance *iprovb = socket_inode_provenance(sockb);
+ struct provenance *iprova = get_socket_inode_provenance(socka);
+ struct provenance *iprovb = get_socket_inode_provenance(sockb);
  unsigned long irqflags;
  int rc = 0;
 
@@ -1120,14 +1122,14 @@ out:
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
  return rc;
 }
-# 1886 "./camflow/hooks.c"
+# 1888 "./camflow/hooks.c"
 static int provenance_socket_bind(struct socket *sock,
       struct sockaddr *address,
       int addrlen)
 {
  struct provenance *cprov = get_cred_provenance();
  struct provenance *tprov = get_task_provenance();
- struct provenance *iprov = socket_inode_provenance(sock);
+ struct provenance *iprov = get_socket_inode_provenance(sock);
  struct sockaddr_in *ipv4_addr;
  int op;
  int rc = 0;
@@ -1154,20 +1156,20 @@ static int provenance_socket_bind(struct socket *sock,
   if ((op & PROV_SET_RECORD) != 0)
    set_record_packet(prov_elt(iprov));
  }
- rc = provenance_record_address(address, addrlen, iprov);
+ rc = record_address(address, addrlen, iprov);
  if (rc < 0)
   return rc;
  rc = generates(RL_BIND, cprov, tprov, iprov, NULL, 0);
  return rc;
 }
-# 1939 "./camflow/hooks.c"
+# 1941 "./camflow/hooks.c"
 static int provenance_socket_connect(struct socket *sock,
          struct sockaddr *address,
          int addrlen)
 {
  struct provenance *cprov = get_cred_provenance();
  struct provenance *tprov = get_task_provenance();
- struct provenance *iprov = socket_inode_provenance(sock);
+ struct provenance *iprov = get_socket_inode_provenance(sock);
  struct sockaddr_in *ipv4_addr;
  unsigned long irqflags;
  int op;
@@ -1199,7 +1201,7 @@ static int provenance_socket_connect(struct socket *sock,
   if ((op & PROV_SET_RECORD) != 0)
    set_record_packet(prov_elt(iprov));
  }
- rc = provenance_record_address(address, addrlen, iprov);
+ rc = record_address(address, addrlen, iprov);
  if (rc < 0)
   goto out;
  rc = generates(RL_CONNECT, cprov, tprov, iprov, NULL, 0);
@@ -1208,12 +1210,12 @@ out:
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
  return rc;
 }
-# 1997 "./camflow/hooks.c"
+# 1999 "./camflow/hooks.c"
 static int provenance_socket_listen(struct socket *sock, int backlog)
 {
  struct provenance *cprov = get_cred_provenance();
  struct provenance *tprov = get_task_provenance();
- struct provenance *iprov = socket_inode_provenance(sock);
+ struct provenance *iprov = get_socket_inode_provenance(sock);
  unsigned long irqflags;
  int rc = 0;
 
@@ -1226,13 +1228,13 @@ static int provenance_socket_listen(struct socket *sock, int backlog)
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
  return rc;
 }
-# 2032 "./camflow/hooks.c"
+# 2034 "./camflow/hooks.c"
 static int provenance_socket_accept(struct socket *sock, struct socket *newsock)
 {
  struct provenance *cprov = get_cred_provenance();
  struct provenance *tprov = get_task_provenance();
- struct provenance *iprov = socket_inode_provenance(sock);
- struct provenance *niprov = socket_inode_provenance(newsock);
+ struct provenance *iprov = get_socket_inode_provenance(sock);
+ struct provenance *niprov = get_socket_inode_provenance(newsock);
  unsigned long irqflags;
  int rc = 0;
 
@@ -1247,7 +1249,7 @@ out:
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
  return rc;
 }
-# 2071 "./camflow/hooks.c"
+# 2073 "./camflow/hooks.c"
 static int provenance_socket_sendmsg_always(struct socket *sock,
          struct msghdr *msg,
          int size)
@@ -1259,7 +1261,7 @@ static int provenance_socket_sendmsg_always(struct socket *sock,
 {
  struct provenance *cprov = get_cred_provenance();
  struct provenance *tprov = get_task_provenance();
- struct provenance *iprova = socket_inode_provenance(sock);
+ struct provenance *iprova = get_socket_inode_provenance(sock);
  struct provenance *iprovb = NULL;
  struct sock *peer = NULL;
  unsigned long irqflags;
@@ -1271,7 +1273,7 @@ static int provenance_socket_sendmsg_always(struct socket *sock,
      sock->sk->sk_type != SOCK_DGRAM) {
   peer = unix_peer_get(sock->sk);
   if (peer) {
-   iprovb = sk_inode_provenance(peer);
+   iprovb = get_sk_inode_provenance(peer);
    if (iprovb == cprov)
     iprovb = NULL;
   }
@@ -1290,7 +1292,7 @@ out:
   sock_put(peer);
  return rc;
 }
-# 2132 "./camflow/hooks.c"
+# 2134 "./camflow/hooks.c"
 static int provenance_socket_recvmsg_always(struct socket *sock,
          struct msghdr *msg,
          int size,
@@ -1304,7 +1306,7 @@ static int provenance_socket_recvmsg_always(struct socket *sock,
 {
  struct provenance *cprov = get_cred_provenance();
  struct provenance *tprov = get_task_provenance();
- struct provenance *iprov = socket_inode_provenance(sock);
+ struct provenance *iprov = get_socket_inode_provenance(sock);
  struct provenance *pprov = NULL;
  struct sock *peer = NULL;
  unsigned long irqflags;
@@ -1316,7 +1318,7 @@ static int provenance_socket_recvmsg_always(struct socket *sock,
      sock->sk->sk_type != SOCK_DGRAM) {
   peer = unix_peer_get(sock->sk);
   if (peer) {
-   pprov = sk_provenance(peer);
+   pprov = get_sk_provenance(peer);
    if (pprov == cprov)
     pprov = NULL;
   }
@@ -1336,7 +1338,7 @@ out:
   sock_put(peer);
  return rc;
 }
-# 2195 "./camflow/hooks.c"
+# 2197 "./camflow/hooks.c"
 static int provenance_socket_sock_rcv_skb(struct sock *sk, struct sk_buff *skb)
 {
  struct provenance *iprov;
@@ -1347,7 +1349,7 @@ static int provenance_socket_sock_rcv_skb(struct sock *sk, struct sk_buff *skb)
 
  if (family != PF_INET)
   return 0;
- iprov = sk_inode_provenance(sk);
+ iprov = get_sk_inode_provenance(sk);
  if (!iprov)
   return -ENOMEM;
  if (provenance_is_tracked(prov_elt(iprov))) {
@@ -1355,7 +1357,7 @@ static int provenance_socket_sock_rcv_skb(struct sock *sk, struct sk_buff *skb)
   provenance_parse_skb_ipv4(skb, prov_elt((&pckprov)));
 
   if (provenance_records_packet(prov_elt(iprov)))
-   provenance_packet_content(skb, &pckprov);
+   record_packet_content(skb, &pckprov);
 
   spin_lock_irqsave(prov_lock(iprov), irqflags);
   call_provenance_alloc(pckprov);
@@ -1365,14 +1367,14 @@ static int provenance_socket_sock_rcv_skb(struct sock *sk, struct sk_buff *skb)
  }
  return rc;
 }
-# 2239 "./camflow/hooks.c"
+# 2241 "./camflow/hooks.c"
 static int provenance_unix_stream_connect(struct sock *sock,
        struct sock *other,
        struct sock *newsk)
 {
  struct provenance *cprov = get_cred_provenance();
  struct provenance *tprov = get_task_provenance();
- struct provenance *iprov = sk_inode_provenance(sock);
+ struct provenance *iprov = get_sk_inode_provenance(sock);
  unsigned long irqflags;
  int rc = 0;
 
@@ -1383,12 +1385,12 @@ static int provenance_unix_stream_connect(struct sock *sock,
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
  return rc;
 }
-# 2268 "./camflow/hooks.c"
+# 2270 "./camflow/hooks.c"
 static int provenance_unix_may_send(struct socket *sock,
         struct socket *other)
 {
- struct provenance *iprov = socket_provenance(sock);
- struct provenance *oprov = socket_inode_provenance(other);
+ struct provenance *iprov = get_socket_provenance(sock);
+ struct provenance *oprov = get_socket_inode_provenance(other);
  unsigned long irqflags;
  int rc = 0;
 
@@ -1399,11 +1401,11 @@ static int provenance_unix_may_send(struct socket *sock,
  spin_unlock_irqrestore(prov_lock(iprov), irqflags);
  return rc;
 }
-# 2301 "./camflow/hooks.c"
+# 2303 "./camflow/hooks.c"
 static int provenance_bprm_set_creds(struct linux_binprm *bprm)
 {
  struct provenance *nprov = bprm->cred->provenance;
- struct provenance *iprov = file_provenance(bprm->file, true);
+ struct provenance *iprov = get_file_provenance(bprm->file, true);
  unsigned long irqflags;
  int rc = 0;
 
@@ -1419,12 +1421,12 @@ static int provenance_bprm_set_creds(struct linux_binprm *bprm)
  spin_unlock_irqrestore(prov_lock(iprov), irqflags);
  return rc;
 }
-# 2335 "./camflow/hooks.c"
+# 2337 "./camflow/hooks.c"
 static int provenance_bprm_check_security(struct linux_binprm *bprm)
 {
  struct provenance *nprov = bprm->cred->provenance;
  struct provenance *tprov = get_task_provenance();
- struct provenance *iprov = file_provenance(bprm->file, false);
+ struct provenance *iprov = get_file_provenance(bprm->file, false);
 
  if (!nprov)
   return -ENOMEM;
@@ -1434,15 +1436,15 @@ static int provenance_bprm_check_security(struct linux_binprm *bprm)
   set_opaque(prov_elt(tprov));
   return 0;
  }
- return prov_record_args(nprov, bprm);
+ return record_args(nprov, bprm);
 }
-# 2374 "./camflow/hooks.c"
+# 2376 "./camflow/hooks.c"
 static void provenance_bprm_committing_creds(struct linux_binprm *bprm)
 {
  struct provenance *cprov = get_cred_provenance();
  struct provenance *tprov = get_task_provenance();
  struct provenance *nprov = bprm->cred->provenance;
- struct provenance *iprov = file_provenance(bprm->file, true);
+ struct provenance *iprov = get_file_provenance(bprm->file, true);
  unsigned long irqflags;
 
  if (provenance_is_opaque(prov_elt(iprov))) {
@@ -1458,7 +1460,7 @@ static void provenance_bprm_committing_creds(struct linux_binprm *bprm)
  spin_unlock(prov_lock(iprov));
  spin_unlock_irqrestore(prov_lock(cprov), irqflags);
 }
-# 2408 "./camflow/hooks.c"
+# 2410 "./camflow/hooks.c"
 static int provenance_sb_alloc_security(struct super_block *sb)
 {
  struct provenance *sbprov = alloc_provenance(ENT_SBLCK, GFP_KERNEL);
@@ -1468,14 +1470,14 @@ static int provenance_sb_alloc_security(struct super_block *sb)
  sb->s_provenance = sbprov;
  return 0;
 }
-# 2426 "./camflow/hooks.c"
+# 2428 "./camflow/hooks.c"
 static void provenance_sb_free_security(struct super_block *sb)
 {
  if (sb->s_provenance)
   free_provenance(sb->s_provenance);
  sb->s_provenance = NULL;
 }
-# 2445 "./camflow/hooks.c"
+# 2447 "./camflow/hooks.c"
 static int provenance_sb_kern_mount(struct super_block *sb,
         int flags,
         void *data)
@@ -1594,13 +1596,13 @@ struct kmem_cache *long_provenance_cache ;
 
 struct prov_boot_buffer *boot_buffer;
 struct prov_long_boot_buffer *long_boot_buffer;
-# 2573 "./camflow/hooks.c"
+# 2575 "./camflow/hooks.c"
 struct capture_policy prov_policy;
 
 int prov_machine_id;
 int prov_boot_id;
 int epoch;
-# 2598 "./camflow/hooks.c"
+# 2600 "./camflow/hooks.c"
 void provenance_add_hooks(void)
 {
  prov_policy.prov_enabled = true;
@@ -1613,7 +1615,7 @@ void provenance_add_hooks(void)
  prov_policy.should_duplicate = false;
  prov_policy.should_compress_node = true;
  prov_policy.should_compress_edge = true;
- prov_machine_id = 1;
+ prov_machine_id = 0;
  prov_boot_id = 0;
  epoch = 1;
  provenance_cache = kmem_cache_create("provenance_struct",

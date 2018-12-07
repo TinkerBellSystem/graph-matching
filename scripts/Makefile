@@ -37,12 +37,9 @@ preprocess_record:
 	gcc -D'__always_inline=' -D'uint64_t=int' -D'prov_entry_t=int' -D'bool=int' -E ./camflow/provenance_record.h > ./camflow/provenance_record_pp.h
 
 analyze:
-	python ast.py
+	python ast_tree.py
 
 all: remedy_record preprocess_record remedy_hooks preprocess_hooks analyze
-
-draw_demo:
-	dot -Tpng ../dot/demo_shm_shmat.dot -o ../img/demo_shm_shmat.png
 
 draw_all:
 	python draw.py

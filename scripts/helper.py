@@ -15,7 +15,7 @@ def getKeyByValue(node_dict, node):
 			if n == node:
 				keys.append(item[0])
 	if len(keys) > 1:
-		print('\33[103m' + '[error]: The node with ID: '+ node.mn_id + ' has more than one name. \033[0m')
+		print('\33[101m' + '[error]: The node with ID: '+ node.mn_id + ' has more than one name. \033[0m')
 		exit(1)
 	elif len(keys) == 0:
 		return None
@@ -23,8 +23,8 @@ def getKeyByValue(node_dict, node):
 		return keys[0]
 
 def getLastValueFromKey(node_dict, key):
-	if key not in node_dict:
-		print('\33[103m' + '[error]: The name: '+ key + ' has no associated nodes. \033[0m')
+	if key not in node_dict or len(node_dict[key]) == 0:
+		print('\33[101m' + '[error]: The name: '+ key + ' has no associated nodes. \033[0m')
 		exit(1)
 	else:
 		return node_dict[key][-1]
