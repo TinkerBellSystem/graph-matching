@@ -13,25 +13,6 @@ def dict_to_list(motif_dict):
 		motifs.append(motif)
 	return hooknames, motifs
 
-def find_submotif(hooknames, motifs):
-	"""
-	Find whether a motif in @motifs is a submotif (subgraph/substructure) of another motif in @motifs.
-	For a motif A to be a submotif of another motif B,
-	1. Each edge must match exactly.
-	2. Temporal order must be obeyed exactly.
-
-	We perform pair-wise comparison and compare both ends (i.e., A<->B).
-	Given a list of motifs A B C D, we compare:
-	A<->B, A<->C, A<->D, B<->C, B<->D, C<->D
-
-	Submotif isomorphism is transitive.
-	"""
-	for i in range(len(motifs)):
-		for j in range(i + 1, len(motifs)):
-			submotif = submotif_relation(motifs[i], motifs[j], i, j)
-			if submotif != None:
-				print(hooknames[i] + " and " + hooknames[j] + ":" + hooknames[submotif] + " is the submotif.")
-
 def map_operator(motif, operator, motif_map, has_operator):
 	"""
 	We map in @motif_map "version_entity" and "version_activity" nodes in @motif.
@@ -200,7 +181,7 @@ def is_regular_operator(c):
 	if c == '?' or c == '*' or c == '|':
 		return True
 	else:
-		return False 
+		return False
 
 def tree_to_list(motif, edge_list):
 	"""
@@ -224,24 +205,93 @@ def tree_to_list(motif, edge_list):
 	if motif.right:
 		tree_to_list(motif.right, edge_list)
 
+def matches(e1, e2, node_map):
+	"""
+	Test whether MotifEdge @e1 can be matched to MotifEdge @e2.
+	node_map makes sure corresponding nodes are matched perfectly.
+	Return True if they match; False otherwise.
+	"""
+	if e1.me_ty == e2.me_ty and e1.src_node.mn_ty == e2.src_node.mn_ty and e1.dst_node.mn_ty == e2.dst_node.mn_ty:
+		if e1.src_node.mn_id not in node_map:
+			node_map[e1.src_node.mn_id] = e2.src_node.mn_id
+		else:
+			if node_map[e1.src_node.mn_id] != e2.src_node.mn_id:
+				return False
+		if e1.dst_node.mn_id not in node_map:
+			node_map[e1.dst_node.mn_id] = e2.dst_node.mn_id
+		else:
+			if node_map[e1.dst_node.mn_id] != e2.dst_node.mn_id:
+				return False
+		return True
+	else:
+		return False
+
+def partial_match(l_a, l_b, node_map, length):
+	"""
+	A very costly partial match function.
+	"""
+	matched = False
+	for i in range(len(l_b)):
+		dcopy = copy.deepcopy(node_map)
+		if matches(l_a[0], l_b[i], dcopy):
+			if len(l_a) > 1:
+				matched = partial_match(l_a[1:], l_b[i:], dcopy, length)
+				if matched:
+					break
+			else:
+				return True
+	return matched
+
 def is_submotif(i, j):
 	"""
 	Check if @i is a submotif of @j.
 	@i and @j are both basic motifs with no regular expression involved.
 	"""
-	pass
+	i_list = []
+	j_list = []
+	tree_to_list(i, i_list)
+	tree_to_list(j, j_list)
 
-def submotif_relation(m_i, m_j, i, j):
+	if len(i_list) > len(j_list):
+		return False
+	else:
+		return partial_match(i_list, j_list, {}, len(i_list))
+
+def submotif_relation(m_i, m_j):
 	"""
-	Find if there exists a submotif relationship between motif @m_i and @m_j by calling @is_submotif.
-	If @m_i is a submotif of @m_j, return @i
-	If @m_j is a submotif of @m_i, return @j
-	Otherwise return None.
+	Find if there exists a submotif relationship between basic motif @m_i and @m_j by calling @is_submotif.
+	If @m_i is a submotif of @m_j, return True
+	If @m_j is a submotif of @m_i, return True
+	Otherwise return False.
 	"""
 
 	if is_submotif(m_i, m_j):
-		return i
+		return True
 	elif is_submotif(m_j, m_i):
-		return j
+		return True
 	else:
-		return None
+		return False
+
+def submotif(motif_list_i, motif_list_j):
+	"""
+	Find whether a motif in @motif_list_i is a submotif (subgraph/substructure) of another motif in @motif_list_j.
+	
+	For a motif A to be a submotif of another motif B,
+	1. Each edge must match exactly.
+	2. Temporal order must be obeyed exactly.
+
+	We perform pair-wise comparison and compare both ends (i.e., A<->B).
+	Given a list of motifs A B C D, we compare:
+	A<->B, A<->C, A<->D, B<->C, B<->D, C<->D
+
+	Submotif isomorphism is transitive.
+
+	All motifs (no regular expression involved, i.e., basic) in the same list are different versions of the same RTM Tree, thus representing the same tree.
+	"""
+	submotif = False
+	for m_i in motif_list_i:
+		for m_j in motif_list_j:
+			submotif = submotif or submotif_relation(m_i, m_j)
+	return submotif
+
+
