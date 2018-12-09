@@ -54,7 +54,7 @@ digraph RGL__DirectedAdjacencyGraph {145[fontsize = 8,label = ".",shape = ellips
 
 13 -> 12[fontsize = 8, color="#000000"]
 
-12[fontsize = 8,label = "8/inode-version_entity->11/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
+12[fontsize = 8,label = "10/inode-version_entity->11/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
 
 145 -> 144[fontsize = 8, color="#000000"]
 

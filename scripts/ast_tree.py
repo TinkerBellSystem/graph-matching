@@ -14,6 +14,7 @@ import provenance_tree as provenance
 from rtm_tree import *
 from helper import *
 from graph_tree import *
+from analyze_motif import *
 
 from pycparser import c_parser, c_ast, parse_file
 
@@ -387,6 +388,9 @@ def eval_function_call(func_call, motif_node_dict):
     # CamFlow "get_sk_inode_provenance" takes one argument but it is not needed for modeling.  
     elif func_call.name.name == 'get_sk_inode_provenance':
         return provenance.get_sk_inode_provenance(None, motif_node_dict)
+    # CamFlow "get_sk_provenance" takes one argument but it is not needed for modeling.
+    elif func_call.name.name == 'get_sk_provenance':
+        return provenance.get_sk_provenance(None, motif_node_dict)
     # CamFlow "record_packet_content" takes two arguments but only the second argument is needed for modeling. 
     elif func_call.name.name == 'record_packet_content':
         args = func_call.args.exprs
@@ -422,9 +426,10 @@ def eval_assignment(assignment, motif_node_dict):
     """
     if type(assignment.rvalue).__name__ == 'FuncCall':
         motif_node, tree_node = eval_function_call(assignment.rvalue, motif_node_dict)
-        if motif_node:
-            if assignment.lvalue.name not in motif_node_dict:
-                print('\33[101m' + '[error][eval_assignment]:  ' + assignment.lvalue.name + ' must be in the dictionary.\033[0m')
+        # consider "var = XXX;" and "*var = XXX" and "&var = XXX" situations
+        if (type(assignment.lvalue).__name__ == 'ID' and assignment.lvalue.name in motif_node_dict) or (type(assignment.lvalue).__name__ == 'UnaryOp' and assignment.lvalue.expr.name in motif_node_dict):
+            if not motif_node:
+                print('\33[101m' + '[error][eval_assignment]:  ' + assignment.lvalue.name + ' is in the dictionary. MotifNode should not be None.\033[0m')
                 exit(1)
             else:
                 motif_node_dict[assignment.lvalue.name].append(motif_node)
@@ -597,10 +602,7 @@ def eval_if_else(item, motif_node_dict):
     # evaluate the `if` branch first
     true_branch = item.iftrue
     if type(true_branch).__name__ == 'FuncCall':
-        motif_node, left = eval_function_call(true_branch, motif_node_dict)
-        if motif_node:
-            print('\33[101m' + '[error][eval_if_else]: if statement true branch should not generate a new MotifNode.\033[0m')                    
-            exit(1)
+        motif_node, left = eval_function_call(true_branch, motif_node_dict)             
     elif type(true_branch).__name__ == 'Assignment':
         left = eval_assignment(true_branch, motif_node_dict)
     elif type(true_branch).__name__ == 'Decl':
@@ -615,9 +617,6 @@ def eval_if_else(item, motif_node_dict):
     false_branch = item.iffalse
     if type(false_branch).__name__ == 'FuncCall':
         motif_node, right = eval_function_call(false_branch, motif_node_dict)
-        if motif_node:
-            print('\33[101m' + '[error][eval_if_else]: if statement false branch should not generate a new MotifNode.\033[0m')                    
-            exit(1)
     elif type(false_branch).__name__ == 'Assignment':
         right = eval_assignment(false_branch, motif_node_dict)
     elif type(false_branch).__name__ == 'Decl':
@@ -794,7 +793,6 @@ hooks['provenance_msg_queue_msgrcv'] = hooks['__mq_msgrcv']
 hooks['provenance_mq_timedreceive'] = hooks['__mq_msgrcv']
 hooks['provenance_inode_rename'] = hooks['provenance_inode_link']
 
-# Print them out for inspection
 for hookname, motif in hooks.iteritems():
     print("\n+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
     print(hookname)
@@ -807,5 +805,16 @@ for hookname, motif in hooks.iteritems():
     with open('../dot/'+ hookname +'_tree.dot', 'w') as f:
         f.write(dot_str)
     f.close()
-    # os.system('dot -Tpng ../dot/'+ hookname +'_tree.dot -o ../img/'+ hookname +'_tree.png')
-    
+#     # os.system('dot -Tpng ../dot/'+ hookname +'_tree.dot -o ../img/'+ hookname +'_tree.png')
+
+# motifs = expand_question_mark(hooks["provenance_bprm_set_creds"])
+# for motif in motifs:
+#     if motif:
+#         edge_list = []
+#         tree_to_list(motif, edge_list)
+#         for e in edge_list:
+#             e.print_edge()
+#             print()
+#         print("---------------------------")
+
+

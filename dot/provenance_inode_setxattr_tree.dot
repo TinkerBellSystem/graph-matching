@@ -38,6 +38,6 @@ digraph RGL__DirectedAdjacencyGraph {10[fontsize = 8,label = ".",shape = ellipse
 
 6 -> 5[fontsize = 8, color="#000000"]
 
-5[fontsize = 8,label = "1/inode-version_entity->4/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
+5[fontsize = 8,label = "3/inode-version_entity->4/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
 
 }

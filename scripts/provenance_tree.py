@@ -241,13 +241,15 @@ def eval_assignment(assignment, caller_parameters, caller_arguments, motif_node_
 	"""
 	if type(assignment.rvalue).__name__ == 'FuncCall':
 		motif_node, tree_node = eval_function_call(assignment.rvalue, caller_parameters, caller_arguments, motif_node_dict, local_dict)
-		if motif_node:
-			if assignment.lvalue.name not in local_dict:
-				print('\33[101m' + '[error][eval_assignment/provenance]:  ' + assignment.lvalue.name + ' must be in the local dictionary.\033[0m')
+		# it is possible that a function being evaluated returns a non-None MotifNode that need not to be assigned to the LHS variable.
+		# But if the LHS variable is in @local_dict, then the RHS function must return a non-None MotifNode.
+		# consider "var = XXX;" and "*var = XXX" and "&var = XXX" situations
+		if (type(assignment.lvalue).__name__ == 'ID' and assignment.lvalue.name in local_dict) or (type(assignment.lvalue).__name__ == 'UnaryOp' and assignment.lvalue.expr.name in local_dict):
+			if not motif_node:
+				print('\33[101m' + '[error][eval_assignment/provenance]:  ' + assignment.lvalue.name + ' is in the local dictionary. MotifNode should not be None.\033[0m')
 				exit(1)
 			else:
 				local_dict[assignment.lvalue.name].append(motif_node)
-
 		return tree_node
 	# In a case where a provenance node was declared but then assigned or reassigned. For example:
 	#   struct provenance *tprov;
@@ -335,10 +337,7 @@ def eval_if_else(item, caller_parameters, caller_arguments, motif_node_dict, loc
 	"""
 	true_branch = item.iftrue
 	if type(true_branch).__name__ == 'FuncCall':
-		motif_node, left = eval_function_call(true_branch, caller_parameters, caller_arguments, motif_node_dict, local_dict)
-		if motif_node:
-			print('\33[101m' + '[error][eval_if_else/provenance]: if statement true branch should not generate a new MotifNode.\033[0m')                    
-			exit(1)
+		motif_node, left = eval_function_call(true_branch, caller_parameters, caller_arguments, motif_node_dict, local_dict)     
 	elif type(true_branch).__name__ == 'Assignment':
 		left = eval_assignment(true_branch, caller_parameters, caller_arguments, motif_node_dict, local_dict)
 	elif type(true_branch).__name__ == 'Decl':
@@ -359,9 +358,6 @@ def eval_if_else(item, caller_parameters, caller_arguments, motif_node_dict, loc
 	false_branch = item.iffalse
 	if type(false_branch).__name__ == 'FuncCall':
 		motif_node, right = eval_function_call(false_branch, caller_parameters, caller_arguments, motif_node_dict, local_dict)
-		if motif_node:
-			('\33[101m' + '[error][eval_if_else/provenance]: if statement false branch should not generate a new MotifNode.\033[0m')                    
-			exit(1)
 	elif type(false_branch).__name__ == 'Assignment':
 		right = eval_assignment(false_branch, caller_parameters, caller_arguments, motif_node_dict, local_dict)
 	elif type(false_branch).__name__ == 'Decl':
@@ -526,7 +522,7 @@ def record_relation(edge_type, from_node, to_node, file, flags, motif_node_dict)
 	# from_node now has outgoing edges
 	from_node.mn_has_outgoing = True
 
-	return None, create_group_node(rtm_tree_update_node, rtm_tree_leaf_node)
+	return new_to_node, create_group_node(rtm_tree_update_node, rtm_tree_leaf_node)
 
 def record_terminate(edge_type, motif_node, motif_node_dict):
 	"""
@@ -585,18 +581,18 @@ def record_node_name(motif_node, name, force, motif_node_dict):
 
 	@name is ignored in our analysis.
 	"""
-	# if recording node name is not needed, simply return None, None
+	# if recording node name is not needed, simply return @motif_node, None
 	if motif_node.mn_has_name_recorded and not force:
-		return None, None
+		return motif_node, None
 
 	new_motif_node = MotifNode('path')
 	if motif_node.mn_ty == 'task':
-		_, rtm_tree_node = record_relation(relation_to_str('RL_NAMED_PROCESS'), new_motif_node, motif_node, None, None, motif_node_dict)
+		updated_motif_node, rtm_tree_node = record_relation(relation_to_str('RL_NAMED_PROCESS'), new_motif_node, motif_node, None, None, motif_node_dict)
 	else:
-		_, rtm_tree_node = record_relation(relation_to_str('RL_NAMED'), new_motif_node, motif_node, None, None, motif_node_dict)
+		updated_motif_node, rtm_tree_node = record_relation(relation_to_str('RL_NAMED'), new_motif_node, motif_node, None, None, motif_node_dict)
 	# motif_node's name is now recorded
 	motif_node.mn_has_name_recorded = True
-	return None, rtm_tree_node
+	return updated_motif_node, rtm_tree_node
 
 def record_kernel_link(motif_node, motif_node_dict):
 	"""
@@ -639,10 +635,10 @@ def influences_kernel(edge_type, entity_node, activity_node, file, motif_node_di
 	if 'kernel' not in motif_node_dict:
 		motif_node_dict['kernel'] = [MotifNode('machine')]
 	
-	_, rtm_tree_load_node = record_relation(relation_to_str('RL_LOAD_FILE'), entity_node, activity_node, None, None,motif_node_dict)
-	_, rtm_tree_type_node = record_relation(relation_to_str(edge_type), activity_node, getLastValueFromKey(motif_node_dict, 'kernel'), None, None, motif_node_dict)
+	updated_activity_node, rtm_tree_load_node = record_relation(relation_to_str('RL_LOAD_FILE'), entity_node, activity_node, None, None,motif_node_dict)
+	updated_activity_node, rtm_tree_type_node = record_relation(relation_to_str(edge_type), activity_node, getLastValueFromKey(motif_node_dict, 'kernel'), None, None, motif_node_dict)
 
-	return None, create_group_node(rtm_tree_load_node, rtm_tree_type_node)
+	return updated_activity_node, create_group_node(rtm_tree_load_node, rtm_tree_type_node)
 
 ### provenance_inode.h
 def update_inode_type(mode, motif_node, motif_node_dict):
@@ -691,7 +687,7 @@ def record_inode_name_from_dentry(dentry, motif_node, force, motif_node_dict):
 	@dentry is ignored in our analysis.
 	"""
 	if motif_node.mn_has_name_recorded:
-		return None, None
+		return motif_node, None
 	else:
 		return record_node_name(motif_node, None, force, motif_node_dict)
 
@@ -711,7 +707,7 @@ def record_inode_name(inode, motif_node, motif_node_dict):
 	@inode is ignored in our analysis.
 	"""
 	if motif_node.mn_has_name_recorded:
-		return None, None
+		return motif_node, None
 	else:
 		return record_inode_name_from_dentry(None, motif_node, False, motif_node_dict)
 
@@ -727,8 +723,8 @@ def refresh_inode_provenance(inode, motif_node, motif_node_dict):
 
 	@inode is ignored in our analysis.
 	"""
-	_, rtm_tree_record_node = record_inode_name(None, motif_node, motif_node_dict)
-	new_motif_node, rtm_tree_update_node = update_inode_type(None, motif_node, motif_node_dict)
+	updated_motif_node, rtm_tree_record_node = record_inode_name(None, motif_node, motif_node_dict)
+	new_motif_node, rtm_tree_update_node = update_inode_type(None, updated_motif_node, motif_node_dict)
 	return new_motif_node, create_group_node(rtm_tree_record_node, rtm_tree_update_node)
 
 def branch_mmap(iprov, cprov):
@@ -760,7 +756,7 @@ def inode_init_provenance(inode, opt_dentry, motif_node, motif_node_dict):
 	@inode and @opt_dentry are ignored in our analysis.
 	"""
 	if motif_node.mn_is_initialized:
-		return None, None
+		return motif_node, None
 	else:
 		motif_node.mn_is_initialized = True
 		return update_inode_type(None, motif_node, motif_node_dict)

@@ -1,4 +1,8 @@
-digraph RGL__DirectedAdjacencyGraph {56[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
+digraph RGL__DirectedAdjacencyGraph {60[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
+
+60 -> 56[fontsize = 8, color="#000000"]
+
+56[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
 56 -> 41[fontsize = 8, color="#000000"]
 
@@ -62,7 +66,7 @@ digraph RGL__DirectedAdjacencyGraph {56[fontsize = 8,label = ".",shape = ellipse
 
 13 -> 12[fontsize = 8, color="#000000"]
 
-12[fontsize = 8,label = "8/inode-version_entity->11/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
+12[fontsize = 8,label = "10/inode-version_entity->11/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
 
 26 -> 25[fontsize = 8, color="#000000"]
 
@@ -98,7 +102,7 @@ digraph RGL__DirectedAdjacencyGraph {56[fontsize = 8,label = ".",shape = ellipse
 
 23 -> 22[fontsize = 8, color="#000000"]
 
-22[fontsize = 8,label = "13/inode-version_entity->16/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
+22[fontsize = 8,label = "15/inode-version_entity->16/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
 
 41 -> 40[fontsize = 8, color="#000000"]
 
@@ -211,5 +215,17 @@ digraph RGL__DirectedAdjacencyGraph {56[fontsize = 8,label = ".",shape = ellipse
 54 -> 53[fontsize = 8, color="#000000"]
 
 53[fontsize = 8,label = "23/task-link->24/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
+
+60 -> 59[fontsize = 8, color="#000000"]
+
+59[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
+
+59 -> 57[fontsize = 8, color="#000000"]
+
+57[fontsize = 8,label = "24/inode-version_entity->26/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
+
+59 -> 58[fontsize = 8, color="#000000"]
+
+58[fontsize = 8,label = "25/path-named->26/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
 
 }

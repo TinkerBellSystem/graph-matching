@@ -1,7 +1,7 @@
 from __future__ import print_function
 import sys
 import os
-import provenance as prov
+import provenance_tree as prov
 
 from pycparser import c_parser, c_ast, parse_file
 
@@ -15,7 +15,7 @@ def version(ast):
 			# print(function_decl)
 			function_name = function_decl.name
 			function_arguments = function_decl.type.args.params
-			if function_name == 'provenance_socket_sock_rcv_skb':
+			if function_name == 'provenance_inode_getsecurity':
 				# print(function_decl)
 				function_body = ext.body
 				print(function_body)

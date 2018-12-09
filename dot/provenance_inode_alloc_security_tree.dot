@@ -22,6 +22,6 @@ digraph RGL__DirectedAdjacencyGraph {6[fontsize = 8,label = ".",shape = ellipse,
 
 4 -> 3[fontsize = 8, color="#000000"]
 
-3[fontsize = 8,label = "0/inode-version_entity->4/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
+3[fontsize = 8,label = "3/inode-version_entity->4/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
 
 }

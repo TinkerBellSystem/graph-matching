@@ -202,7 +202,6 @@ def visualize_rtm_tree(node, graph):
 	Visualize RTM tree using Graphviz.
 	@node is the node of the RTMTree
 	@graph is the Graphviz graph.
-	@nid is the ID of @node.
 	"""
 	if node is None:
 		return

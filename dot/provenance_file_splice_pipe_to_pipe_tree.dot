@@ -62,7 +62,7 @@ digraph RGL__DirectedAdjacencyGraph {56[fontsize = 8,label = ".",shape = ellipse
 
 13 -> 12[fontsize = 8, color="#000000"]
 
-12[fontsize = 8,label = "8/inode-version_entity->11/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
+12[fontsize = 8,label = "10/inode-version_entity->11/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
 
 26 -> 25[fontsize = 8, color="#000000"]
 
@@ -98,7 +98,7 @@ digraph RGL__DirectedAdjacencyGraph {56[fontsize = 8,label = ".",shape = ellipse
 
 23 -> 22[fontsize = 8, color="#000000"]
 
-22[fontsize = 8,label = "13/inode-version_entity->16/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
+22[fontsize = 8,label = "15/inode-version_entity->16/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
 
 41 -> 40[fontsize = 8, color="#000000"]
 
