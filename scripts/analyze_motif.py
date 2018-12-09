@@ -1,5 +1,6 @@
 from rtm_tree import MotifEdge
 import copy
+import itertools
 
 def dict_to_list(motif_dict):
 	"""
@@ -31,11 +32,6 @@ def find_submotif(hooknames, motifs):
 			if submotif != None:
 				print(hooknames[i] + " and " + hooknames[j] + ":" + hooknames[submotif] + " is the submotif.")
 
-def version_maps(motif):
-	"""
-	Whenever we see a "version" 
-	"""
-
 def remap_motif(motif):
 	"""
 	Go through the RTM Tree to remap MotifNodes because of the "or" operator.
@@ -47,72 +43,119 @@ def expand_or(motif, motif_list):
 	"""
 	Expand the @motif to a list of motifs @motif_list
 	"""
+	pass
+
+def __all_permutations(num):
+	"""
+	Return a list of permutation list of True and/or False.
+	Each permutation list contains @num of Trues and/or Falses.
+	For example if num == 2:
+	[[True, True], [True, False], [False, True], [False, False]]
+	"""
+	permute_options = [[True, False]] * num
+	return list(itertools.product(*permute_options))
 
 def expand_question_mark(motif):
 	"""
-	By expanding question mark, we create two copies of the original @motif,
-	One that we replace question mark with '.' by calling @convert_question_mark
-	and the other one we remove the branches with question marks by calling @remove_question_mark
-	Therefore the function returns two motif if necessary, or the original @motif and None if no question mark is in the original @motif.
+	By expanding question mark, we create 2^X copies of the original @motif,
+	One that we replace all question mark with '.' by calling @convert_question_mark
+	and the rest we remove or keep (as append) the branches with question marks with different permutations by calling @remove_question_mark
+	Therefore the function returns a list of motifs.
+	Some motifs may overlap since some question marks are ancestors of other question marks. (We will do some redundant work but this is OK.)
 	"""
-	dcopy = copy.deepcopy(motif)
-
 	has_question_mark = []
-	convert_question_mark(motif, has_question_mark)
-	if len(has_question_mark) > 0:
-		remove_question_mark(dcopy)
-		return motif, dcopy
-	else:
-		return motif, None
+	motif_map = {}
+	map_question_mark(motif, motif_map, has_question_mark)
+	num_question_marks = len(has_question_mark)
+	permutations = __all_permutations(num_question_marks)
 
-def remap_after_remove_question_mark(motif, map):
+	list_of_motifs = []
+	for i in range(len(permutations)):
+		permutation = permutations[i]
+		dcopy = copy.deepcopy(motif)
+		remove_question_mark(dcopy, permutation, [])
+		remap_after_remove_question_mark(dcopy, [], motif_map)
+		list_of_motifs.append(dcopy)
+	return list_of_motifs
+
+def remap_after_remove_question_mark(motif, seen, motif_map):
 	"""
-	We must remap MotifNode IDs based on @map after we remove question mark branches. 
+	We must remap MotifNode IDs based on @motif_map after we remove question mark branches. 
 	@motif is the RTM tree with question mark branches removed.
-	"""
-	pass
-
-def remove_question_mark(motif):
-	"""
-	We remove branches whose ancestor is a question mark '?' internal node.
+	@seen is a list of nodes seen in the @motif that are associated with "version_entity" or "version_activity"
 	"""
 	if not motif:
 		return
-	if motif.value == '?':
-		motif.value = '.'
-		motif.left = None
-		motif.right = None
 	if motif.left:
-		remove_question_mark(motif.left)
+		remap_after_remove_question_mark(motif.left, seen, motif_map)
+	if isinstance(motif.value, MotifEdge):
+		if motif.value.me_ty == 'version_entity' or motif.value.me_ty == 'version_activity':
+			if motif.value.dst_node.mn_id not in seen:
+				seen.append(motif.value.dst_node.mn_id)
+			if motif.value.src_node.mn_id not in seen:
+				seen.append(motif.value.src_node.mn_id)
+		else:
+			if motif.value.src_node.mn_id in motif_map:
+				while motif.value.src_node.mn_id not in seen:
+					motif.value.update_src_node(motif_map[motif.value.src_node.mn_id])
+			if motif.value.dst_node.mn_id in motif_map:
+				while motif.value.dst_node.mn_id not in seen:
+					motif.value.update_dst_node(motif_map[motif.value.dst_node.mn_id])
 	if motif.right:
-		remove_question_mark(motif.right)
+		remap_after_remove_question_mark(motif.right, seen, motif_map)
 
-def convert_question_mark(motif, has_question_mark):
+def remove_question_mark(motif, permutation, pos):
 	"""
-	We convert a question mark operator to a regular append '.' operator.
-	@has_question_mark let us know if there is actually any convertion happened during this process.
+	We remove some branches whose ancestor is a question mark '?' internal node,
+	and convert some internal '?' to '.'
+	based on @permutation and @pos.
+	If @permutation[len(@pos)] is True, we remove the branch; otherwise we convert it.
 	"""
 	if not motif:
 		return
+	if motif.left:
+		remove_question_mark(motif.left, permutation, pos)
 	if motif.value == '?':
-		motif.value = '.'
+		if permutation[len(pos)] == True:
+			motif.value = '.'
+			motif.left = None
+			motif.right = None
+			pos.append(True)
+		else:
+			motif.value = '.'
+			pos.append(False)
+	if motif.right:
+		remove_question_mark(motif.right, permutation, pos)
+
+def map_question_mark(motif, motif_map, has_question_mark):
+	"""
+	We map in @motif_map "version_entity" and "version_activity" nodes in @motif.
+	We also count the number of question mark operators in @motif. 
+	@has_question_mark let us know if there is actually any conversion happened during this process and how many conversions happened.
+	"""
+	if not motif:
+		return
+	if motif.left:
+		map_question_mark(motif.left, motif_map, has_question_mark)
+	if motif.value == '?':
 		has_question_mark.append(True)
-	if motif.left:
-		convert_question_mark(motif.left, has_question_mark)
+	elif isinstance(motif.value, MotifEdge):
+		if motif.value.me_ty == 'version_entity' or motif.value.me_ty == 'version_activity':
+			motif_map[motif.value.dst_node.mn_id] = motif.value.src_node.mn_id
 	if motif.right:
-		convert_question_mark(motif.right, has_question_mark)
+		map_question_mark(motif.right, motif_map, has_question_mark)
 
 def convert_star(motif):
 	"""
 	We consider a Kleene Star operator to be "zero or more repetitions".
-	We thus can convert a Kleene star operator to a question mark operator, then call @expand_question_mark.
+	We thus can convert a Kleene star operator to a question mark operator.
 	"""
 	if not motif:
 		return
-	if motif.value == '*':
-		motif.value = '?'
 	if motif.left:
 		convert_star(motif.left)
+	if motif.value == '*':
+		motif.value = '?'
 	if motif.right:
 		convert_star(motif.right)
 

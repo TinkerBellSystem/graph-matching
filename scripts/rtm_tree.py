@@ -81,6 +81,12 @@ class MotifEdge():
 	def print_edge(self):
 		print(str(self.src_node.mn_id) + "-" + self.me_ty + "->" + str(self.dst_node.mn_id) + '   ', end='')
 
+	def update_src_node(self, new_id):
+		self.src_node.mn_id = new_id
+
+	def update_dst_node(self, new_id):
+		self.dst_node.mn_id = new_id
+		
 class RTMTreeNode():
 	"""
 	A binary tree that represents the regular temporal motif (RTM) with regular expression operators in the internal tree nodes and MotifEdges in the leaf nodes.

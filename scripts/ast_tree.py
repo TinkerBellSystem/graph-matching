@@ -793,28 +793,28 @@ hooks['provenance_msg_queue_msgrcv'] = hooks['__mq_msgrcv']
 hooks['provenance_mq_timedreceive'] = hooks['__mq_msgrcv']
 hooks['provenance_inode_rename'] = hooks['provenance_inode_link']
 
-for hookname, motif in hooks.iteritems():
-    print("\n+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
-    print(hookname)
-    print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
-    # inorder_traversal(motif)
-    # bf_traversal(motif)
-    g = Graph()
-    visualize_rtm_tree(motif, g)
-    dot_str = g.get_graph()
-    with open('../dot/'+ hookname +'_tree.dot', 'w') as f:
-        f.write(dot_str)
-    f.close()
+# for hookname, motif in hooks.iteritems():
+#     print("\n+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+#     print(hookname)
+#     print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+#     # inorder_traversal(motif)
+#     # bf_traversal(motif)
+#     g = Graph()
+#     visualize_rtm_tree(motif, g)
+#     dot_str = g.get_graph()
+#     with open('../dot/'+ hookname +'_tree.dot', 'w') as f:
+#         f.write(dot_str)
+#     f.close()
 #     # os.system('dot -Tpng ../dot/'+ hookname +'_tree.dot -o ../img/'+ hookname +'_tree.png')
 
-# motifs = expand_question_mark(hooks["provenance_bprm_set_creds"])
-# for motif in motifs:
-#     if motif:
-#         edge_list = []
-#         tree_to_list(motif, edge_list)
-#         for e in edge_list:
-#             e.print_edge()
-#             print()
-#         print("---------------------------")
+motifs = expand_question_mark(hooks["provenance_bprm_set_creds"])
+for motif in motifs:
+    if motif:
+        edge_list = []
+        tree_to_list(motif, edge_list)
+        for e in edge_list:
+            e.print_edge()
+            print()
+        print("---------------------------")
 
 
