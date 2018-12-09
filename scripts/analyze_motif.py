@@ -97,10 +97,16 @@ def remap_after_remove_question_mark(motif, seen, motif_map):
 		else:
 			if motif.value.src_node.mn_id in motif_map:
 				while motif.value.src_node.mn_id not in seen:
-					motif.value.update_src_node(motif_map[motif.value.src_node.mn_id])
+					if motif.value.src_node.mn_id in motif_map:
+						motif.value.update_src_node(motif_map[motif.value.src_node.mn_id])
+					else:
+						break
 			if motif.value.dst_node.mn_id in motif_map:
 				while motif.value.dst_node.mn_id not in seen:
-					motif.value.update_dst_node(motif_map[motif.value.dst_node.mn_id])
+					if motif.value.dst_node.mn_id in motif_map:
+						motif.value.update_dst_node(motif_map[motif.value.dst_node.mn_id])
+					else:
+						break
 	if motif.right:
 		remap_after_remove_question_mark(motif.right, seen, motif_map)
 
@@ -155,7 +161,7 @@ def convert_star(motif):
 	if motif.left:
 		convert_star(motif.left)
 	if motif.value == '*':
-		motif.value = '?'
+		motif.update_value('?')
 	if motif.right:
 		convert_star(motif.right)
 

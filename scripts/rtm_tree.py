@@ -86,7 +86,7 @@ class MotifEdge():
 
 	def update_dst_node(self, new_id):
 		self.dst_node.mn_id = new_id
-		
+
 class RTMTreeNode():
 	"""
 	A binary tree that represents the regular temporal motif (RTM) with regular expression operators in the internal tree nodes and MotifEdges in the leaf nodes.
@@ -141,6 +141,9 @@ class RTMTreeNode():
 	@property
 	def value(self):
 		return self.__value
+
+	def update_value(self, new_value):
+		self.value = new_value
 
 	def findLeftMostNode(self):
 		"""
