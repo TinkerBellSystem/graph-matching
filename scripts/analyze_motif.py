@@ -32,18 +32,23 @@ def find_submotif(hooknames, motifs):
 			if submotif != None:
 				print(hooknames[i] + " and " + hooknames[j] + ":" + hooknames[submotif] + " is the submotif.")
 
-def remap_motif(motif):
+def map_operator(motif, operator, motif_map, has_operator):
 	"""
-	Go through the RTM Tree to remap MotifNodes because of the "or" operator.
+	We map in @motif_map "version_entity" and "version_activity" nodes in @motif.
+	We also count the number of @operator in @motif. 
+	@has_operator let us know if there is actually any @operator in @motif and how many.
 	"""
-	pass
-
-
-def expand_or(motif, motif_list):
-	"""
-	Expand the @motif to a list of motifs @motif_list
-	"""
-	pass
+	if not motif:
+		return
+	if motif.left:
+		map_operator(motif.left, operator, motif_map, has_operator)
+	if motif.value == operator:
+		has_operator.append(True)
+	elif isinstance(motif.value, MotifEdge):
+		if motif.value.me_ty == 'version_entity' or motif.value.me_ty == 'version_activity':
+			motif_map[motif.value.dst_node.mn_id] = motif.value.src_node.mn_id
+	if motif.right:
+		map_operator(motif.right, operator, motif_map, has_operator)
 
 def __all_permutations(num):
 	"""
@@ -55,39 +60,16 @@ def __all_permutations(num):
 	permute_options = [[True, False]] * num
 	return list(itertools.product(*permute_options))
 
-def expand_question_mark(motif):
+def remap_after_remove_operator(motif, seen, motif_map):
 	"""
-	By expanding question mark, we create 2^X copies of the original @motif,
-	One that we replace all question mark with '.' by calling @convert_question_mark
-	and the rest we remove or keep (as append) the branches with question marks with different permutations by calling @remove_question_mark
-	Therefore the function returns a list of motifs.
-	Some motifs may overlap since some question marks are ancestors of other question marks. (We will do some redundant work but this is OK.)
-	"""
-	has_question_mark = []
-	motif_map = {}
-	map_question_mark(motif, motif_map, has_question_mark)
-	num_question_marks = len(has_question_mark)
-	permutations = __all_permutations(num_question_marks)
-
-	list_of_motifs = []
-	for i in range(len(permutations)):
-		permutation = permutations[i]
-		dcopy = copy.deepcopy(motif)
-		remove_question_mark(dcopy, permutation, [])
-		remap_after_remove_question_mark(dcopy, [], motif_map)
-		list_of_motifs.append(dcopy)
-	return list_of_motifs
-
-def remap_after_remove_question_mark(motif, seen, motif_map):
-	"""
-	We must remap MotifNode IDs based on @motif_map after we remove question mark branches. 
-	@motif is the RTM tree with question mark branches removed.
+	We must remap MotifNode IDs based on @motif_map after we remove @operator branches. 
+	@motif is the RTM tree with @operator branches removed.
 	@seen is a list of nodes seen in the @motif that are associated with "version_entity" or "version_activity"
 	"""
 	if not motif:
 		return
 	if motif.left:
-		remap_after_remove_question_mark(motif.left, seen, motif_map)
+		remap_after_remove_operator(motif.left, seen, motif_map)
 	if isinstance(motif.value, MotifEdge):
 		if motif.value.me_ty == 'version_entity' or motif.value.me_ty == 'version_activity':
 			if motif.value.dst_node.mn_id not in seen:
@@ -108,7 +90,7 @@ def remap_after_remove_question_mark(motif, seen, motif_map):
 					else:
 						break
 	if motif.right:
-		remap_after_remove_question_mark(motif.right, seen, motif_map)
+		remap_after_remove_operator(motif.right, seen, motif_map)
 
 def remove_question_mark(motif, permutation, pos):
 	"""
@@ -133,23 +115,72 @@ def remove_question_mark(motif, permutation, pos):
 	if motif.right:
 		remove_question_mark(motif.right, permutation, pos)
 
-def map_question_mark(motif, motif_map, has_question_mark):
+def expand_question_mark(motif):
 	"""
-	We map in @motif_map "version_entity" and "version_activity" nodes in @motif.
-	We also count the number of question mark operators in @motif. 
-	@has_question_mark let us know if there is actually any conversion happened during this process and how many conversions happened.
+	By expanding question mark, we create 2^X copies of the original @motif,
+	One that we replace all question mark with '.' by calling @convert_question_mark
+	and the rest we remove or keep (as append) the branches with question marks with different permutations by calling @remove_question_mark
+	Therefore the function returns a list of motifs.
+	Some motifs may overlap since some question marks are ancestors of other question marks. (We will do some redundant work but this is OK.)
+	"""
+	has_question_mark = []
+	motif_map = {}
+	map_operator(motif, '?', motif_map, has_question_mark)
+	num_question_marks = len(has_question_mark)
+	permutations = __all_permutations(num_question_marks)
+
+	list_of_motifs = []
+	for i in range(len(permutations)):
+		permutation = permutations[i]
+		dcopy = copy.deepcopy(motif)
+		remove_question_mark(dcopy, permutation, [])
+		remap_after_remove_operator(dcopy, [], motif_map)
+		list_of_motifs.append(dcopy)
+	return list_of_motifs
+
+def remove_or(motif, permutation, pos):
+	"""
+	We remove one child whose ancestor is an or ('|') internal node
+	and keep the other child
+	based on @permutation and @pos.
+	If @permutation[len(@pos)] is True, we keep the left branch and remove the right one; otherwise we do the opposite.
 	"""
 	if not motif:
 		return
 	if motif.left:
-		map_question_mark(motif.left, motif_map, has_question_mark)
-	if motif.value == '?':
-		has_question_mark.append(True)
-	elif isinstance(motif.value, MotifEdge):
-		if motif.value.me_ty == 'version_entity' or motif.value.me_ty == 'version_activity':
-			motif_map[motif.value.dst_node.mn_id] = motif.value.src_node.mn_id
+		remove_or(motif.left, permutation, pos)
+	if motif.value == '|':
+		if permutation[len(pos)] == True:
+			motif.value = '.'
+			motif.right = None
+			pos.append(True)
+		else:
+			motif.value = '.'
+			motif.left = None
+			pos.append(False)
 	if motif.right:
-		map_question_mark(motif.right, motif_map, has_question_mark)
+		remove_or(motif.right, permutation, pos)
+
+def expand_or(motif):
+	"""
+	By expanding or, we create 2^X copies of the original @motif,
+	The function returns a list of motifs.
+	Some motifs may overlap since some ors are ancestors of other ors. (We will do some redundant work but this is OK.)
+	"""
+	has_or = []
+	motif_map = {}
+	map_operator(motif, '|', motif_map, has_or)
+	num_ors = len(has_or)
+	permutations = __all_permutations(num_ors)
+
+	list_of_motifs = []
+	for i in range(len(permutations)):
+		permutation = permutations[i]
+		dcopy = copy.deepcopy(motif)
+		remove_or(dcopy, permutation, [])
+		remap_after_remove_operator(dcopy, [], motif_map)
+		list_of_motifs.append(dcopy)
+	return list_of_motifs
 
 def convert_star(motif):
 	"""

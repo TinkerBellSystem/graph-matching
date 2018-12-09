@@ -807,12 +807,13 @@ hooks['provenance_inode_rename'] = hooks['provenance_inode_link']
 #     f.close()
 #     # os.system('dot -Tpng ../dot/'+ hookname +'_tree.dot -o ../img/'+ hookname +'_tree.png')
 
-convert_star(hooks["provenance_bprm_set_creds"])
-motifs = expand_question_mark(hooks["provenance_bprm_set_creds"])
+convert_star(hooks["provenance_mmap_munmap"])
+motifs = expand_question_mark(hooks["provenance_mmap_munmap"])
 for motif in motifs:
-    if motif:
+    basic_motifs = expand_or(motif)
+    for basic_motif in basic_motifs:
         edge_list = []
-        tree_to_list(motif, edge_list)
+        tree_to_list(basic_motif, edge_list)
         for e in edge_list:
             e.print_edge()
             print()
