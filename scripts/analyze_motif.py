@@ -295,6 +295,8 @@ def perfect_partial_match(l_a, l_b, node_map):
 	if matches(l_a[0], l_b[0], node_map):
 		if len(l_a) > 1:
 			matched = perfect_partial_match(l_a[1:], l_b[1:], node_map)
+		else:
+			return True
 	return matched
 
 def is_submotif(i, j, is_perfect):
