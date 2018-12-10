@@ -177,6 +177,47 @@ def convert_star(motif):
 	if motif.right:
 		convert_star(motif.right)
 
+def combine_question_mark(motif):
+	"""
+	After @convert_star, a motif may have a question mark internal node followed only by another question mark internal node.
+	We combine them and keep only one question mark operator internal node. 
+	"""
+	if not motif:
+		return
+	if motif.value == '?':
+		if motif.left and motif.right:
+			# if both left and right children exist, it is unlikely that we will have ? <- ? -> ? structure.
+			# We will convert the left and right question mark children to '.' children if we encounter them
+			# Now we simply print something to alert us should such situation arises.
+			if motif.left.value == '?' and motif.right.value == '?':
+				print("Unexpected Scenario. Check Hook Function.")
+				exit(1)
+			else:
+				# we cannot combine question marks in situations such as ? <- ? -> |
+				combine_question_mark(motif.left)
+				combine_question_mark(motif.right)
+		elif motif.left:
+			if motif.left.value == '?':
+				# Case: ? <- ? -> None
+				motif.left = motif.left.left
+				motif.right = motif.left.right
+				# need to check again in case of ? <- ? <- ?
+				combine_question_mark(motif)
+		elif motif.right:
+			if motif.right.value == '?':
+				# Case:  ? -> ?
+				motif.left = motif.right.left
+				motif.right = motif.right.right
+				# need to check again in case of ? -> ? -> ?
+				combine_question_mark(motif)
+		else:
+			# we cannot have something like None <- ? -> None
+			print("\33[101m" + "[ERROR][combine_question_mark]. An internal node cannot connect to both None children." + "\033[0m")
+			exit(1)
+	else:
+		combine_question_mark(motif.left)
+		combine_question_mark(motif.right)
+
 def is_regular_operator(c):
 	if c == '?' or c == '*' or c == '|':
 		return True
