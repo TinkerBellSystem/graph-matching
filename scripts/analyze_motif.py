@@ -267,23 +267,37 @@ def matches(e1, e2, node_map):
 	else:
 		return False
 
-def partial_match(l_a, l_b, node_map, length):
+def partial_match(l_a, l_b, node_map):
 	"""
 	A very costly partial match function.
+	@l_a is the list of edges that need to be matched to @l_b.
+	We are trying to figure out if @l_a can be a subgraph of @l_b.
+
 	"""
 	matched = False
 	for i in range(len(l_b)):
 		dcopy = copy.deepcopy(node_map)
 		if matches(l_a[0], l_b[i], dcopy):
 			if len(l_a) > 1:
-				matched = partial_match(l_a[1:], l_b[i:], dcopy, length)
+				matched = partial_match(l_a[1:], l_b[i:], dcopy)
 				if matched:
 					break
 			else:
 				return True
 	return matched
 
-def is_submotif(i, j):
+def perfect_partial_match(l_a, l_b, node_map):
+	"""
+	In this case,
+	@l_a must be matched completely from the beginning of @l_b, and every edge needs to be matched in the exact, consecutive sequence.
+	"""
+	matched = False
+	if matches(l_a[0], l_b[0], node_map):
+		if len(l_a) > 1:
+			matched = perfect_partial_match(l_a[1:], l_b[1:], node_map)
+	return matched
+
+def is_submotif(i, j, is_perfect):
 	"""
 	Check if @i is a submotif of @j.
 	@i and @j are both basic motifs with no regular expression involved.
@@ -298,9 +312,12 @@ def is_submotif(i, j):
 	if len(i_list) == 0 or len(j_list) == 0:
 		return False
 	else:
-		return partial_match(i_list, j_list, {}, len(i_list))
+		if is_perfect:
+			return perfect_partial_match(i_list, j_list, {})
+		else:
+			return partial_match(i_list, j_list, {})
 
-def submotif_relation(m_i, m_j):
+def submotif_relation(m_i, m_j, is_perfect):
 	"""
 	Find if there exists a submotif relationship between basic motif @m_i and @m_j by calling @is_submotif.
 	If @m_i is a submotif of @m_j, return True
@@ -308,14 +325,14 @@ def submotif_relation(m_i, m_j):
 	Otherwise return False.
 	"""
 
-	if is_submotif(m_i, m_j):
+	if is_submotif(m_i, m_j, is_perfect):
 		return True
-	elif is_submotif(m_j, m_i):
+	elif is_submotif(m_j, m_i, is_perfect):
 		return True
 	else:
 		return False
 
-def submotif(motif_list_i, motif_list_j):
+def submotif(motif_list_i, motif_list_j, is_perfect):
 	"""
 	Find whether a motif in @motif_list_i is a submotif (subgraph/substructure) of another motif in @motif_list_j.
 	
@@ -334,7 +351,7 @@ def submotif(motif_list_i, motif_list_j):
 	submotif = False
 	for m_i in motif_list_i:
 		for m_j in motif_list_j:
-			submotif = submotif or submotif_relation(m_i, m_j)
+			submotif = submotif or submotif_relation(m_i, m_j, is_perfect)
 	return submotif
 
 

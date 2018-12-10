@@ -831,10 +831,10 @@ for hookname_i, motif_i in hooks.iteritems():
             for motif in expand_or(motif_j):
                 motif_list_j.extend(expand_question_mark(motif))
 
-            if submotif(motif_list_i, motif_list_j):
-                print("\33[6;30;101m" + hookname_i + " and " + hookname_j + " have submotif relations.\x1b[0m")
+            if submotif(motif_list_i, motif_list_j, True):
+                print("\33[6;30;101m" + hookname_i + " and " + hookname_j + " have perfect submotif relations.\x1b[0m")
             else:
-                print("\x1b[6;30;42m" + hookname_i + " and " + hookname_j + " do not have submotif relations.\x1b[0m")
+                print("\x1b[6;30;42m" + hookname_i + " and " + hookname_j + " do not have perfect submotif relations.\x1b[0m")
 
 #########################DEBUG
 # convert_star(hooks["provenance_file_lock"])
