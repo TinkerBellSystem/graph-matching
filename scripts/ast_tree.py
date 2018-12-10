@@ -793,10 +793,12 @@ hooks['provenance_msg_queue_msgrcv'] = hooks['__mq_msgrcv']
 hooks['provenance_mq_timedreceive'] = hooks['__mq_msgrcv']
 hooks['provenance_inode_rename'] = hooks['provenance_inode_link']
 
+# print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+# print("Visualizing RTM Trees...          +")
+# print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
 # for hookname, motif in hooks.iteritems():
-#     print("\n+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
 #     print(hookname)
-#     print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+#     print("\x1b[6;30;42m" + 'Generating Tree for ' + hookname + '...\x1b[0m')
 #     # inorder_traversal(motif)
 #     # bf_traversal(motif)
 #     g = Graph()
@@ -807,38 +809,42 @@ hooks['provenance_inode_rename'] = hooks['provenance_inode_link']
 #     f.close()
 #     # os.system('dot -Tpng ../dot/'+ hookname +'_tree.dot -o ../img/'+ hookname +'_tree.png')
 
-# for hookname_i, motif_i in hooks.iteritems():
-#     for hookname_j, motif_j in hooks.iteritems():
-#         if hookname_i == hookname_j:
-#             continue
-#         else:
-#             motif_list_i = []
-#             motif_list_j = []
+print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+print("Analyzing Motifs                  +")
+print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+for hookname_i, motif_i in hooks.iteritems():
+    for hookname_j, motif_j in hooks.iteritems():
+        if hookname_i == hookname_j:
+            continue
+        else:
+            print("\x1b[6;30;42m" + 'Checking ' + hookname_i + ' and ' + hookname_j + '...\x1b[0m')
+            motif_list_i = []
+            motif_list_j = []
 
-#             convert_star(motif_i)
-#             combine_question_mark(motif_i)
-#             for motif in expand_or(motif_i):
-#                 motif_list_i.extend(expand_question_mark(motif))
+            convert_star(motif_i)
+            combine_question_mark(motif_i)
+            for motif in expand_or(motif_i):
+                motif_list_i.extend(expand_question_mark(motif))
 
-#             convert_star(motif_j)
-#             combine_question_mark(motif_j)
-#             for motif in expand_or(motif_j):
-#                 motif_list_j.extend(expand_question_mark(motif))
+            convert_star(motif_j)
+            combine_question_mark(motif_j)
+            for motif in expand_or(motif_j):
+                motif_list_j.extend(expand_question_mark(motif))
 
-#             if submotif(motif_list_i, motif_list_j):
-#                 print(hookname_i + " and " + hookname_j + " have submotif relations.")
-#             else:
-#                 print(hookname_i + " and " + hookname_j + " do not have submotif relations.")
+            if submotif(motif_list_i, motif_list_j):
+                print("\33[6;30;101m" + hookname_i + " and " + hookname_j + " have submotif relations.\x1b[0m")
+            else:
+                print("\x1b[6;30;42m" + hookname_i + " and " + hookname_j + " do not have submotif relations.\x1b[0m")
 
 #########################DEBUG
-convert_star(hooks["provenance_file_lock"])
-combine_question_mark(hooks["provenance_file_lock"])
-for motif in expand_question_mark(hooks["provenance_file_lock"]):
-    edge_list = []
-    tree_to_list(motif, edge_list)
-    for e in edge_list:
-        e.print_edge()
-        print()
-    print("---------------------------")
+# convert_star(hooks["provenance_file_lock"])
+# combine_question_mark(hooks["provenance_file_lock"])
+# for motif in expand_question_mark(hooks["provenance_file_lock"]):
+#     edge_list = []
+#     tree_to_list(motif, edge_list)
+#     for e in edge_list:
+#         e.print_edge()
+#         print()
+#     print("---------------------------")
 
 

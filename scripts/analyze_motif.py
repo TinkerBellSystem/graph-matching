@@ -295,6 +295,8 @@ def is_submotif(i, j):
 
 	if len(i_list) > len(j_list):
 		return False
+	if len(i_list) == 0 or len(j_list) == 0:
+		return False
 	else:
 		return partial_match(i_list, j_list, {}, len(i_list))
 
