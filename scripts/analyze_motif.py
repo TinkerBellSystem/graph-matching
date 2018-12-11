@@ -371,18 +371,24 @@ def false_matches(hookname, motif_edge_list, normal_motif_dict, matched_hooks, m
 				match_edge_list = []
 				tree_to_list(motif, match_edge_list)
 
-				if len(match_edge_list) > len(motif_edge_list) or len(match_edge_list) == 0:
+				if len(match_edge_list) == 0 or len(motif_edge_list) == 0:
 					continue
 
-				if perfect_partial_match(match_edge_list, motif_edge_list, {}):
-					dcopy_matched_hooks = copy.deepcopy(matched_hooks)
-					dcopy_matched_hooks.append(hn)
-					remaining_edge_list = motif_edge_list[len(match_edge_list):]
-					if len(remaining_edge_list) == 0:
-						# done
+				if len(match_edge_list) > len(motif_edge_list):
+					if perfect_partial_match(motif_edge_list, match_edge_list, {}):
+						dcopy_matched_hooks = copy.deepcopy(matched_hooks)
+						dcopy_matched_hooks.append(hn)
 						matched_hooks_dict[repr(dcopy_matched_hooks)] = True
-					else:	# len(remaining_edge_list) > 0
-						false_matches(hookname, remaining_edge_list, normal_motif_dict, dcopy_matched_hooks, matched_hooks_dict)
+				else:
+					if perfect_partial_match(match_edge_list, motif_edge_list, {}):
+						dcopy_matched_hooks = copy.deepcopy(matched_hooks)
+						dcopy_matched_hooks.append(hn)
+						remaining_edge_list = motif_edge_list[len(match_edge_list):]
+						if len(remaining_edge_list) == 0:
+							# done
+							matched_hooks_dict[repr(dcopy_matched_hooks)] = True
+						else:	# len(remaining_edge_list) > 0
+							false_matches(hookname, remaining_edge_list, normal_motif_dict, dcopy_matched_hooks, matched_hooks_dict)
 	matched_hooks_dict[repr(matched_hooks)] = False
 
 
