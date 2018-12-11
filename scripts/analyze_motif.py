@@ -1,3 +1,4 @@
+from __future__ import print_function
 from rtm_tree import MotifEdge
 import copy
 import itertools
@@ -355,5 +356,34 @@ def submotif(motif_list_i, motif_list_j, is_perfect):
 		for m_j in motif_list_j:
 			submotif = submotif or submotif_relation(m_i, m_j, is_perfect)
 	return submotif
+
+def false_matches(hookname, motif_edge_list, normal_motif_dict, matched_hooks, matched_hooks_dict):
+	"""
+	Find a list of lists of series matches that could confuse the graph matching algorithm.
+	@motif_edge_list is a list of edges of a normal motif @hookname
+	(Note that each hook @hookname has a list of @motif_edge_list because it has a list of normal motifs.)
+	"""
+	for hn, motif_list in normal_motif_dict.iteritems():
+		if hn == hookname:
+			continue
+		else:
+			for motif in motif_list:
+				match_edge_list = []
+				tree_to_list(motif, match_edge_list)
+
+				if len(match_edge_list) > len(motif_edge_list) or len(match_edge_list) == 0:
+					continue
+
+				if perfect_partial_match(match_edge_list, motif_edge_list, {}):
+					dcopy_matched_hooks = copy.deepcopy(matched_hooks)
+					dcopy_matched_hooks.append(hn)
+					remaining_edge_list = motif_edge_list[len(match_edge_list):]
+					if len(remaining_edge_list) == 0:
+						# done
+						matched_hooks_dict[repr(dcopy_matched_hooks)] = True
+					else:	# len(remaining_edge_list) > 0
+						false_matches(hookname, remaining_edge_list, normal_motif_dict, dcopy_matched_hooks, matched_hooks_dict)
+	matched_hooks_dict[repr(matched_hooks)] = False
+
 
 
