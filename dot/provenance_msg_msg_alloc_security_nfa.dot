@@ -1,0 +1,38 @@
+digraph NFA {
+    rankdir = LR;
+    I [style = invis];
+    I -> S0;
+    S0 [label = <s<sub>0</sub>>, shape = circle];
+    S1 [label = <s<sub>1</sub>>, shape = circle];
+    S2 [label = <s<sub>2</sub>>, shape = circle];
+    S3 [label = <s<sub>3</sub>>, shape = circle];
+    S4 [label = <s<sub>4</sub>>, shape = circle];
+    S5 [label = <s<sub>5</sub>>, shape = circle];
+    S6 [label = <s<sub>6</sub>>, shape = circle];
+    S7 [label = <s<sub>7</sub>>, shape = circle];
+    S8 [label = <s<sub>8</sub>>, shape = circle];
+    S9 [label = <s<sub>9</sub>>, shape = circle];
+    S10 [label = <s<sub>10</sub>>, shape = circle];
+    S11 [label = <s<sub>11</sub>>, shape = circle];
+    S12 [label = <s<sub>12</sub>>, shape = circle];
+    S13 [label = <s<sub>13</sub>>, shape = circle];
+    S14 [label = <s<sub>14</sub>>, shape = circle];
+    S15 [label = <s<sub>15,1</sub>>, shape = circle, peripheries = 2];
+    S14 -> S15 [label = "'task-msg_create-msg'"];
+    S13 -> S14 [label = "\u03b5"];
+    S12 -> S13 [label = "'msg-version_entity-msg'"];
+    S11 -> S12 [label = "\u03b5"];
+    S10 -> S11 [label = "'process_memory-memory_read-task'"];
+    S9 -> S10 [label = "\u03b5"];
+    S8 -> S9 [label = "'task-version_activity-task'"];
+    S7 -> S8 [label = "\u03b5"];
+    S7 -> S4 [label = "\u03b5"];
+    S6 -> S7 [label = "'inode-sh_read-process_memory'"];
+    S5 -> S6 [label = "\u03b5"];
+    S4 -> S5 [label = "'process_memory-version_entity-process_memory'"];
+    S4 -> S7 [label = "\u03b5"];
+    S3 -> S4 [label = "\u03b5"];
+    S2 -> S3 [label = "'machine-ran_on-process_memory'"];
+    S1 -> S2 [label = "\u03b5"];
+    S0 -> S1 [label = "'process_memory-version_entity-process_memory'"];
+}

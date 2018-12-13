@@ -1,0 +1,22 @@
+digraph NFA {
+    rankdir = LR;
+    I [style = invis];
+    I -> S0;
+    S0 [label = <s<sub>0</sub>>, shape = circle];
+    S1 [label = <s<sub>1</sub>>, shape = circle];
+    S2 [label = <s<sub>2</sub>>, shape = circle];
+    S3 [label = <s<sub>3</sub>>, shape = circle];
+    S4 [label = <s<sub>4</sub>>, shape = circle];
+    S5 [label = <s<sub>5</sub>>, shape = circle];
+    S6 [label = <s<sub>6</sub>>, shape = circle];
+    S7 [label = <s<sub>7,1</sub>>, shape = circle, peripheries = 2];
+    S6 -> S7 [label = "'inode-version_entity-inode'"];
+    S6 -> S7 [label = "\u03b5"];
+    S5 -> S6 [label = "\u03b5"];
+    S4 -> S5 [label = "'path-named-inode'"];
+    S3 -> S4 [label = "\u03b5"];
+    S2 -> S3 [label = "'inode-version_entity-inode'"];
+    S1 -> S2 [label = "\u03b5"];
+    S0 -> S1 [label = "'inode-version_entity-inode'"];
+    S0 -> S1 [label = "\u03b5"];
+}

@@ -1,5 +1,5 @@
 # Credits to: https://github.com/osandov/pylex/blob/master/pylex/automaton.py
-
+from __future__ import print_function
 import sys
 
 class Automaton(object):
@@ -41,6 +41,18 @@ class Automaton(object):
 
 		return next_number
 
+	def print_graphviz(self, file=sys.stdout):
+		"""Print automaton for Graphviz dot rendering."""
+
+		print('digraph {} {{'.format(type(self).__name__), file=file)
+		print('    rankdir = LR;', file=file)
+		print('    I [style = invis];', file=file)
+
+		print('    I -> S{};'.format(self.initial.number), file=file)
+		self.initial._print_graphviz(file, set())
+
+		print('}', file=file)
+
 class AutomatonState(object):
 	"""A state in a finite automaton storing a set of transitions to other states.
 
@@ -79,10 +91,29 @@ class AutomatonState(object):
 		"""
 		raise NotImplementedError
 
+	def _print_graphviz(self, file, seen):
+		if self in seen:
+			return
+		seen.add(self)
 
+		if self.accepting:
+			subscript = '{},{}'.format(self.number, self.accepting)
+		else:
+			subscript = self.number
 
+		print('    S{} [label = <s<sub>{}</sub>>, shape = circle'.format(self.number, subscript), file=file, end='')
 
+		if self.accepting:
+			print(', peripheries = 2', file=file, end='')
+		print('];', file=file)
 
+		for (diedge, target) in self._all_transitions():
+			target._print_graphviz(file, seen)
+			if diedge is None:
+				label = '\u03b5'  # Lower case epsilon
+			else:
+				label = repr(diedge).replace('\\', '\\\\')  # Escape slashes
+			print('    S{} -> S{} [label = "{}"];'.format(self.number, target.number, label), file=file)
 
 
 
