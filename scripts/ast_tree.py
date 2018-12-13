@@ -836,65 +836,13 @@ hooks['provenance_inode_rename'] = hooks['provenance_inode_link']
 #             else:
 #                 print("\x1b[6;30;42m" + hookname_i + " and " + hookname_j + " do not have perfect submotif relations.\x1b[0m")
 
-# print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
-# print("+ Check Possible False Matches    +")
-# print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
-# # we first build a new dictionary with hooknames and a list of normal motifs
-# normal_motif_dict = {}
-# for hookname, motif in hooks.iteritems():
-#     if hookname == '__mq_msgsnd' or hookname == '__mq_msgrcv':
-#         continue    # these two are not real motifs
-#     else:
-#         normal_motif_list = []
-#         convert_star(motif)
-#         combine_question_mark(motif)
-#         for m in expand_or(motif):
-#             normal_motif_list.extend(expand_question_mark(m))
-#         normal_motif_dict[hookname] = normal_motif_list
-#         print(hookname + ": " + str(len(normal_motif_list)) + " normal motifs.")
-
-# hook_match_dict = {}    # a dictionary of dictionaries; each entry (corresponds to a hook) maps to a dictionary of matched other hooks
-#                         # For example, for hook A, we have some partial match series: B, C and B, D, E
-#                         # and a total match series: B, G, K, I
-#                         # The hook_match_dict[A] will have a dict value:
-#                         # [B, C] -> False
-#                         # [B, D, E] -> False
-#                         # [B, G, K, I] -> True
-# for hookname, motif_list in normal_motif_dict.iteritems():
-#     # check for every hook, whether it will be confused by a series of false matches.
-#     print("\x1b[6;30;42mChecking " + hookname + "...\x1b[0m")
-#     matched_hooks_dict = {}
-#     for motif in motif_list:
-#         motif_edge_list = []
-#         tree_to_list(motif, motif_edge_list)
-#         false_matches(hookname, motif_edge_list, normal_motif_dict, [], matched_hooks_dict)
-
-#     hook_match_dict[hookname] = matched_hooks_dict
-
-# print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
-# print("+ Possible False Matches Results  +")
-# print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
-# for hookname, hook_dict in hook_match_dict.iteritems():
-#     print("\x1b[6;30;42m" + hookname + ":\x1b[0m")
-#     for hook_list, result in hook_dict.iteritems():
-#         print(hook_list, end='')
-#         print(" -> " + str(result))
-
 print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
-print("+ For Debugging and Testing Only  +")
+print("+ Check Possible False Matches    +")
 print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
-# convert_star(hooks["provenance_file_lock"])
-# combine_question_mark(hooks["provenance_file_lock"])
-# for motif in expand_question_mark(hooks["provenance_file_lock"]):
-#     edge_list = []
-#     tree_to_list(motif, edge_list)
-#     for e in edge_list:
-#         e.print_edge()
-#         print()
-#     print("---------------------------")
+# we first build a new dictionary with hooknames and a list of normal motifs
 normal_motif_dict = {}
 for hookname, motif in hooks.iteritems():
-    if hookname == '__mq_msgsnd' or hookname == '__mq_msgrcv' or hookname == 'provenance_mmap_file' or hookname == 'provenance_file_permission':
+    if hookname == '__mq_msgsnd' or hookname == '__mq_msgrcv':
         continue    # these two are not real motifs
     else:
         normal_motif_list = []
@@ -931,3 +879,16 @@ for hookname, hook_dict in hook_match_dict.iteritems():
     for hook_list, result in hook_dict.iteritems():
         print(hook_list, end='')
         print(" -> " + str(result))
+
+# print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+# print("+ For Debugging and Testing Only  +")
+# print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+# convert_star(hooks["provenance_file_lock"])
+# combine_question_mark(hooks["provenance_file_lock"])
+# for motif in expand_question_mark(hooks["provenance_file_lock"]):
+#     edge_list = []
+#     tree_to_list(motif, edge_list)
+#     for e in edge_list:
+#         e.print_edge()
+#         print()
+#     print("---------------------------")
