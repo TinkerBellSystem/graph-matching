@@ -11,7 +11,7 @@ from __future__ import print_function
 import sys
 import os
 import provenance_graph as prov
-from rtm_graph import *
+from gregex.rtm import *
 from graph import *
 
 from pycparser import c_parser, c_ast, parse_file

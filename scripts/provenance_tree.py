@@ -7,7 +7,7 @@
 # published by the Free Software Foundation; either version 2 of the License,
 # or (at your option) any later version.
 import re
-from rtm_tree import *
+from gregex.rtm import *
 from helper import *
 from pycparser import c_parser, c_ast, parse_file
 

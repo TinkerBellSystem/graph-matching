@@ -8,11 +8,7 @@ digraph RGL__DirectedAdjacencyGraph {46[fontsize = 8,label = ".",shape = ellipse
 
 16[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-16 -> 6[fontsize = 8, color="#000000"]
-
-6[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-6 -> 5[fontsize = 8, color="#000000"]
+16 -> 5[fontsize = 8, color="#000000"]
 
 5[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
@@ -68,19 +64,11 @@ digraph RGL__DirectedAdjacencyGraph {46[fontsize = 8,label = ".",shape = ellipse
 
 26[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-26 -> 22[fontsize = 8, color="#000000"]
-
-22[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-22 -> 21[fontsize = 8, color="#000000"]
+26 -> 21[fontsize = 8, color="#000000"]
 
 21[fontsize = 8,label = "*",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-21 -> 20[fontsize = 8, color="#000000"]
-
-20[fontsize = 8,label = "?",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-20 -> 19[fontsize = 8, color="#000000"]
+21 -> 19[fontsize = 8, color="#000000"]
 
 19[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
@@ -124,11 +112,7 @@ digraph RGL__DirectedAdjacencyGraph {46[fontsize = 8,label = ".",shape = ellipse
 
 39[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-39 -> 35[fontsize = 8, color="#000000"]
-
-35[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-35 -> 34[fontsize = 8, color="#000000"]
+39 -> 34[fontsize = 8, color="#000000"]
 
 34[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
@@ -156,11 +140,7 @@ digraph RGL__DirectedAdjacencyGraph {46[fontsize = 8,label = ".",shape = ellipse
 
 44[fontsize = 8,label = "*",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-44 -> 43[fontsize = 8, color="#000000"]
-
-43[fontsize = 8,label = "?",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-43 -> 42[fontsize = 8, color="#000000"]
+44 -> 42[fontsize = 8, color="#000000"]
 
 42[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 

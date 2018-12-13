@@ -8,19 +8,11 @@ digraph RGL__DirectedAdjacencyGraph {14[fontsize = 8,label = ".",shape = ellipse
 
 9[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-9 -> 5[fontsize = 8, color="#000000"]
-
-5[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-5 -> 4[fontsize = 8, color="#000000"]
+9 -> 4[fontsize = 8, color="#000000"]
 
 4[fontsize = 8,label = "*",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-4 -> 3[fontsize = 8, color="#000000"]
-
-3[fontsize = 8,label = "?",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-3 -> 2[fontsize = 8, color="#000000"]
+4 -> 2[fontsize = 8, color="#000000"]
 
 2[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 

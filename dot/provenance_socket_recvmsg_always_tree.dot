@@ -4,11 +4,7 @@ digraph RGL__DirectedAdjacencyGraph {28[fontsize = 8,label = ".",shape = ellipse
 
 13[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-13 -> 6[fontsize = 8, color="#000000"]
-
-6[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-6 -> 5[fontsize = 8, color="#000000"]
+13 -> 5[fontsize = 8, color="#000000"]
 
 5[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
@@ -22,13 +18,9 @@ digraph RGL__DirectedAdjacencyGraph {28[fontsize = 8,label = ".",shape = ellipse
 
 13 -> 12[fontsize = 8, color="#000000"]
 
-12[fontsize = 8,label = "|",shape = ellipse, fillcolor="#e6e6fa", style = filled]
+12[fontsize = 8,label = "?",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-12 -> 11[fontsize = 8, color="#000000"]
-
-11[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-11 -> 10[fontsize = 8, color="#000000"]
+12 -> 10[fontsize = 8, color="#000000"]
 
 10[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
@@ -52,11 +44,7 @@ digraph RGL__DirectedAdjacencyGraph {28[fontsize = 8,label = ".",shape = ellipse
 
 21[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-21 -> 17[fontsize = 8, color="#000000"]
-
-17[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-17 -> 16[fontsize = 8, color="#000000"]
+21 -> 16[fontsize = 8, color="#000000"]
 
 16[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
@@ -84,11 +72,7 @@ digraph RGL__DirectedAdjacencyGraph {28[fontsize = 8,label = ".",shape = ellipse
 
 26[fontsize = 8,label = "*",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-26 -> 25[fontsize = 8, color="#000000"]
-
-25[fontsize = 8,label = "?",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-25 -> 24[fontsize = 8, color="#000000"]
+26 -> 24[fontsize = 8, color="#000000"]
 
 24[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 

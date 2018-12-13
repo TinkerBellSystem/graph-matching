@@ -1,6 +1,6 @@
 # Credits to: https://github.com/osandov/pylex/blob/master/pylex/nfa.py
 
-from gregrex.automaton import Automaton, AutomatonState
+from gregex.automaton import Automaton, AutomatonState
 
 class NFA(Automaton):
 	"""A nondeterministic finite automaton.
@@ -12,7 +12,7 @@ class NFA(Automaton):
 	"""
 
 	def __init__(self, initial):
-		super().__init__(initial)
+		super(NFA, self).__init__(initial)
 
 
 class NFAState(AutomatonState):
@@ -25,7 +25,7 @@ class NFAState(AutomatonState):
 
 	"""
 	def __init__(self, accepting=None):
-		super().__init__(accepting)
+		super(NFAState, self).__init__(accepting)
 
 	def _all_transitions(self):
 		transitions = set()

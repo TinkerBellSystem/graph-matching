@@ -4,11 +4,7 @@ digraph RGL__DirectedAdjacencyGraph {36[fontsize = 8,label = ".",shape = ellipse
 
 21[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-21 -> 6[fontsize = 8, color="#000000"]
-
-6[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-6 -> 5[fontsize = 8, color="#000000"]
+21 -> 5[fontsize = 8, color="#000000"]
 
 5[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
@@ -28,19 +24,11 @@ digraph RGL__DirectedAdjacencyGraph {36[fontsize = 8,label = ".",shape = ellipse
 
 16[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-16 -> 12[fontsize = 8, color="#000000"]
-
-12[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-12 -> 11[fontsize = 8, color="#000000"]
+16 -> 11[fontsize = 8, color="#000000"]
 
 11[fontsize = 8,label = "*",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-11 -> 10[fontsize = 8, color="#000000"]
-
-10[fontsize = 8,label = "?",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-10 -> 9[fontsize = 8, color="#000000"]
+11 -> 9[fontsize = 8, color="#000000"]
 
 9[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
@@ -84,19 +72,11 @@ digraph RGL__DirectedAdjacencyGraph {36[fontsize = 8,label = ".",shape = ellipse
 
 31[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-31 -> 27[fontsize = 8, color="#000000"]
-
-27[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-27 -> 26[fontsize = 8, color="#000000"]
+31 -> 26[fontsize = 8, color="#000000"]
 
 26[fontsize = 8,label = "*",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-26 -> 25[fontsize = 8, color="#000000"]
-
-25[fontsize = 8,label = "?",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-25 -> 24[fontsize = 8, color="#000000"]
+26 -> 24[fontsize = 8, color="#000000"]
 
 24[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 

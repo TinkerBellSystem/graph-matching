@@ -11,9 +11,11 @@ from __future__ import print_function
 import sys
 import os
 import provenance_tree as provenance
-from rtm_tree import *
 from helper import *
-from graph_tree import *
+from gregex.graphviz import *
+from gregex.rtm import *
+from gregex.converter import *
+from gregex.ast import *
 from analyze_motif import *
 
 from pycparser import c_parser, c_ast, parse_file
@@ -793,20 +795,24 @@ hooks['provenance_msg_queue_msgrcv'] = hooks['__mq_msgrcv']
 hooks['provenance_mq_timedreceive'] = hooks['__mq_msgrcv']
 hooks['provenance_inode_rename'] = hooks['provenance_inode_link']
 
-# print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
-# print("+ Visualizing RTM Trees           +")
-# print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
-# for hookname, motif in hooks.iteritems():
-#     print(hookname)
-#     print("\x1b[6;30;42m" + 'Generating Tree for ' + hookname + '...\x1b[0m')
-#     # inorder_traversal(motif)
-#     # bf_traversal(motif)
-#     g = Graph()
-#     visualize_rtm_tree(motif, g)
-#     dot_str = g.get_graph()
-#     with open('../dot/'+ hookname +'_tree.dot', 'w') as f:
-#         f.write(dot_str)
-#     f.close()
+print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+print("+ Visualizing RTMT and NFA        +")
+print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+for hookname, motif in hooks.iteritems():
+    print("\x1b[6;30;42m" + 'Generating Tree for ' + hookname + '...\x1b[0m')
+    # inorder_traversal(motif)
+    # bf_traversal(motif)
+    g = Graph()
+    streamline_rtm(motif)
+
+    visualize_rtm_tree(motif, g)
+    dot_str = g.get_graph()
+    with open('../dot/'+ hookname +'_tree.dot', 'w') as f:
+        f.write(dot_str)
+    f.close()
+    
+    converter = Converter(motif)
+    nfa = ast_to_nfa(converter.ast)
 #     # os.system('dot -Tpng ../dot/'+ hookname +'_tree.dot -o ../img/'+ hookname +'_tree.png')
 
 # print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
@@ -836,49 +842,49 @@ hooks['provenance_inode_rename'] = hooks['provenance_inode_link']
 #             else:
 #                 print("\x1b[6;30;42m" + hookname_i + " and " + hookname_j + " do not have perfect submotif relations.\x1b[0m")
 
-print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
-print("+ Check Possible False Matches    +")
-print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
-# we first build a new dictionary with hooknames and a list of normal motifs
-normal_motif_dict = {}
-for hookname, motif in hooks.iteritems():
-    if hookname == '__mq_msgsnd' or hookname == '__mq_msgrcv':
-        continue    # these two are not real motifs
-    else:
-        normal_motif_list = []
-        convert_star(motif)
-        combine_question_mark(motif)
-        for m in expand_or(motif):
-            normal_motif_list.extend(expand_question_mark(m))
-        normal_motif_dict[hookname] = normal_motif_list
-        print(hookname + ": " + str(len(normal_motif_list)) + " normal motifs.")
+# print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+# print("+ Check Possible False Matches    +")
+# print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+# # we first build a new dictionary with hooknames and a list of normal motifs
+# normal_motif_dict = {}
+# for hookname, motif in hooks.iteritems():
+#     if hookname == '__mq_msgsnd' or hookname == '__mq_msgrcv':
+#         continue    # these two are not real motifs
+#     else:
+#         normal_motif_list = []
+#         convert_star(motif)
+#         combine_question_mark(motif)
+#         for m in expand_or(motif):
+#             normal_motif_list.extend(expand_question_mark(m))
+#         normal_motif_dict[hookname] = normal_motif_list
+#         print(hookname + ": " + str(len(normal_motif_list)) + " normal motifs.")
 
-hook_match_dict = {}    # a dictionary of dictionaries; each entry (corresponds to a hook) maps to a dictionary of matched other hooks
-                        # For example, for hook A, we have some partial match series: B, C and B, D, E
-                        # and a total match series: B, G, K, I
-                        # The hook_match_dict[A] will have a dict value:
-                        # [B, C] -> False
-                        # [B, D, E] -> False
-                        # [B, G, K, I] -> True
-for hookname, motif_list in normal_motif_dict.iteritems():
-    # check for every hook, whether it will be confused by a series of false matches.
-    print("\x1b[6;30;42mChecking " + hookname + "...\x1b[0m")
-    matched_hooks_dict = {}
-    for motif in motif_list:
-        motif_edge_list = []
-        tree_to_list(motif, motif_edge_list)
-        false_matches(hookname, motif_edge_list, normal_motif_dict, [], matched_hooks_dict)
+# hook_match_dict = {}    # a dictionary of dictionaries; each entry (corresponds to a hook) maps to a dictionary of matched other hooks
+#                         # For example, for hook A, we have some partial match series: B, C and B, D, E
+#                         # and a total match series: B, G, K, I
+#                         # The hook_match_dict[A] will have a dict value:
+#                         # [B, C] -> False
+#                         # [B, D, E] -> False
+#                         # [B, G, K, I] -> True
+# for hookname, motif_list in normal_motif_dict.iteritems():
+#     # check for every hook, whether it will be confused by a series of false matches.
+#     print("\x1b[6;30;42mChecking " + hookname + "...\x1b[0m")
+#     matched_hooks_dict = {}
+#     for motif in motif_list:
+#         motif_edge_list = []
+#         tree_to_list(motif, motif_edge_list)
+#         false_matches(hookname, motif_edge_list, normal_motif_dict, [], matched_hooks_dict)
 
-    hook_match_dict[hookname] = matched_hooks_dict
+#     hook_match_dict[hookname] = matched_hooks_dict
 
-print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
-print("+ Possible False Matches Results  +")
-print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
-for hookname, hook_dict in hook_match_dict.iteritems():
-    print("\x1b[6;30;42m" + hookname + ":\x1b[0m")
-    for hook_list, result in hook_dict.iteritems():
-        print(hook_list, end='')
-        print(" -> " + str(result))
+# print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+# print("+ Possible False Matches Results  +")
+# print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+# for hookname, hook_dict in hook_match_dict.iteritems():
+#     print("\x1b[6;30;42m" + hookname + ":\x1b[0m")
+#     for hook_list, result in hook_dict.iteritems():
+#         print(hook_list, end='')
+#         print(" -> " + str(result))
 
 # print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
 # print("+ For Debugging and Testing Only  +")

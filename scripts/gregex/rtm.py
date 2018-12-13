@@ -9,7 +9,7 @@
 from __future__ import print_function
 import struct
 import random
-from graph_tree import *
+from gregex.graphviz import *
 
 class MotifNode():
 	"""
@@ -145,15 +145,6 @@ class RTMTreeNode():
 	def update_value(self, new_value):
 		self.value = new_value
 
-	def findLeftMostNode(self):
-		"""
-		Find left most (leaf) node.
-		"""
-		node = self
-		while node.left != None:
-			node = node.left
-		return node
-
 def is_operator(c):
 	if c == '*' or c == '?' or c == '.' or c == '|':
 		return True
@@ -226,7 +217,44 @@ def visualize_rtm_tree(node, graph):
 		graph.add_edge(str(node.nid), str(node.right.nid))
 		visualize_rtm_tree(node.right, graph)
 
+def streamline_rtm(rtm):
+	"""remove redundant internal nodes and structures in RTMT."""
 
-
-
-
+	if not rtm:
+		return
+	if rtm.value == '.':
+		if rtm.left and rtm.left.value == '.':
+			if rtm.left.left and not rtm.left.right:
+				rtm.left = rtm.left.left
+			elif rtm.left.right and not rtm.left.left:
+				rtm.left = rtm.left.right
+		if rtm.right and rtm.right.value == '.':
+			if rtm.right.left and not rtm.right.right:
+				rtm.right = rtm.right.left
+			elif rtm.right.right and not rtm.right.left:
+				rtm.right = rtm.right.right
+	if rtm.value == '*':
+		if rtm.left and rtm.left.value == '?':
+			assert(rtm.right == None)
+			rtm.left = rtm.left.left
+		if rtm.right and rtm.right.value == "?":
+			assert(rtm.left == None)
+			rtm.right = rtm.right.right
+	if rtm.value == '|':
+		if rtm.left and not rtm.right:
+			rtm.value = '?'
+			if rtm.left.value == '.':
+				if rtm.left.left and not rtm.left.right:
+					rtm.left = rtm.left.left
+				elif rtm.left.right and not rtm.left.left:
+					rtm.left = rtm.left.right
+		if rtm.right and not rtm.left:
+			rtm.value = '?'
+			if rtm.right.value == '.':
+				if rtm.right.left and not rtm.right.right:
+					rtm.right = rtm.right.left
+				if rtm.right.right and not rtm.right.left:
+					rtm.right = rtm.right.right
+	streamline_rtm(rtm.left)
+	streamline_rtm(rtm.right)
+	

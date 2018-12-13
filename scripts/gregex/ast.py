@@ -2,7 +2,7 @@
 
 from gregex.nfa import NFA, NFAState
 
-class AST:
+class AST(object):
 	"""Node in a regular expression abstract syntax tree."""
 
 	def to_nfa(self, accepting_id=1):
@@ -47,7 +47,7 @@ class DiedgeAST(AST):
 
 		"""
 
-		super().__init__()
+		super(DiedgeAST, self).__init__()
 		self.diedge = diedge
 
 	def _thompson(self):
@@ -75,7 +75,7 @@ class KleeneAST(AST):
 
 		"""
 
-		super().__init__()
+		super(KleeneAST, self).__init__()
 		self.operand = operand
 
 	def _thompson(self):
@@ -105,7 +105,7 @@ class QuestionMarkAST(AST):
 
 		"""
 
-		super().__init__()
+		super(QuestionMarkAST, self).__init__()
 		self.operand = operand
 
 	def _thompson(self):
@@ -134,7 +134,7 @@ class AlternationAST(AST):
 
 		"""
 
-		super().__init__()
+		super(AlternationAST, self).__init__()
 
 		if len(operands) < 2:
 			raise ValueError('alternation must have two or more operands')
@@ -176,7 +176,7 @@ class ConcatenationAST(AST):
 
 		"""
 
-		super().__init__()
+		super(ConcatenationAST, self).__init__()
 
 		if len(operands) < 2:
 			raise ValueError('concatenation must have two or more operands')
@@ -202,16 +202,14 @@ class ConcatenationAST(AST):
 	def __repr__(self):
 		return 'ConcatenationAST({})'.format(', '.join(repr(op) for op in self.operands))
 
+def ast_to_nfa(ast):
+	"""Convert an AST to an NFA.
 
+	"""
+	(initial, accepting) = ast._thompson()
+	accepting.accepting = 1
 
-
-
-
-
-
-
-
-
+	return NFA(initial)
 
 
 

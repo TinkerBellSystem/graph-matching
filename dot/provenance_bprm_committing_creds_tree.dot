@@ -12,11 +12,7 @@ digraph RGL__DirectedAdjacencyGraph {30[fontsize = 8,label = ".",shape = ellipse
 
 16[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-16 -> 6[fontsize = 8, color="#000000"]
-
-6[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-6 -> 5[fontsize = 8, color="#000000"]
+16 -> 5[fontsize = 8, color="#000000"]
 
 5[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
@@ -76,11 +72,7 @@ digraph RGL__DirectedAdjacencyGraph {30[fontsize = 8,label = ".",shape = ellipse
 
 18[fontsize = 8,label = "13/path-named->14/process_memory",shape = rectangle, fillcolor="#fffacd", style = filled]
 
-25 -> 24[fontsize = 8, color="#000000"]
-
-24[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-24 -> 23[fontsize = 8, color="#000000"]
+25 -> 23[fontsize = 8, color="#000000"]
 
 23[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
@@ -92,11 +84,7 @@ digraph RGL__DirectedAdjacencyGraph {30[fontsize = 8,label = ".",shape = ellipse
 
 22[fontsize = 8,label = "14/process_memory-exec_task->15/process_memory",shape = rectangle, fillcolor="#fffacd", style = filled]
 
-30 -> 29[fontsize = 8, color="#000000"]
-
-29[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-29 -> 28[fontsize = 8, color="#000000"]
+30 -> 28[fontsize = 8, color="#000000"]
 
 28[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 

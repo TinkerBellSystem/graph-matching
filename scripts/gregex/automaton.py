@@ -2,7 +2,7 @@
 
 import sys
 
-class Automaton:
+class Automaton(object):
 	"""A finite automaton.
 
 	Attributes:
@@ -41,7 +41,7 @@ class Automaton:
 
 		return next_number
 
-class AutomatonState:
+class AutomatonState(object):
 	"""A state in a finite automaton storing a set of transitions to other states.
 
 	Attributes:
