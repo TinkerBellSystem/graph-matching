@@ -1,5 +1,4 @@
 # Credits to: https://github.com/osandov/pylex/blob/master/pylex/nfa.py
-from __future__ import print_function
 from gregex.automaton import Automaton, AutomatonState
 
 class NFA(Automaton):
