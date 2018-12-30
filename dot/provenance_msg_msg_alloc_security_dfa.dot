@@ -1,0 +1,24 @@
+digraph DFA {
+    rankdir = LR;
+    I [style = invis];
+    I -> S0;
+    S0 [label = <s<sub>0</sub>>, shape = circle];
+    S1 [label = <s<sub>1</sub>>, shape = circle];
+    S2 [label = <s<sub>2</sub>>, shape = circle];
+    S3 [label = <s<sub>3</sub>>, shape = circle];
+    S4 [label = <s<sub>4</sub>>, shape = circle];
+    S5 [label = <s<sub>5</sub>>, shape = circle];
+    S6 [label = <s<sub>6,1</sub>>, shape = circle, peripheries = 2];
+    S5 -> S6 [label = "('task', 10, 'msg_create', 'msg', 11)"];
+    S4 -> S5 [label = "('msg', 7, 'version_entity', 'msg', 11)"];
+    S3 -> S4 [label = "('process_memory', 9, 'memory_read', 'task', 10)"];
+    S2 -> S3 [label = "('task', 6, 'version_activity', 'task', 10)"];
+    S7 [label = <s<sub>7</sub>>, shape = circle];
+    S8 [label = <s<sub>8</sub>>, shape = circle];
+    S8 -> S3 [label = "('task', 6, 'version_activity', 'task', 10)"];
+    S8 -> S7 [label = "('process_memory', 0, 'version_entity', 'process_memory', 9)"];
+    S7 -> S8 [label = "('inode', 8, 'sh_read', 'process_memory', 9)"];
+    S2 -> S7 [label = "('process_memory', 0, 'version_entity', 'process_memory', 9)"];
+    S1 -> S2 [label = "('machine', 4, 'ran_on', 'process_memory', 5)"];
+    S0 -> S1 [label = "('process_memory', 0, 'version_entity', 'process_memory', 5)"];
+}

@@ -19,14 +19,17 @@ class Automaton(object):
 
 		"""
 		self.initial = initial
-		self.num_states = self._number_states(self.initial, 0)
+		self.ids = []
+		self.num_states = self._number_states(self.initial, 0, self.ids)
 
-	def _number_states(self, state, next_number):
+	def _number_states(self, state, next_number, ids):
 		"""Number the given @state and all states reachable from it.
+		At the same time, collect diedge's node IDs from a given @state and all states reachable from it.
 
 		Arguments:
 		state -- The state to start numbering. If it does not have a number already, it will be assigned @next_number.
 		next_number -- The number from which to start assigning numbers.
+		ids -- The list of IDs collected.
 
 		Returns:
 		The largest number that was assigned plus one (i.e., the smallest integer that has yet been assigned).
@@ -37,7 +40,12 @@ class Automaton(object):
 			next_number += 1
 
 			for (diedge, target) in state._all_transitions():
-				next_number = self._number_states(target, next_number)
+				if diedge is not None:
+					if diedge[1] not in ids:
+						ids.append(diedge[1])	# source node ID
+					if diedge[4] not in ids:
+						ids.append(diedge[4])	# destination node ID
+				next_number = self._number_states(target, next_number, ids)
 
 		return next_number
 

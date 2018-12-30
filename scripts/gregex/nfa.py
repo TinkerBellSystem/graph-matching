@@ -13,6 +13,11 @@ class NFA(Automaton):
 	def __init__(self, initial):
 		super(NFA, self).__init__(initial)
 
+	def to_dfa(self):
+		"""Convert NFA instance to an equivalent DFA."""
+
+		from gregex.nfa2dfa import RabinScott
+		return RabinScott(self)()
 
 class NFAState(AutomatonState):
 	"""A state in a nondeterministic finite automaton.

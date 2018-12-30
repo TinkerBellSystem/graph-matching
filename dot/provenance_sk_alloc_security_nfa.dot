@@ -6,7 +6,7 @@ digraph NFA {
     S1 [label = <s<sub>1</sub>>, shape = circle];
     S2 [label = <s<sub>2</sub>>, shape = circle];
     S3 [label = <s<sub>3,1</sub>>, shape = circle, peripheries = 2];
-    S2 -> S3 [label = "'machine-ran_on-process_memory'"];
+    S2 -> S3 [label = "('machine', 4, 'ran_on', 'process_memory', 5)"];
     S1 -> S2 [label = "\u03b5"];
-    S0 -> S1 [label = "'process_memory-version_entity-process_memory'"];
+    S0 -> S1 [label = "('process_memory', 0, 'version_entity', 'process_memory', 5)"];
 }

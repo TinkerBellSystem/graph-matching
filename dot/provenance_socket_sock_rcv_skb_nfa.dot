@@ -10,11 +10,11 @@ digraph NFA {
     S5 [label = <s<sub>5</sub>>, shape = circle];
     S6 [label = <s<sub>6</sub>>, shape = circle];
     S7 [label = <s<sub>7,1</sub>>, shape = circle, peripheries = 2];
-    S6 -> S7 [label = "'packet-receive_packet-inode'"];
+    S6 -> S7 [label = "('packet', 3, 'receive_packet', 'inode', 4)"];
     S5 -> S6 [label = "\u03b5"];
-    S4 -> S5 [label = "'inode-version_entity-inode'"];
+    S4 -> S5 [label = "('inode', 1, 'version_entity', 'inode', 4)"];
     S3 -> S4 [label = "\u03b5"];
-    S2 -> S3 [label = "'packet_content-packet_content-packet'"];
+    S2 -> S3 [label = "('packet_content', 2, 'packet_content', 'packet', 3)"];
     S1 -> S2 [label = "\u03b5"];
-    S0 -> S1 [label = "'packet-version_entity-packet'"];
+    S0 -> S1 [label = "('packet', 0, 'version_entity', 'packet', 3)"];
 }

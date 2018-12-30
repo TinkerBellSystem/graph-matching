@@ -41,9 +41,7 @@ class DiedgeAST(AST):
 		"""Create a new diedge AST node.
 
 		Arguments:
-		diedge -- The directed edge (type triple: (source node type string,
-					edge type string, destination node type string)) for
-					this node.
+		diedge -- The directed edge (5-tuple) for this node.
 
 		"""
 

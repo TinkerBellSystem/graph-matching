@@ -54,7 +54,7 @@ def _parse(rtmt):
 			else:
 				return AlternationAST(_parse(rtmt.left), _parse(rtmt.right))
 		elif isinstance(rtmt.value, MotifEdge):
-			diedge = rtmt.value.src_node.mn_ty + '-' + rtmt.value.me_ty + '-' + rtmt.value.dst_node.mn_ty 
+			diedge = (rtmt.value.src_node.mn_ty, rtmt.value.src_node.mn_id, rtmt.value.me_ty, rtmt.value.dst_node.mn_ty, rtmt.value.dst_node.mn_id) 
 			return DiedgeAST(diedge)
 		else:
 			raise ValueError('unknown RTMT node')

@@ -14,17 +14,17 @@ digraph NFA {
     S9 [label = <s<sub>9</sub>>, shape = circle];
     S10 [label = <s<sub>10</sub>>, shape = circle];
     S11 [label = <s<sub>11,1</sub>>, shape = circle, peripheries = 2];
-    S10 -> S11 [label = "'inode-exec-process_memory'"];
+    S10 -> S11 [label = "('inode', 5, 'exec', 'process_memory', 6)"];
     S9 -> S10 [label = "\u03b5"];
-    S8 -> S9 [label = "'process_memory-version_entity-process_memory'"];
+    S8 -> S9 [label = "('process_memory', 0, 'version_entity', 'process_memory', 6)"];
     S7 -> S8 [label = "\u03b5"];
-    S6 -> S7 [label = "'inode-version_entity-inode'"];
     S6 -> S7 [label = "\u03b5"];
+    S6 -> S7 [label = "('inode', 4, 'version_entity', 'inode', 5)"];
     S5 -> S6 [label = "\u03b5"];
-    S4 -> S5 [label = "'path-named-inode'"];
+    S4 -> S5 [label = "('path', 3, 'named', 'inode', 4)"];
     S3 -> S4 [label = "\u03b5"];
-    S2 -> S3 [label = "'inode-version_entity-inode'"];
+    S2 -> S3 [label = "('inode', 2, 'version_entity', 'inode', 4)"];
     S1 -> S2 [label = "\u03b5"];
     S0 -> S1 [label = "\u03b5"];
-    S0 -> S1 [label = "'inode-version_entity-inode'"];
+    S0 -> S1 [label = "('inode', 1, 'version_entity', 'inode', 2)"];
 }

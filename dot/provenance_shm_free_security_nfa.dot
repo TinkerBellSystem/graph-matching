@@ -4,5 +4,5 @@ digraph NFA {
     I -> S0;
     S0 [label = <s<sub>0</sub>>, shape = circle];
     S1 [label = <s<sub>1,1</sub>>, shape = circle, peripheries = 2];
-    S0 -> S1 [label = "'shm-free-shm'"];
+    S0 -> S1 [label = "('shm', 0, 'free', 'shm', 1)"];
 }

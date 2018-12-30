@@ -1,0 +1,24 @@
+digraph DFA {
+    rankdir = LR;
+    I [style = invis];
+    I -> S0;
+    S0 [label = <s<sub>0</sub>>, shape = circle];
+    S1 [label = <s<sub>1</sub>>, shape = circle];
+    S2 [label = <s<sub>2</sub>>, shape = circle];
+    S3 [label = <s<sub>3</sub>>, shape = circle];
+    S4 [label = <s<sub>4</sub>>, shape = circle];
+    S5 [label = <s<sub>5</sub>>, shape = circle];
+    S6 [label = <s<sub>6</sub>>, shape = circle];
+    S7 [label = <s<sub>7</sub>>, shape = circle];
+    S8 [label = <s<sub>8,1</sub>>, shape = circle, peripheries = 2];
+    S7 -> S8 [label = "('task', 0, 'load_module', 'machine', 8)"];
+    S6 -> S7 [label = "('machine', 6, 'version_entity', 'machine', 8)"];
+    S5 -> S6 [label = "('inode', 5, 'load_file', 'task', 7)"];
+    S4 -> S5 [label = "('task', 0, 'version_activity', 'task', 7)"];
+    S3 -> S4 [label = "('inode', 4, 'version_entity', 'inode', 5)"];
+    S3 -> S5 [label = "('task', 0, 'version_activity', 'task', 7)"];
+    S2 -> S3 [label = "('path', 3, 'named', 'inode', 4)"];
+    S1 -> S2 [label = "('inode', 2, 'version_entity', 'inode', 4)"];
+    S0 -> S1 [label = "('inode', 1, 'version_entity', 'inode', 2)"];
+    S0 -> S2 [label = "('inode', 2, 'version_entity', 'inode', 4)"];
+}

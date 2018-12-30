@@ -1,0 +1,33 @@
+digraph DFA {
+    rankdir = LR;
+    I [style = invis];
+    I -> S0;
+    S0 [label = <s<sub>0</sub>>, shape = circle];
+    S1 [label = <s<sub>1</sub>>, shape = circle];
+    S2 [label = <s<sub>2</sub>>, shape = circle];
+    S3 [label = <s<sub>3</sub>>, shape = circle];
+    S4 [label = <s<sub>4</sub>>, shape = circle];
+    S5 [label = <s<sub>5</sub>>, shape = circle];
+    S6 [label = <s<sub>6</sub>>, shape = circle];
+    S7 [label = <s<sub>7</sub>>, shape = circle];
+    S8 [label = <s<sub>8,1</sub>>, shape = circle, peripheries = 2];
+    S9 [label = <s<sub>9</sub>>, shape = circle];
+    S10 [label = <s<sub>10,1</sub>>, shape = circle, peripheries = 2];
+    S10 -> S9 [label = "('inode', 14, 'version_entity', 'inode', 15)"];
+    S9 -> S10 [label = "('process_memory', 13, 'sh_write', 'inode', 15)"];
+    S8 -> S9 [label = "('inode', 14, 'version_entity', 'inode', 15)"];
+    S7 -> S8 [label = "('task', 12, 'memory_write', 'process_memory', 13)"];
+    S6 -> S7 [label = "('process_memory', 0, 'version_entity', 'process_memory', 13)"];
+    S5 -> S6 [label = "('inode', 11, 'getattr', 'task', 12)"];
+    S4 -> S5 [label = "('task', 6, 'version_activity', 'task', 12)"];
+    S11 [label = <s<sub>11</sub>>, shape = circle];
+    S11 -> S5 [label = "('task', 6, 'version_activity', 'task', 12)"];
+    S4 -> S11 [label = "('inode', 10, 'version_entity', 'inode', 11)"];
+    S3 -> S4 [label = "('path', 9, 'named', 'inode', 10)"];
+    S2 -> S3 [label = "('inode', 8, 'version_entity', 'inode', 10)"];
+    S12 [label = <s<sub>12</sub>>, shape = circle];
+    S12 -> S3 [label = "('inode', 8, 'version_entity', 'inode', 10)"];
+    S2 -> S12 [label = "('inode', 7, 'version_entity', 'inode', 8)"];
+    S1 -> S2 [label = "('machine', 4, 'ran_on', 'process_memory', 5)"];
+    S0 -> S1 [label = "('process_memory', 0, 'version_entity', 'process_memory', 5)"];
+}

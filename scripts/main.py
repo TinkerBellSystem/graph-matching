@@ -817,6 +817,13 @@ for hookname, motif in hooks.iteritems():
     with open('../dot/'+ hookname +'_nfa.dot', 'w') as f:
         nfa.print_graphviz(f)
     f.close()
+
+    dfa = nfa.to_dfa()
+    print("\x1b[6;30;42m" + 'Generating DFA for ' + hookname + '...\x1b[0m')
+    with open('../dot/'+ hookname +'_dfa.dot', 'w') as f:
+        dfa.print_graphviz(f)
+    f.close()
+    
 #     # os.system('dot -Tpng ../dot/'+ hookname +'_tree.dot -o ../img/'+ hookname +'_tree.png')
 
 # print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
