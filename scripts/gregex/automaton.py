@@ -66,7 +66,7 @@ class AutomatonState(object):
 
 	Attributes:
 	accepting -- If this state is an accepting state, assign a positive integer
-					ID representing the rule that this accepts,; None otherwise
+					ID representing the rule that this accepts; None otherwise
 	transitions -- A set of outgoing transitions from this state represented as
 					a dictionary. The values of the dictionary depend on the
 					type of automaton (determinstic vs non-deterministic)

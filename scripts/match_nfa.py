@@ -91,21 +91,21 @@ def match_dfa(dfa, G):
 
 	"""
 	start = 0	# starting index of edges in @G
-	end = len(G) - len(dfa.ids)	# the last index of edged in @G. Once we pass this index,
-								# we need not do more iterations because we will never be
-								# able to match the rest of the graph @G to a complete dfa
+	end = len(G)				# Pass the last index of edge in @G. 
 	indicator = [1] * len(G)	# indicator[i] = 0 means G[i] is temporarily matched to the NFA
 								# We will set indicator[i] back to 1 if it turns out that it
 								# was a false match, then G[i] will need to be considered again
 	matches = []	# the returned list that contains lists of matched edge indices
 
-	while start <= end:
+	while start < end:
 		# we first look for the first edge in @G to match the first transition in @dfa
 		# we will not look at the edges that have been matched before.
-		while indicator[start] == 0:
+		while start < end and indicator[start] == 0:
 			start += 1
 
-		if start > end:
+		print("process to the next starting point at {}...".format(start))
+		# all the rest of the graph is matched.
+		if start == end:
 			return matches
 
 		# start to find matches
@@ -120,18 +120,22 @@ def match_dfa(dfa, G):
 									# but we may have more as more than one transition is matched
 		indices = []	# currently matched indices of edges in graph @G
 
-		if not match_transition(current_states, G[start], tracker, inverse_tracker):
-			# if even the first transition cannot be matched, we increment @start and move on to
-			# the next edge to check from the initial state again.
-			start += 1
-			continue
-		else:
-			indices.append(start)
-			indicator[start] = 0
+		# if not match_transition(current_states, G[start], tracker, inverse_tracker):
+		# 	# if even the first transition cannot be matched, we increment @start and move on to
+		# 	# the next edge to check from the initial state again.
+		# 	start += 1
+		# 	continue
+		# else:
+		# 	print("matched edge #{} to the initial state...".format(start))
+		# 	indices.append(start)
+		# 	indicator[start] = 0
 
-		current_index = start + 1
+		# current_index = start + 1
+		current_index = start
+
 		while current_index < len(G):
 			if match_transition(current_states, G[current_index], tracker, inverse_tracker):
+				print("matched edge #{}...".format(current_index))
 				indices.append(current_index)
 				indicator[current_index] = 0
 
@@ -146,14 +150,18 @@ def match_dfa(dfa, G):
 					break
 
 			current_index += 1
+			print("current_index is {}".format(current_index))
 
 		# we have passed the end of the graph but we still cannot match to the DFA
 		if current_index == len(G):
 			# reset all indicators
+			print("reset indicators...")
 			for index in indices:
 				indicator[index] = 1
-			# move on to the next starting point
-			start += 1
+		# move on to the next starting point
+		start += 1
+
+	return matches
 
 
 
