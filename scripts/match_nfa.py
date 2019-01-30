@@ -154,7 +154,6 @@ def match_dfa(dfa, G):
 		# we have passed the end of the graph but we still cannot match to the DFA
 		if current_index == len(G):
 			# reset all indicators
-			print("reset indicators...")
 			for index in indices:
 				indicator[index] = 1
 		# move on to the next starting point
