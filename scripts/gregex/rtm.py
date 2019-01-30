@@ -1,6 +1,6 @@
 # Author: Xueyuan Michael Han <hanx@g.harvard.edu>
 #
-# Copyright (C) 2018 Harvard University, University of Cambridge
+# Copyright (C) 2019 Harvard University, University of Cambridge
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2, as
@@ -10,7 +10,7 @@
 from __future__ import print_function
 import struct
 import random
-from gregex.graphviz import *
+from graphviz import *
 
 class MotifNode():
 	"""
@@ -67,6 +67,9 @@ class MotifEdge():
 		self.dst_node = dst_node
 		self.me_ty = me_ty
 
+	def __repr__(self):
+		return '[' + repr(self.src_node.mn_id) + '](' + repr(self.src_node.mn_ty) + ')-(' + repr(self.me_ty) + ')>[' + repr(self.dst_node.mn_id) + '](' + repr(self.dst_node.mn_ty) + ')'
+
 	@property
 	def src_node(self):
 		return self.__src_node
@@ -78,9 +81,6 @@ class MotifEdge():
 	@property
 	def me_ty(self):
 		return self.__me_ty
-
-	def print_edge(self):
-		print(str(self.src_node.mn_id) + "-" + self.me_ty + "->" + str(self.dst_node.mn_id) + '   ', end='')
 
 	def update_src_node(self, new_id):
 		self.src_node.mn_id = new_id
