@@ -1,12 +1,22 @@
+# Author: Xueyuan Michael Han <hanx@g.harvard.edu>
+#
+# Copyright (C) 2019 Harvard University, University of Cambridge
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 2, as
+# published by the Free Software Foundation; either version 2 of the License,
+# or (at your option) any later version.
+# 
 # Credits to: https://github.com/osandov/pylex/blob/master/pylex/nfa.py
-from gregex.automaton import Automaton, AutomatonState
+
+from automaton import Automaton, AutomatonState
 
 class NFA(Automaton):
 	"""A nondeterministic finite automaton.
 
 	Each state can have multiple transitions on a single diedge
 	as well as transitions without consuming any input
-	(i.e., epsilon transitions)
+	(i.e., epsilon transitions).
 
 	"""
 
@@ -16,7 +26,7 @@ class NFA(Automaton):
 	def to_dfa(self):
 		"""Convert NFA instance to an equivalent DFA."""
 
-		from gregex.nfa2dfa import RabinScott
+		from nfa2dfa import RabinScott
 		return RabinScott(self)()
 
 class NFAState(AutomatonState):
@@ -25,7 +35,7 @@ class NFAState(AutomatonState):
 	Attributes:
 	transitions -- A set of outgoing transitions from this state represented
 					as a dictionary from directed edges or None (epsilon) to
-					a set of states.
+					a set of states
 
 	"""
 	def __init__(self, accepting=None):
@@ -43,8 +53,8 @@ class NFAState(AutomatonState):
 
 		Arguments:
 		diedge -- The directed edge on which to take the transition;
-					None to represent epsilon transition.
-		to -- The state to transition to on the given diedge.
+					None to represent epsilon transition
+		to -- The state to transition to on the given diedge
 		"""
 
 		self._ensure_not_numbered()
@@ -84,15 +94,3 @@ class NFAState(AutomatonState):
 			# Make the set immutable.
 			self._epsilon_closure = frozenset(epsilon_closure)
 			return self._epsilon_closure
-
-
-
-
-
-
-
-
-
-
-
-
