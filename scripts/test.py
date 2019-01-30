@@ -28,21 +28,23 @@ from pycparser import c_parser, c_ast, parse_file
 
 import match_nfa as mnfa
 import gregex.dfa as gdfa
+from gregex.automaton import Diedge
 
 init = gdfa.DFAState()
 second = gdfa.DFAState()
 third = gdfa.DFAState(0)
-diedge1 = ('f', 2, 'r', 'p', 1)
-diedge2 = ('p', 1, 'w', 'f', 3)
+diedge1 = Diedge(2, 'f', 1, 'p', 'r')
+diedge2 = Diedge(1, 'p', 3, 'f', 'w')
 init.add_transition(diedge1, second)
 second.add_transition(diedge2, third)
 dfa = gdfa.DFA(init)
 
 e1 = ('p', 1, 'v', 'p', 2)
 e2 = ('f', 3, 'r', 'p', 2)
-e3 = ('p', 2, 'w', 'f', 4)
-e4 = ('f', 4, 'm', 'f', 5)
-G = [e1, e2, e3, e4]
+e3 = ('p', 2, 'v', 'p', 6)
+e4 = ('p', 2, 'w', 'f', 4)
+e5 = ('f', 4, 'm', 'f', 5)
+G = [e1, e2, e3, e4, e5]
 
 matches = mnfa.match_dfa(dfa, G)
 print(matches)

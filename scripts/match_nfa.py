@@ -6,6 +6,11 @@
 # it under the terms of the GNU General Public License version 2, as
 # published by the Free Software Foundation; either version 2 of the License,
 # or (at your option) any later version.
+
+##############################################################################
+# 
+##############################################################################
+
 import copy
 
 def id_dict(ids):
@@ -25,21 +30,21 @@ def id_dict(ids):
 
 def match_types(diedge, edge):
 	"""Match the node and edge type of a motif edge @diedge and the edge @edge of the graph."""
-	if diedge[0] == edge[0] and diedge[2] == edge[2] and diedge[3] == edge[3]:
+	if diedge.srcTP == edge[0] and diedge.edgeTP == edge[2] and diedge.dstTP == edge[3]:
 		return True
 	else:
 		return False
 
 def tracker_no_conflict(diedge, edge, ids):
 	"""When matching node IDs of @diedge (in DFA) and those of @edge (in G), check if there exists any conflicts in @ids."""
-	if (ids[diedge[1]] == None or ids[diedge[1]] == edge[1]) and (ids[diedge[4]] == None or ids[diedge[4]] == edge[4]):
+	if (ids[diedge.srcID] == None or ids[diedge.srcID] == edge[1]) and (ids[diedge.dstID] == None or ids[diedge.dstID] == edge[4]):
 		return True
 	else:
 		return False
 
 def inverse_tracker_no_conflict(edge, diedge, ids):
 	"""When matching node IDs of @edge (in G) and those of @diedge (in DFA), check if there exists any conflicts in @ids."""
-	if (edge[1] not in ids or ids[edge[1]] == diedge[1]) and (edge[4] not in ids or ids[edge[4]] == diedge[4]):
+	if (edge[1] not in ids or ids[edge[1]] == diedge.srcID) and (edge[4] not in ids or ids[edge[4]] == diedge.dstID):
 		return True
 	else:
 		return False
@@ -59,11 +64,11 @@ def match_transition(states, edge, tracker, inverse_tracker):
 			if match_types(transition_diedge, edge) and tracker_no_conflict(transition_diedge, edge, tracker[i]) and inverse_tracker_no_conflict(edge, transition_diedge, inverse_tracker[i]):
 				# we find a perfect match
 				tracker_copy = copy.deepcopy(tracker[i])
-				tracker_copy[transition_diedge[1]] = edge[1]
-				tracker_copy[transition_diedge[4]] = edge[4]
+				tracker_copy[transition_diedge.srcID] = edge[1]
+				tracker_copy[transition_diedge.dstID] = edge[4]
 				inverse_tracker_copy = copy.deepcopy(inverse_tracker[i])
-				inverse_tracker_copy[edge[1]] = transition_diedge[1]
-				inverse_tracker_copy[edge[4]] = transition_diedge[4]
+				inverse_tracker_copy[edge[1]] = transition_diedge.srcID
+				inverse_tracker_copy[edge[4]] = transition_diedge.dstID
 				states.append(next_state)
 				tracker.append(tracker_copy)
 				inverse_tracker.append(inverse_tracker_copy)
@@ -120,20 +125,14 @@ def match_dfa(dfa, G):
 									# but we may have more as more than one transition is matched
 		indices = []	# currently matched indices of edges in graph @G
 
-		# if not match_transition(current_states, G[start], tracker, inverse_tracker):
-		# 	# if even the first transition cannot be matched, we increment @start and move on to
-		# 	# the next edge to check from the initial state again.
-		# 	start += 1
-		# 	continue
-		# else:
-		# 	print("matched edge #{} to the initial state...".format(start))
-		# 	indices.append(start)
-		# 	indicator[start] = 0
-
-		# current_index = start + 1
 		current_index = start
 
 		while current_index < len(G):
+			if indicator[current_index] == 0:
+				print("skipping edge #{}".format(current_index))
+				current_index += 1
+				continue
+
 			if match_transition(current_states, G[current_index], tracker, inverse_tracker):
 				print("matched edge #{}...".format(current_index))
 				indices.append(current_index)
