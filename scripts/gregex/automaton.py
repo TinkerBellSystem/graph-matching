@@ -2,11 +2,30 @@
 from __future__ import print_function
 import sys
 
+class Diedge(object):
+	"""The directed edge a finite automaton takes to transition from a state to a new state.
+	
+	Attributes:
+	srcID -- The ID of the source node of the edge
+	srcTP -- The type of the source node of the edge
+	dstID -- The ID of the destination node of the edge
+	dstTP -- The type of the destination node of the edge
+	edgeTP -- The type of the edge
+	"""
+	def __init__(self, srcID, srcTP, dstID, dstTP, edgeTP):
+		"""Create a new directed edge with essential attributes"""
+		self.srcID = srcID
+		self.srcTP = srcTP
+		self.dstID = dstID
+		self.dstTP = dstTP
+		self.edgeTP = edgeTP
+
 class Automaton(object):
 	"""A finite automaton.
 
 	Attributes:
 	initial -- The initial state of the automaton
+	ids -- The list of node IDs of the motif in the automaton
 	num_states -- The number of states in this automaton
 
 	"""
@@ -15,11 +34,11 @@ class Automaton(object):
 		"""Create a new automaton with the given initial state.
 
 		Arguments:
-		initial -- The initial automaton state.
+		initial -- The initial automaton state
 
 		"""
 		self.initial = initial
-		self.ids = []
+		self.ids = list()
 		self.num_states = self._number_states(self.initial, 0, self.ids)
 
 	def _number_states(self, state, next_number, ids):
@@ -27,12 +46,12 @@ class Automaton(object):
 		At the same time, collect diedge's node IDs from a given @state and all states reachable from it.
 
 		Arguments:
-		state -- The state to start numbering. If it does not have a number already, it will be assigned @next_number.
-		next_number -- The number from which to start assigning numbers.
-		ids -- The list of IDs collected.
+		state -- The state to start numbering. If it does not have a number already, it will be assigned @next_number
+		next_number -- The number from which to start assigning numbers
+		ids -- The list of IDs collected
 
 		Returns:
-		The largest number that was assigned plus one (i.e., the smallest integer that has yet been assigned).
+		The largest number that was assigned plus one (i.e., the smallest integer that has yet been assigned)
 
 		"""
 		if state.number is None:
@@ -41,10 +60,10 @@ class Automaton(object):
 
 			for (diedge, target) in state._all_transitions():
 				if diedge is not None:
-					if diedge[1] not in ids:
-						ids.append(diedge[1])	# source node ID
-					if diedge[4] not in ids:
-						ids.append(diedge[4])	# destination node ID
+					if diedge.srcID not in ids:
+						ids.append(diedge.srcID)
+					if diedge.dstID not in ids:
+						ids.append(diedge.dstID)
 				next_number = self._number_states(target, next_number, ids)
 
 		return next_number
@@ -93,8 +112,8 @@ class AutomatonState(object):
 		"""Add a transition to this state.
 
 		Arguments:
-		diedge -- The diedge (i.e., directed edge) on which to take the transition.
-		to -- The state to transition to given the diedge.
+		diedge -- The diedge (i.e., directed edge) on which to take the transition
+		to -- The state to transition to given the diedge
 
 		"""
 		raise NotImplementedError
