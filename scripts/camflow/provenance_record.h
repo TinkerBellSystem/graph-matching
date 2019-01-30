@@ -2,7 +2,7 @@
  *
  * Author: Thomas Pasquier <thomas.pasquier@bristol.ac.uk>
  *
- * Copyright (C) 2015-2018 University of Cambridge, Harvard University, University of Bristol
+ * Copyright (C) 2015-2019 University of Cambridge, Harvard University, University of Bristol
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2, as
@@ -170,6 +170,9 @@ static inline int record_node_name(struct provenance *node,
 	union long_prov_elt *fname_prov;
 	int rc;
 
+	if (provenance_is_opaque(prov_elt(node)))
+		return 0;
+
 	if ( (provenance_is_name_recorded(prov_elt(node)) && !force)
 	     || !provenance_is_recorded(prov_elt(node)))
 		return 0;
@@ -195,17 +198,15 @@ static inline int record_node_name(struct provenance *node,
 	return rc;
 }
 
-static inline int record_kernel_link(struct provenance *node)
+static __always_inline int record_kernel_link(prov_entry_t *node)
 {
 	int rc;
 
-	if (provenance_is_kernel_recorded(prov_elt(node)) ||
-	    !provenance_is_recorded(prov_elt(node)))
+	if (provenance_is_kernel_recorded(node) ||
+	    !provenance_is_recorded(node))
 		return 0;
-	spin_lock(prov_lock(node));
-	rc = record_relation(RL_RAN_ON, prov_machine, prov_entry(node), NULL, 0);
-	set_kernel_recorded(prov_elt(node));
-	spin_unlock(prov_lock(node));
+	rc = record_relation(RL_RAN_ON, prov_machine, node, NULL, 0);
+	set_kernel_recorded(node);
 	return rc;
 }
 
@@ -262,13 +263,14 @@ static __always_inline int uses(const uint64_t type,
 
 	rc = record_relation(type, prov_entry(entity), prov_entry(activity), file, flags);
 	if (rc < 0)
-		goto out;
+		return rc;
+	rc = record_kernel_link(prov_entry(activity));
+	if (rc < 0)
+		return rc;
 	rc = record_relation(RL_PROC_WRITE, prov_entry(activity), prov_entry(activity_mem), NULL, 0);
 	if (rc < 0)
-		goto out;
-	rc = current_update_shst(activity_mem, false);
-out:
-	return rc;
+		return rc;
+	return current_update_shst(activity_mem, false);
 }
 
 /*!
@@ -290,6 +292,8 @@ static __always_inline int uses_two(const uint64_t type,
 				    const struct file *file,
 				    const uint64_t flags)
 {
+	int rc;
+
 	BUILD_BUG_ON(!prov_is_used(type));
 
 	apply_target(prov_elt(entity));
@@ -305,7 +309,10 @@ static __always_inline int uses_two(const uint64_t type,
 		return 0;
 	if (!should_record_relation(type, prov_entry(entity), prov_entry(activity)))
 		return 0;
-	return record_relation(type, prov_entry(entity), prov_entry(activity), file, flags);
+	rc = record_relation(type, prov_entry(entity), prov_entry(activity), file, flags);
+	if (rc < 0)
+		return rc;
+	return record_kernel_link(prov_entry(activity));
 }
 
 /*!
@@ -343,6 +350,12 @@ static __always_inline int generates(const uint64_t type,
 	apply_target(prov_elt(activity));
 	apply_target(prov_elt(entity));
 
+	if (provenance_is_tracked(prov_elt(activity_mem)))
+		set_tracked(prov_elt(activity));
+
+	if (provenance_is_opaque(prov_elt(activity_mem)))
+		set_opaque(prov_elt(activity));
+
 	if (provenance_is_opaque(prov_elt(entity))
 	    || provenance_is_opaque(prov_elt(activity))
 	    || provenance_is_opaque(prov_elt(activity_mem)))
@@ -353,17 +366,20 @@ static __always_inline int generates(const uint64_t type,
 	    && !provenance_is_tracked(prov_elt(entity))
 	    && !prov_policy.prov_all)
 		return 0;
+
 	if (!should_record_relation(type, prov_entry(activity), prov_entry(entity)))
 		return 0;
 
 	rc = current_update_shst(activity_mem, true);
 	if (rc < 0)
-		goto out;
+		return rc;
 	rc = record_relation(RL_PROC_READ, prov_entry(activity_mem), prov_entry(activity), NULL, 0);
 	if (rc < 0)
-		goto out;
+		return rc;
+	rc = record_kernel_link(prov_entry(activity));
+	if (rc < 0)
+		return rc;
 	rc = record_relation(type, prov_entry(activity), prov_entry(entity), file, flags);
-out:
 	return rc;
 }
 
@@ -430,6 +446,8 @@ static __always_inline int informs(const uint64_t type,
 				   const struct file *file,
 				   const uint64_t flags)
 {
+	int rc;
+
 	BUILD_BUG_ON(!prov_is_informed(type));
 
 	apply_target(prov_elt(from));
@@ -445,14 +463,19 @@ static __always_inline int informs(const uint64_t type,
 		return 0;
 	if (!should_record_relation(type, prov_entry(from), prov_entry(to)))
 		return 0;
-
+	rc = record_kernel_link(prov_entry(from));
+	if (rc < 0)
+		return rc;
+	rc = record_kernel_link(prov_entry(to));
+	if (rc < 0)
+		return rc;
 	return record_relation(type, prov_entry(from), prov_entry(to), file, flags);
 }
 
-static __always_inline int influences_kernel(const uint64_t type,
-						struct provenance *entity,
-				    struct provenance *activity,
-						const struct file *file)
+static __always_inline int record_influences_kernel(const uint64_t type,
+					     struct provenance *entity,
+					     struct provenance *activity,
+					     const struct file *file)
 {
 	int rc;
 
@@ -464,6 +487,10 @@ static __always_inline int influences_kernel(const uint64_t type,
 	if (provenance_is_opaque(prov_elt(entity))
 	    || provenance_is_opaque(prov_elt(activity)))
 		return 0;
+	if (!provenance_is_tracked(prov_elt(entity))
+	    && !provenance_is_tracked(prov_elt(activity)))
+		return 0;
+
 	rc = record_relation(RL_LOAD_FILE, prov_entry(entity), prov_entry(activity), file, 0);
 	if (rc < 0)
 		goto out;

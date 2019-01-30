@@ -108,7 +108,7 @@ def match_dfa(dfa, G):
 		while start < end and indicator[start] == 0:
 			start += 1
 
-		print("process to the next starting point at {}...".format(start))
+		# print("process to the next starting point at {}...".format(start))
 		# all the rest of the graph is matched.
 		if start == end:
 			return matches
@@ -129,12 +129,12 @@ def match_dfa(dfa, G):
 
 		while current_index < len(G):
 			if indicator[current_index] == 0:
-				print("skipping edge #{}".format(current_index))
+				# print("skipping edge #{}".format(current_index))
 				current_index += 1
 				continue
 
 			if match_transition(current_states, G[current_index], tracker, inverse_tracker):
-				print("matched edge #{}...".format(current_index))
+				# print("matched edge #{}...".format(current_index))
 				indices.append(current_index)
 				indicator[current_index] = 0
 
@@ -149,7 +149,7 @@ def match_dfa(dfa, G):
 					break
 
 			current_index += 1
-			print("current_index is {}".format(current_index))
+			# print("current_index is {}".format(current_index))
 
 		# we have passed the end of the graph but we still cannot match to the DFA
 		if current_index == len(G):

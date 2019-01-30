@@ -52,7 +52,7 @@ def provenance_to_type(str):
 	elif str == 'pckprov':
 		return 'packet'
 	elif str == 'ENT_ARG':
-		return 'arg'
+		return 'argv'
 	elif str == 'ENT_ENV':
 		return 'env'
 	else:
@@ -486,6 +486,9 @@ def __update_version(edge_type, motif_node, motif_node_dict):
 	"""
 	# if updating version is not needed, simply return the original node
 	if __filter_update_node(edge_type):
+		return motif_node, None
+
+	if not motif_node.mn_has_outgoing:
 		return motif_node, None
 
 	new_motif_node = MotifNode(motif_node.mn_ty)
@@ -1052,7 +1055,7 @@ def record_arg(motif_node, vtype, etype, arg, len, motif_node_dict):
 	RTM tree node(s) for when 'record_arg' (provenance_task.h) is called.
 	A new MotifNode is created based on @vtype.
 
-	Function signature: static __always_inline int prov_record_arg(struct provenance *prov,
+	Function signature: static __always_inline int record_arg(struct provenance *prov,
 																	uint64_t vtype,
 																	uint64_t etype,
 																	const char *arg,

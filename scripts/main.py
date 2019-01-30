@@ -17,6 +17,8 @@ from gregex.rtm import *
 from gregex.converter import *
 from gregex.ast import *
 from analyze_motif import *
+import parser
+import match_nfa as mnfa
 
 from pycparser import c_parser, c_ast, parse_file
 
@@ -798,6 +800,7 @@ hooks['provenance_inode_rename'] = hooks['provenance_inode_link']
 print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
 print("+ Visualizing RTMT and NFA        +")
 print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+dfas = {}
 for hookname, motif in hooks.iteritems():
     print("\x1b[6;30;42m" + 'Generating Tree for ' + hookname + '...\x1b[0m')
     # inorder_traversal(motif)
@@ -822,7 +825,20 @@ for hookname, motif in hooks.iteritems():
     print("\x1b[6;30;42m" + 'Generating DFA for ' + hookname + '...\x1b[0m')
     with open('../dot/'+ hookname +'_dfa.dot', 'w') as f:
         dfa.print_graphviz(f)
+    dfas[hookname] = dfa
     f.close()
+
+
+nlm_G = dict()
+E_G = list()
+parser.parse_nodes("camflow/wget.log", nlm_G)
+parser.parse_edges("camflow/wget.log", nlm_G, E_G)
+E_G.sort(parser.comp_two_edges)
+
+for dfaname, dfa in dfas.iteritems():
+    print(dfaname)
+    matches = mnfa.match_dfa(dfa, E_G)
+    print(matches)
     
 #     # os.system('dot -Tpng ../dot/'+ hookname +'_tree.dot -o ../img/'+ hookname +'_tree.png')
 
