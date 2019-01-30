@@ -8,6 +8,7 @@
 # or (at your option) any later version.
 # 
 # Credits to: https://github.com/osandov/pylex/blob/master/pylex/rabinscott.py
+
 """Implementation of the Rabin-Scott subset construction (a.k.a powerset construction)."""
 from dfa import DFA, DFAState
 from nfa import NFA, NFAState

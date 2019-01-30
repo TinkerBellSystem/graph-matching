@@ -147,6 +147,9 @@ class RTMTreeNode():
 		self.value = new_value
 
 def is_operator(c):
+	"""
+	Check whether the value is an operator or not.
+	"""
 	if c == '*' or c == '?' or c == '.' or c == '|':
 		return True
 	else:

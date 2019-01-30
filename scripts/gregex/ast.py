@@ -70,7 +70,7 @@ class KleeneAST(AST):
 	"""AST node for the Kleene star operator.
 
 	Attributes:
-	operand -- Operand of the closure.
+	operand -- Operand of the closure
 
 	"""
 
@@ -78,7 +78,7 @@ class KleeneAST(AST):
 		"""Create a new Kleene closure AST node.
 
 		Arguments:
-		operand -- AST operand of the closure.
+		operand -- AST operand of the closure
 
 		"""
 
@@ -100,7 +100,7 @@ class QuestionMarkAST(AST):
 	"""AST node for the question mark closure.
 
 	Attributes:
-	operand -- Operand of the closure.
+	operand -- Operand of the closure
 
 	"""
 
@@ -108,7 +108,7 @@ class QuestionMarkAST(AST):
 		"""Create a new question mark closure AST node.
 
 		Arguments:
-		operand -- AST operand of the closure.
+		operand -- AST operand of the closure
 
 		"""
 
@@ -129,7 +129,7 @@ class AlternationAST(AST):
 	"""Alternation (i.e., union) of two or more regular expressions.
 
 	Attributes:
-	operands -- Tuple containing the alternate regular expressions.
+	operands -- Tuple containing the alternate regular expressions
 
 	"""
 
@@ -137,7 +137,7 @@ class AlternationAST(AST):
 		"""Create a new alternation AST node.
 
 		Arguments:
-		operands -- Two or more children AST nodes.
+		operands -- Two or more children AST nodes
 
 		"""
 
@@ -171,7 +171,7 @@ class ConcatenationAST(AST):
 	"""Concatenation of two or more regular expressions.
 
 	Attributes:
-	operands -- Tuple containing the concatenated regular expressions.
+	operands -- Tuple containing the concatenated regular expressions
 
 	"""
 
@@ -179,7 +179,7 @@ class ConcatenationAST(AST):
 		"""Create a new concatenation AST node.
 
 		Arguments:
-		operands -- Two or more children AST nodes.
+		operands -- Two or more children AST nodes
 
 		"""
 
@@ -189,7 +189,6 @@ class ConcatenationAST(AST):
 			raise ValueError('concatenation must have two or more operands')
 
 		self.operands = ()
-
 		for ast in operands:
 			if isinstance(ast, ConcatenationAST):
 				self.operands += ast.operands
