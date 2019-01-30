@@ -102,6 +102,7 @@ class AutomatonState(object):
 
 	def _all_transitions(self):
 		"""Return a flat set of all transitions from this state."""
+
 		raise NotImplementedError
 
 	def _ensure_not_numbered(self):
@@ -119,6 +120,8 @@ class AutomatonState(object):
 		raise NotImplementedError
 
 	def _print_graphviz(self, file, seen):
+		"""Print automaton states for Graphviz dot rendering."""
+
 		if self in seen:
 			return
 		seen.add(self)
@@ -141,34 +144,3 @@ class AutomatonState(object):
 			else:
 				label = repr(diedge).replace('\\', '\\\\')  # Escape slashes
 			print('    S{} -> S{} [label = "{}"];'.format(self.number, target.number, label), file=file)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
