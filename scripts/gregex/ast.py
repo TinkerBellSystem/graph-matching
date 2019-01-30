@@ -1,6 +1,15 @@
+# Author: Xueyuan Michael Han <hanx@g.harvard.edu>
+#
+# Copyright (C) 2019 Harvard University, University of Cambridge
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 2, as
+# published by the Free Software Foundation; either version 2 of the License,
+# or (at your option) any later version.
+# 
 # Credits to: https://github.com/osandov/pylex/blob/master/pylex/ast.py
 
-from gregex.nfa import NFA, NFAState
+from nfa import NFA, NFAState
 
 class AST(object):
 	"""Node in a regular expression abstract syntax tree."""
@@ -9,7 +18,7 @@ class AST(object):
 		"""Convert this AST to an NFA.
 
 		Arguments:
-		accepting_id -- The ID of the accepting state. Defaults to 1.
+		accepting_id -- The ID of the accepting state (defaults to 1)
 
 		"""
 
@@ -33,7 +42,7 @@ class DiedgeAST(AST):
 	"""AST leaf node: directed edges in provenance.
 
 	Attributes:
-	diedge -- The directed edge for this node.
+	diedge -- The directed edge for this node
 
 	"""
 
@@ -41,7 +50,7 @@ class DiedgeAST(AST):
 		"""Create a new diedge AST node.
 
 		Arguments:
-		diedge -- The directed edge (5-tuple) for this node.
+		diedge -- The directed edge for this node
 
 		"""
 

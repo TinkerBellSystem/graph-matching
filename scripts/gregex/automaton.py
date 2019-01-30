@@ -30,6 +30,9 @@ class Diedge(object):
 		self.dstTP = dstTP
 		self.edgeTP = edgeTP
 
+	def __repr__(self):
+		return '[' + repr(srcID) + '](' + repr(srcTP) + ')-(' + repr(edgeTP) + ')>[' + repr(dstID) + '](' + repr(dstTP) + ')' 
+
 class Automaton(object):
 	"""A finite automaton.
 
