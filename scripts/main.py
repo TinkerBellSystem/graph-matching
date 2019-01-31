@@ -18,7 +18,8 @@ from gregex.converter import *
 from gregex.ast import *
 from analyze_motif import *
 import parser
-import match_nfa as mnfa
+import match_dfa as mdfa
+from multiprocessing import Pool
 
 from pycparser import c_parser, c_ast, parse_file
 
@@ -835,10 +836,12 @@ parser.parse_nodes("camflow/wget.log", nlm_G)
 parser.parse_edges("camflow/wget.log", nlm_G, E_G)
 E_G.sort(parser.comp_two_edges)
 
+pool = Pool(6)
+args = []
 for dfaname, dfa in dfas.iteritems():
-    print(dfaname)
-    matches = mnfa.match_dfa(dfa, E_G)
-    print(matches)
+    args.append((dfaname, dfa, E_G))
+pool.map(mdfa.match_dfa_wrapper, args)
+    
     
 #     # os.system('dot -Tpng ../dot/'+ hookname +'_tree.dot -o ../img/'+ hookname +'_tree.png')
 

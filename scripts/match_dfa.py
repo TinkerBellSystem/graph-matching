@@ -33,7 +33,22 @@ def match_types(diedge, edge):
 	if diedge.srcTP == edge[0] and diedge.edgeTP == edge[2] and diedge.dstTP == edge[3]:
 		return True
 	else:
-		return False
+		if edge[0] == 'inode_unknown' or edge[0] == 'link' or edge[0] == 'file' \
+			or edge[0] == 'directory' or edge[0] == 'char' or edge[0] == 'block' \
+			or edge[0] == 'pipe' or edge[0] == 'socket':
+			srcGTP = 'inode'
+		else:
+			srcGTP = edge[0]
+		if edge[3] == 'inode_unknown' or edge[3] == 'link' or edge[3] == 'file' \
+			or edge[3] == 'directory' or edge[3] == 'char' or edge[3] == 'block' \
+			or edge[3] == 'pipe' or edge[3] == 'socket':
+			dstGTP = 'inode'
+		else:
+			dstGTP = edge[3]
+		if diedge.srcTP == srcGTP and diedge.edgeTP == edge[2] and diedge.dstTP == dstGTP:
+			return True
+		else:
+			return False
 
 def tracker_no_conflict(diedge, edge, ids):
 	"""When matching node IDs of @diedge (in DFA) and those of @edge (in G), check if there exists any conflicts in @ids."""
@@ -80,7 +95,7 @@ def match_transition(states, edge, tracker, inverse_tracker):
 		inverse_tracker.pop(i)
 	return matched
 
-def match_dfa(dfa, G):
+def match_dfa(dfaname, dfa, G):
 	"""Matches all motifs of dfa in the graph G.
 
 	For every index x in @G, G[x] is the x'th edge in the graph (since the edges are ordered).
@@ -88,6 +103,7 @@ def match_dfa(dfa, G):
 	We do many iterations until no more matches can be found.
 
 	Arguments:
+	dfaname: the name of the motif (dfa)
 	dfa: the state machine that represents a motif
 	G: the graph to match
 
@@ -95,6 +111,8 @@ def match_dfa(dfa, G):
 	All sets of edge indices that belong to the same motif (DFA)
 
 	"""
+	f = open('../matches/' + dfaname + '.txt', 'w')
+
 	start = 0	# starting index of edges in @G
 	end = len(G)				# Pass the last index of edge in @G. 
 	indicator = [1] * len(G)	# indicator[i] = 0 means G[i] is temporarily matched to the NFA
@@ -158,10 +176,10 @@ def match_dfa(dfa, G):
 				indicator[index] = 1
 		# move on to the next starting point
 		start += 1
+	f.write(repr(matches))
+	# return matches
 
-	return matches
-
-
-
-
-
+def match_dfa_wrapper(args):
+	"""wrapper around match_dfa function so that multiprocessing pool can run with multiple arguments."""
+	match_dfa(*args)
+	# return match_dfa(*args)

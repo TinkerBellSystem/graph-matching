@@ -184,6 +184,6 @@ if __name__ == "__main__":
 	parse_edges(args.input, nlm_G, E_G)
 	E_G.sort(comp_two_edges)
 
-	for i in range(20):
-		print repr(E_G[i])
-
+	print(str(len(E_G)))
+	# for i in range(len(E_G)):
+		# print repr(E_G[i])

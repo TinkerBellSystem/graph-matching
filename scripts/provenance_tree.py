@@ -488,8 +488,8 @@ def __update_version(edge_type, motif_node, motif_node_dict):
 	if __filter_update_node(edge_type):
 		return motif_node, None
 
-	if not motif_node.mn_has_outgoing:
-		return motif_node, None
+	# if not motif_node.mn_has_outgoing:
+	# 	return motif_node, None
 
 	new_motif_node = MotifNode(motif_node.mn_ty)
 	new_motif_node.mn_has_name_recorded = motif_node.mn_has_name_recorded
@@ -963,16 +963,21 @@ def get_cred_provenance(motif_node_dict):
 	new_process_memory_motif_node = MotifNode('process_memory')
 
 	_, rtm_tree_task_name_node = record_task_name(None, new_process_memory_motif_node, motif_node_dict)
-	_, rtm_tree_kernel_link_node = record_kernel_link(new_process_memory_motif_node, motif_node_dict)
+	# _, rtm_tree_kernel_link_node = record_kernel_link(new_process_memory_motif_node, motif_node_dict)
 
-	if rtm_tree_task_name_node and rtm_tree_kernel_link_node:
-		return new_process_memory_motif_node, create_group_node(rtm_tree_task_name_node, rtm_tree_kernel_link_node)
-	elif not rtm_tree_task_name_node and rtm_tree_kernel_link_node:
-		return new_process_memory_motif_node, rtm_tree_kernel_link_node
-	elif rtm_tree_task_name_node and not rtm_tree_kernel_link_node:
+	if rtm_tree_task_name_node:
 		return new_process_memory_motif_node, rtm_tree_task_name_node
 	else:
 		return new_process_memory_motif_node, None
+
+	# if rtm_tree_task_name_node and rtm_tree_kernel_link_node:
+	# 	return new_process_memory_motif_node, create_group_node(rtm_tree_task_name_node, rtm_tree_kernel_link_node)
+	# elif not rtm_tree_task_name_node and rtm_tree_kernel_link_node:
+	# 	return new_process_memory_motif_node, rtm_tree_kernel_link_node
+	# elif rtm_tree_task_name_node and not rtm_tree_kernel_link_node:
+	# 	return new_process_memory_motif_node, rtm_tree_task_name_node
+	# else:
+	# 	return new_process_memory_motif_node, None
 
 ### provenance_net.h
 def get_sk_provenance(sk, motif_node_dict):
