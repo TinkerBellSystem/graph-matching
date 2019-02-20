@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Author: Xueyuan Michael Han <hanx@g.harvard.edu>
 #
-# Copyright (C) 2018 - 2019 Harvard University, University of Cambridge
+# Copyright (C) 2018-2019 Harvard University, University of Cambridge
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2, as
