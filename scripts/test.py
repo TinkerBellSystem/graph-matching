@@ -24,8 +24,8 @@ list_functions(ast_task, functions)
 
 print(functions['provenance_task_alloc'][0])
 func_body = functions['provenance_task_alloc'][1]
-eval_function_body(func_body, functions, {})
-
+eval_function_body('provenance_task_alloc', func_body, functions, {}, {})
+# print(func_body)
 
 # for item in func_body.block_items:
 # 	if type(item).__name__ == 'FuncCall':

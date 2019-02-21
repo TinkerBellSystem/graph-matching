@@ -12,6 +12,77 @@ from motif.rtm import create_motif_node, create_alternation_node, create_group_n
 from motif.provtype import provenance_vertex_type
 
 
+def ast_snippet(ast_snippet):
+	"""AST snippet from pycparser without formatting. Used for printing.
+
+	:param ast_snippet: the ast snippet
+	:return: ast snippet without formatting (i.e., whitespace)
+	"""
+	return repr(ast_snippet).replace('\n', ' ').replace(' ', '')
+
+
+def extract_function_argument_names(function_call):
+	"""Extract argument name in subroutine function calls in lower-level functions.
+	We so far consider three cases if arguments exist:
+	For example,
+	function_call(arg1, &arg2, func(arg3));
+	case 1: arg1 -> arg1
+	case 2: &arg2 -> arg2
+	case 3: func(arg3) -> arg3
+	"""
+	arg_names = []
+	# Function call does not use any arguments
+	if type(function_call.args).__name__ == 'NoneType':
+		return arg_names
+	elif type(function_call.args).__name__ == 'ExprList':
+		for arg in function_call.args.exprs:
+			if type(arg).__name__ == 'ID':
+				arg_names.append(arg.name)
+			elif type(arg).__name__ == 'UnaryOp':
+				arg_names.append(arg.expr.name)
+			elif type(arg).__name__ == 'FuncCall':
+				arg_names.append(arg.args.exprs[0].name)  # assuming only first argument in FuncCall for simplicity
+		return arg_names
+	else:
+		#######################################################
+		# We will consider other conditions if we ever see them
+		#######################################################
+		print('\33[101m' + '\x1b[6;30;41m[x]\x1b[0m [extract_function_argument_names]  ' + type(
+			function_call.args).__name__ + ' is not yet considered.')
+		raise NotImplementedError('type not implemented properly')
+
+
+def create_name_dict(caller_arguments, callee_parameters):
+	"""
+	Add a list of callee's parameter names as keys that need to be mapped to caller's argument names, which are values.
+	Each caller argument corresponds to the callee parameter of the same position in the list.
+	:param caller_arguments: a list of arguments caller uses when calling callee function
+	:param callee_parameters: a list of parameters in callee function definition
+	:return: the name dict
+	"""
+	name_dict = dict()
+	if len(caller_arguments) != len(callee_parameters):
+		print('\33[101m' + '\x1b[6;30;41m[x]\x1b[0m [add_name_to_dict] Invalid caller and callee lists.')
+		raise RuntimeError('caller argument list should have the same length as callee parameter list')
+	print('\x1b[6;30;42m[+]\x1b[0m [create_name_dict] Creating name dictionary: ', end='')
+	for i in range(len(callee_parameters)):
+		name_dict[callee_parameters[i]] = caller_arguments[i]
+		print('{}->{} '.format(callee_parameters[i], caller_arguments[i]), end='')
+	return name_dict
+
+
+def get_true_name(name, name_dict):
+	"""
+	Return true name based on name_dict.
+	:param name: the name whose true name we are looking for
+	:param name_dict: dict to have the key and value names to return true name
+	:return: its true name
+	"""
+	while name_dict.get(name, default=None) is not None:
+		name = name_dict.get(name, default=None)
+	return name
+
+
 def list_functions(ast, dictionary):
 	"""List all functions within an AST.
 
@@ -43,7 +114,7 @@ def list_functions(ast, dictionary):
 				#######################################################
 				# We will consider other conditions if we ever see them
 				#######################################################
-				print('\x1b[6;30;41m[x]\x1b[0m [list_functions]: The type {} is not implemented'.format(type(function_decl.type.args).__name__))
+				print('\x1b[6;30;41m[x]\x1b[0m [list_functions] The type {} is not implemented'.format(type(function_decl.type.args).__name__))
 				raise NotImplementedError('type not implemented properly')
 
 			dictionary[function_name] = (param_names, function_body)
@@ -58,26 +129,33 @@ def eval_function_call(function_call, function_dict, motif_node_dict):
 	:param function_call: This is the function call to be evaluated.
 	:param function_dict: This is the dictionary that stores all seen function calls.
 	:param motif_node_dict: This is the motif node map.
-	:return: Either skip the function call or call eval_function_body to evaluate its body.
+	:return: Either skip the function call, return a motif_node and an RTMTree, both of which can be None, or call eval_function_body to evaluate its body.
 	"""
 	if function_call.name.name in function_dict:
+		callee_function = function_dict[function_call.name.name]
+		args = extract_function_argument_names(function_call)
+		params = callee_function[0]
+		name_dict = create_name_dict(args, params)
 		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Evaluating function: {}'.format(function_call.name.name))
-		return eval_function_body(function_dict[function_call.name.name][1], function_dict, motif_node_dict)
+		return eval_function_body(callee_function[1], function_dict, motif_node_dict, name_dict)
 	elif function_call.name.name == "alloc_provenance":
-
-
+		args = extract_function_argument_names(function_call)
+		ntype = args[0]
+		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Evaluating alloc_provenance()')
+		return create_motif_node(provenance_vertex_type(ntype)), None
 	else:
 		print('\x1b[6;30;43m[!]\x1b[0m [eval_function_call] Skipping function: {}'.format(function_call.name.name))
 		return None, None
 
 
-def eval_function_body(function_body, function_dict, motif_node_dict):
+def eval_function_body(function_body, function_dict, motif_node_dict, name_dict):
 	"""Evaluate a Compound function body.
 
 	Arguments:
 	function_body 	-- function body to be evaluated
 	function_dict	-- dictionary that saves all function bodies
 	motif_node_dict -- motif node map
+	name_dict 		-- name map
 
 	Returns:
 	a motif_node and an RTMTree, both of which can be None
@@ -92,20 +170,21 @@ def eval_function_body(function_body, function_dict, motif_node_dict):
 			motif_node, tree_node = eval_function_call(item, function_dict, motif_node_dict)
 			if tree_node != None:
 				tree = create_group_node(tree, tree_node)
-		elif type(item).__name__ == 'Assignment': # Case 2: rc = provenance-graph-related function call
-			tree_node = eval_assignment(item, function_dict, motif_node_dict)
+
+		elif type(item).__name__ == 'Assignment':  # Case 2: rc = provenance-graph-related function call
+			tree_node = eval_assignment(item, function_dict, motif_node_dict, name_dict)
 			if tree_node != None:
 				tree = create_group_node(tree, tree_node)
-		elif type(item).__name__ == 'Decl': # Case 3: declaration with initialization
-			tree_node = eval_declaration(item, function_dict, motif_node_dict)
+		elif type(item).__name__ == 'Decl':  # Case 3: declaration with initialization
+			tree_node = eval_declaration(item, function_dict, motif_node_dict, name_dict)
 			if tree_node != None:
 				tree = create_group_node(tree, tree_node)
 		elif type(item).__name__ == 'If':   # Case 4: if/else
-			tree_node = eval_if_else(item, function_dict, motif_node_dict)
+			tree_node = eval_if_else(item, function_dict, motif_node_dict, name_dict)
 			if tree_node != None:
 				tree = create_group_node(tree, tree_node)
 		elif type(item).__name__ == 'Return':   # Case 5: return with function call
-			motif_node, tree_node = eval_return(item, function_dict, motif_node_dict)
+			motif_node, tree_node = eval_return(item, function_dict, motif_node_dict, name_dict)
 			if tree_node != None:
 				tree = create_group_node(tree, tree_node)
 		else:
@@ -115,24 +194,28 @@ def eval_function_body(function_body, function_dict, motif_node_dict):
 	return motif_node, tree
 
 
-def eval_assignment(assignment, function_dict, motif_node_dict):
+def eval_assignment(assignment, function_dict, motif_node_dict, name_dict):
 	"""Evaluate a single assignment that creates new TreeNodes.
 
 	Arguments:
 	assignment 		-- assignment body to be evaluated
 	function_dict	-- dictionary that saves all function bodies
 	motif_node_dict -- motif node map
+	name_dict 		-- name map
 
 	Returns:
 	an RTMTree, which can be None
 	"""
 	if type(assignment.rvalue).__name__ == 'FuncCall':
-		motif_node, tree_node = eval_function_call(assignment.rvalue, function_dict, motif_node_dict)
+		motif_node, tree_node = eval_function_call(caller_state, assignment.rvalue, function_dict, motif_node_dict, name_dict)
 		# consider "var = XXX;" and "*var = XXX" and "&var = XXX" situations
-		if (type(assignment.lvalue).__name__ == 'ID' and assignment.lvalue.name in motif_node_dict) or \
-			(type(assignment.lvalue).__name__ == 'UnaryOp' and assignment.lvalue.expr.name in motif_node_dict):
+		if (type(assignment.lvalue).__name__ == 'ID' and
+			get_true_name(caller_state + '.' + assignment.lvalue.name) in motif_node_dict) or \
+				(type(assignment.lvalue).__name__ == 'UnaryOp' and
+				 get_true_name(caller_state + '.' + assignment.lvalue.expr.name) in motif_node_dict):
 			if motif_node is None:
-				print('\x1b[6;30;41m[x]\x1b[0m [eval_assignment] Motif node {} is in the dictionary, so motif_node should not be None.'.format(assignment.lvalue.name))
+				print('\x1b[6;30;41m[x]\x1b[0m [eval_assignment] Motif node {} is in the dictionary, so motif_node '
+					  'should not be None.'.format(assignment.lvalue.name))
 				raise RuntimeError('motif node should not return None type')
 			else:
 				motif_node_dict[assignment.lvalue.name].append(motif_node)
@@ -142,22 +225,36 @@ def eval_assignment(assignment, function_dict, motif_node_dict):
 	#   ...
 	#   tprov = t->provenance;
 	# tprov must then be in the motif_node_dict.
-	elif type(assignment.lvalue).__name__ == 'ID' and assignment.lvalue.name in motif_node_dict:
-		# we can only infer its type from the name of the variable
-		motif_node = create_motif_node(provenance_vertex_type(assignment.lvalue.name))
-		motif_node_dict[assignment.lvalue.name].append(motif_node)
+	elif type(assignment.lvalue).__name__ == 'ID':
+		if assignment.lvalue.name in motif_node_dict:
+			# we can only infer its type from the name of the variable
+			motif_node = create_motif_node(provenance_vertex_type(assignment.lvalue.name))
+			motif_node_dict[assignment.lvalue.name].append(motif_node)
+		else:
+			print('\x1b[6;30;43m[!]\x1b[0m [eval_assignment] Skipping assignment due to unrecognized lvalue: {}'.format(
+				ast_snippet(assignment.lvalue)))
 		return None
 	# similar case as the previous one, except that we have: *tprov = ...
 	# we can only infer its type from the name of the variable
-	elif type(assignment.lvalue).__name__ == 'UnaryOp' and type(assignment.lvalue.expr).__name__ == 'ID' and assignment.lvalue.expr.name in motif_node_dict:
-		motif_node = create_motif_node(provenance_vertex_type(assignment.lvalue.expr.name))
-		motif_node_dict[assignment.lvalue.expr.name].append(motif_node)
+	elif type(assignment.lvalue).__name__ == 'UnaryOp' and type(assignment.lvalue.expr).__name__ == 'ID':
+		if assignment.lvalue.expr.name in motif_node_dict:
+			motif_node = create_motif_node(provenance_vertex_type(assignment.lvalue.expr.name))
+			motif_node_dict[assignment.lvalue.expr.name].append(motif_node)
+		else:
+			print('\x1b[6;30;43m[!]\x1b[0m [eval_assignment] Skipping assignment due to unrecognized lvalue: {}'.format(
+				ast_snippet(assignment.lvalue)))
+		return None
+	elif type(assignment.lvalue).__name__ == 'StructRef':
+		print('\x1b[6;30;43m[!]\x1b[0m [eval_assignment] Skipping assignment: {}'.format(ast_snippet(assignment)))
+		return None
+	elif type(assignment.lvalue).__name__ == 'FuncCall':
+		print('\x1b[6;30;43m[!]\x1b[0m [eval_assignment] Skipping assignment: {}'.format(ast_snippet(assignment)))
 		return None
 	else:
 		#######################################################
 		# We will consider other conditions if we ever see them
 		#######################################################
-		print('\x1b[6;30;41m[x]\x1b[0m [eval_assignment]: an unforseen case not considered')
+		print('\x1b[6;30;41m[x]\x1b[0m [eval_assignment] An unforeseen case not considered: {}'.format(ast_snippet(assignment)))
 		raise NotImplementedError('a case not implemented')
 
 
@@ -319,9 +416,9 @@ def eval_if_else(item, function_dict, motif_node_dict):
 	elif type(true_branch).__name__ == 'Decl':
 		left = eval_declaration(true_branch, function_dict, motif_node_dict)
 	elif type(true_branch).__name__ == 'Return':
-		left = eval_return(true_branch, function_dict, motif_node_dict)
+		motif_node, left = eval_return(true_branch, function_dict, motif_node_dict)
 	elif type(true_branch).__name__ == 'Compound':
-		left = eval_function_body(true_branch, function_dict, motif_node_dict)
+		motif_node, left = eval_function_body(true_branch, function_dict, motif_node_dict)
 	else:
 		left = None
 	# evaluate the `else` branch if it exists
@@ -333,9 +430,9 @@ def eval_if_else(item, function_dict, motif_node_dict):
 	elif type(false_branch).__name__ == 'Decl':
 		right = eval_declaration(false_branch, function_dict, motif_node_dict)
 	elif type(false_branch).__name__ == 'Return':
-		right = eval_return(false_branch, function_dict, motif_node_dict)
+		motif_node, right = eval_return(false_branch, function_dict, motif_node_dict)
 	elif type(false_branch).__name__ == 'Compound':
-		right = eval_function_body(false_branch, function_dict, motif_node_dict)
+		motif_node, right = eval_function_body(false_branch, function_dict, motif_node_dict)
 	elif type(false_branch).__name__ == 'If':   # else if case
 		right = eval_if_else(false_branch, function_dict, motif_node_dict)
 	else:
@@ -346,7 +443,7 @@ def eval_if_else(item, function_dict, motif_node_dict):
 		if eval_if_condition(item.cond):
 			return create_alternation_node(left, right)
 		else:
-			print('\x1b[6;30;41m[x]\x1b[0m [eval_if_else]: Condition [{}] is not considered'.format(item.cond))
+			print('\x1b[6;30;41m[x]\x1b[0m [eval_if_else] Condition: {} is not considered'.format(ast_snippet(item.cond)))
 			raise RuntimeError('an unexpected if/elif condition')
 			# if only one branch is not None, we need not create a group node
 			##################################################################
@@ -359,6 +456,7 @@ def eval_if_else(item, function_dict, motif_node_dict):
 			# return create_group_node(left, right)
 			##################################################################
 	else:
+		print('\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Skipping if/else block that results in None')
 		return None
 
 
@@ -379,6 +477,10 @@ def eval_return(statement, function_dict, motif_node_dict):
 		if statement.expr.name in motif_node_dict:
 			return motif_node_dict[statement.expr.name], None
 		else:
+			print('\x1b[6;30;43m[!]\x1b[0m [eval_return] Skipping return due to unrecognized lvalue: {}'.format(
+				ast_snippet(statement.expr.name)))
 			return None, None
 	else:
+		print('\x1b[6;30;43m[!]\x1b[0m [eval_return] Skipping return: {}'.format(
+			ast_snippet(statement.expr)))
 		return None, None
