@@ -1,10 +1,12 @@
 from __future__ import print_function
 import sys
 import os
-import provenance_tree as prov
 
 from pycparser import c_parser, c_ast, parse_file
+
 from static_analysis.parse import *
+from gregex.rtm import visualize_rtm_tree, streamline_rtm
+from gregex.graphviz import *
 
 ast_hooks = parse_file("./camflow/hooks_pp.c")
 ast_inode = parse_file("./camflow/provenance_inode_pp.h")
@@ -22,10 +24,33 @@ list_functions(ast_task, functions)
 
 # eval_function_body(functions['provenance_inode_alloc_security'][1], functions, {})
 
-print(functions['provenance_task_alloc'][0])
 func_body = functions['provenance_task_alloc'][1]
-eval_function_body('provenance_task_alloc', func_body, functions, {}, {})
-# print(func_body)
+motif_node_map = dict()
+kernel_node = MotifNode('machine')
+motif_node_map['record_kernel_link.prov_machine'] = [kernel_node]
+_, tree = eval_function_body('provenance_task_alloc', func_body, functions, motif_node_map, {})
+g = Graph()
+streamline_rtm(tree)
+visualize_rtm_tree(tree, g)
+dot_str = g.get_graph()
+with open('../dot/0' + '_tree.dot', 'w') as f:
+    f.write(dot_str)
+f.close()
+
+# converter = Converter(tree)
+# nfa = ast_to_nfa(converter.ast)
+# print("\x1b[6;30;42m[+]\x1b[0m" + ' [test] Generating NFA')
+# with open('../dot/0''_nfa.dot', 'w') as f:
+#     nfa.print_graphviz(f)
+# f.close()
+#
+# dfa = nfa.to_dfa()
+# print("\x1b[6;30;42m[+]\x1b[0m" + ' [test] Generating DFA')
+# with open('../dot/0' + '_dfa.dot', 'w') as f:
+#     dfa.print_graphviz(f)
+# f.close()
+
+# print(functions['__update_version'][1])
 
 # for item in func_body.block_items:
 # 	if type(item).__name__ == 'FuncCall':

@@ -10,11 +10,11 @@ digraph NFA {
     S5 [label = <s<sub>5</sub>>, shape = circle];
     S6 [label = <s<sub>6</sub>>, shape = circle];
     S7 [label = <s<sub>7,1</sub>>, shape = circle, peripheries = 2];
-    S6 -> S7 [label = "('task', 3, 'clone', 'task', 4)"];
+    S6 -> S7 [label = "[3]('task')-('clone')>[4]('task')"];
     S5 -> S6 [label = "\u03b5"];
-    S4 -> S5 [label = "('task', 0, 'version_activity', 'task', 4)"];
+    S4 -> S5 [label = "[0]('task')-('version_activity')>[4]('task')"];
     S3 -> S4 [label = "\u03b5"];
-    S2 -> S3 [label = "('process_memory', 2, 'memory_read', 'task', 3)"];
+    S2 -> S3 [label = "[2]('process_memory')-('memory_read')>[3]('task')"];
     S1 -> S2 [label = "\u03b5"];
-    S0 -> S1 [label = "('task', 1, 'version_activity', 'task', 3)"];
+    S0 -> S1 [label = "[1]('task')-('version_activity')>[3]('task')"];
 }

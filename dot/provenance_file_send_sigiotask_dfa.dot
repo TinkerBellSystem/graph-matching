@@ -9,11 +9,11 @@ digraph DFA {
     S4 [label = <s<sub>4,1</sub>>, shape = circle, peripheries = 2];
     S5 [label = <s<sub>5</sub>>, shape = circle];
     S6 [label = <s<sub>6,1</sub>>, shape = circle, peripheries = 2];
-    S6 -> S5 [label = "('inode', 5, 'version_entity', 'inode', 6)"];
-    S5 -> S6 [label = "('task', 4, 'sh_write', 'inode', 6)"];
-    S4 -> S5 [label = "('inode', 5, 'version_entity', 'inode', 6)"];
-    S3 -> S4 [label = "('task', 3, 'memory_write', 'task', 4)"];
-    S2 -> S3 [label = "('task', 2, 'version_activity', 'task', 4)"];
-    S1 -> S2 [label = "('inode', 0, 'file_sigio', 'task', 3)"];
-    S0 -> S1 [label = "('task', 1, 'version_activity', 'task', 3)"];
+    S6 -> S5 [label = "[5]('inode')-('version_entity')>[6]('inode')"];
+    S5 -> S6 [label = "[4]('task')-('sh_write')>[6]('inode')"];
+    S4 -> S5 [label = "[5]('inode')-('version_entity')>[6]('inode')"];
+    S3 -> S4 [label = "[3]('task')-('memory_write')>[4]('task')"];
+    S2 -> S3 [label = "[2]('task')-('version_activity')>[4]('task')"];
+    S1 -> S2 [label = "[0]('inode')-('file_sigio')>[3]('task')"];
+    S0 -> S1 [label = "[1]('task')-('version_activity')>[3]('task')"];
 }

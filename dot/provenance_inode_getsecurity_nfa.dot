@@ -11,12 +11,12 @@ digraph NFA {
     S6 [label = <s<sub>6</sub>>, shape = circle];
     S7 [label = <s<sub>7,1</sub>>, shape = circle, peripheries = 2];
     S6 -> S7 [label = "\u03b5"];
-    S6 -> S7 [label = "('inode', 3, 'version_entity', 'inode', 4)"];
+    S6 -> S7 [label = "[3]('inode')-('version_entity')>[4]('inode')"];
     S5 -> S6 [label = "\u03b5"];
-    S4 -> S5 [label = "('path', 2, 'named', 'inode', 3)"];
+    S4 -> S5 [label = "[2]('path')-('named')>[3]('inode')"];
     S3 -> S4 [label = "\u03b5"];
-    S2 -> S3 [label = "('inode', 1, 'version_entity', 'inode', 3)"];
+    S2 -> S3 [label = "[1]('inode')-('version_entity')>[3]('inode')"];
     S1 -> S2 [label = "\u03b5"];
-    S0 -> S1 [label = "('inode', 0, 'version_entity', 'inode', 1)"];
     S0 -> S1 [label = "\u03b5"];
+    S0 -> S1 [label = "[0]('inode')-('version_entity')>[1]('inode')"];
 }

@@ -13,18 +13,18 @@ digraph NFA {
     S7 [label = <s<sub>7</sub>>, shape = circle];
     S8 [label = <s<sub>8</sub>>, shape = circle];
     S9 [label = <s<sub>9,1</sub>>, shape = circle, peripheries = 2];
-    S8 -> S9 [label = "('task', 5, 'setuid', 'process_memory', 6)"];
+    S8 -> S9 [label = "[5]('task')-('setuid')>[6]('process_memory')"];
     S7 -> S8 [label = "\u03b5"];
-    S6 -> S7 [label = "('process_memory', 1, 'version_entity', 'process_memory', 6)"];
+    S6 -> S7 [label = "[1]('process_memory')-('version_entity')>[6]('process_memory')"];
     S5 -> S6 [label = "\u03b5"];
-    S4 -> S5 [label = "('process_memory', 4, 'memory_read', 'task', 5)"];
+    S4 -> S5 [label = "[4]('process_memory')-('memory_read')>[5]('task')"];
     S3 -> S4 [label = "\u03b5"];
-    S2 -> S3 [label = "('task', 2, 'version_activity', 'task', 5)"];
+    S2 -> S3 [label = "[2]('task')-('version_activity')>[5]('task')"];
     S1 -> S2 [label = "\u03b5"];
     S0 -> S1 [label = "\u03b5"];
     S10 [label = <s<sub>10</sub>>, shape = circle];
     S11 [label = <s<sub>11</sub>>, shape = circle];
-    S11 -> S1 [label = "('inode', 3, 'sh_read', 'process_memory', 4)"];
+    S11 -> S1 [label = "[3]('inode')-('sh_read')>[4]('process_memory')"];
     S10 -> S11 [label = "\u03b5"];
-    S0 -> S10 [label = "('process_memory', 0, 'version_entity', 'process_memory', 4)"];
+    S0 -> S10 [label = "[0]('process_memory')-('version_entity')>[4]('process_memory')"];
 }

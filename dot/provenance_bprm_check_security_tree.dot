@@ -18,7 +18,7 @@ digraph RGL__DirectedAdjacencyGraph {9[fontsize = 8,label = ".",shape = ellipse,
 
 2 -> 1[fontsize = 8, color="#000000"]
 
-1[fontsize = 8,label = "3/arg-arg->4/process_memory",shape = rectangle, fillcolor="#fffacd", style = filled]
+1[fontsize = 8,label = "3/argv-arg->4/process_memory",shape = rectangle, fillcolor="#fffacd", style = filled]
 
 8 -> 7[fontsize = 8, color="#000000"]
 

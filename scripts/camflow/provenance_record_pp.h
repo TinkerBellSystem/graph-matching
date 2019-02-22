@@ -123,13 +123,15 @@ static int record_kernel_link(int *node)
  if (provenance_is_kernel_recorded(node) ||
      !provenance_is_recorded(node))
   return 0;
- rc = record_relation(RL_RAN_ON, prov_machine, node, NULL, 0);
- set_kernel_recorded(node);
- return rc;
+ else {
+  rc = record_relation(RL_RAN_ON, prov_machine, node, NULL, 0);
+  set_kernel_recorded(node);
+  return rc;
+ }
 }
 
 static int current_update_shst(struct provenance *cprov, int read);
-# 235 "./camflow/provenance_record.h"
+# 237 "./camflow/provenance_record.h"
 static int uses(const int type,
     struct provenance *entity,
     struct provenance *activity,
@@ -170,7 +172,7 @@ static int uses(const int type,
   return rc;
  return current_update_shst(activity_mem, false);
 }
-# 289 "./camflow/provenance_record.h"
+# 291 "./camflow/provenance_record.h"
 static int uses_two(const int type,
         struct provenance *entity,
         struct provenance *activity,
@@ -199,7 +201,7 @@ static int uses_two(const int type,
   return rc;
  return record_kernel_link(prov_entry(activity));
 }
-# 338 "./camflow/provenance_record.h"
+# 340 "./camflow/provenance_record.h"
 static int generates(const int type,
          struct provenance *activity_mem,
          struct provenance *activity,
@@ -247,7 +249,7 @@ static int generates(const int type,
  rc = record_relation(type, prov_entry(activity), prov_entry(entity), file, flags);
  return rc;
 }
-# 402 "./camflow/provenance_record.h"
+# 404 "./camflow/provenance_record.h"
 static int derives(const int type,
        struct provenance *from,
        struct provenance *to,
@@ -272,7 +274,7 @@ static int derives(const int type,
 
  return record_relation(type, prov_entry(from), prov_entry(to), file, flags);
 }
-# 443 "./camflow/provenance_record.h"
+# 445 "./camflow/provenance_record.h"
 static int informs(const int type,
        struct provenance *from,
        struct provenance *to,
@@ -321,9 +323,9 @@ static int record_influences_kernel(const int type,
      || provenance_is_opaque(prov_elt(activity)))
   return 0;
  if (!provenance_is_tracked(prov_elt(entity))
-     && !provenance_is_tracked(prov_elt(activity)))
+     && !provenance_is_tracked(prov_elt(activity))
+   && !prov_policy.prov_all)
   return 0;
-
  rc = record_relation(RL_LOAD_FILE, prov_entry(entity), prov_entry(activity), file, 0);
  if (rc < 0)
   goto out;

@@ -94,7 +94,7 @@ preprocess_task:
 analyze:
 	python main.py
 
-all: remedy_record preprocess_record remedy_hooks preprocess_hooks analyze
+all: remedy_hooks preprocess_hooks remedy_record preprocess_record remedy_inode preprocess_inode remedy_net preprocess_net remedy_task preprocess_task
 
 draw_all:
 	python draw.py

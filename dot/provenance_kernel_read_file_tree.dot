@@ -1,6 +1,6 @@
-digraph RGL__DirectedAdjacencyGraph {17[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
+digraph RGL__DirectedAdjacencyGraph {9[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
-17 -> 8[fontsize = 8, color="#000000"]
+9 -> 8[fontsize = 8, color="#000000"]
 
 8[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
 
@@ -35,33 +35,5 @@ digraph RGL__DirectedAdjacencyGraph {17[fontsize = 8,label = ".",shape = ellipse
 6 -> 5[fontsize = 8, color="#000000"]
 
 5[fontsize = 8,label = "4/inode-version_entity->5/inode",shape = rectangle, fillcolor="#fffacd", style = filled]
-
-17 -> 16[fontsize = 8, color="#000000"]
-
-16[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-16 -> 12[fontsize = 8, color="#000000"]
-
-12[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-12 -> 10[fontsize = 8, color="#000000"]
-
-10[fontsize = 8,label = "0/task-version_activity->7/task",shape = rectangle, fillcolor="#fffacd", style = filled]
-
-12 -> 11[fontsize = 8, color="#000000"]
-
-11[fontsize = 8,label = "5/inode-load_file->7/task",shape = rectangle, fillcolor="#fffacd", style = filled]
-
-16 -> 15[fontsize = 8, color="#000000"]
-
-15[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-15 -> 13[fontsize = 8, color="#000000"]
-
-13[fontsize = 8,label = "6/machine-version_entity->8/machine",shape = rectangle, fillcolor="#fffacd", style = filled]
-
-15 -> 14[fontsize = 8, color="#000000"]
-
-14[fontsize = 8,label = "0/task-load_module->8/machine",shape = rectangle, fillcolor="#fffacd", style = filled]
 
 }

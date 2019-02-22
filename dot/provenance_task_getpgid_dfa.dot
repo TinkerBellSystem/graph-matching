@@ -6,18 +6,14 @@ digraph DFA {
     S1 [label = <s<sub>1</sub>>, shape = circle];
     S2 [label = <s<sub>2</sub>>, shape = circle];
     S3 [label = <s<sub>3</sub>>, shape = circle];
-    S4 [label = <s<sub>4</sub>>, shape = circle];
+    S4 [label = <s<sub>4,1</sub>>, shape = circle, peripheries = 2];
     S5 [label = <s<sub>5</sub>>, shape = circle];
     S6 [label = <s<sub>6,1</sub>>, shape = circle, peripheries = 2];
-    S7 [label = <s<sub>7</sub>>, shape = circle];
-    S8 [label = <s<sub>8,1</sub>>, shape = circle, peripheries = 2];
-    S8 -> S7 [label = "('inode', 10, 'version_entity', 'inode', 11)"];
-    S7 -> S8 [label = "('process_memory', 9, 'sh_write', 'inode', 11)"];
-    S6 -> S7 [label = "('inode', 10, 'version_entity', 'inode', 11)"];
-    S5 -> S6 [label = "('task', 8, 'memory_write', 'process_memory', 9)"];
-    S4 -> S5 [label = "('process_memory', 0, 'version_entity', 'process_memory', 9)"];
-    S3 -> S4 [label = "('process_memory', 7, 'getpgid', 'task', 8)"];
-    S2 -> S3 [label = "('task', 6, 'version_activity', 'task', 8)"];
-    S1 -> S2 [label = "('machine', 4, 'ran_on', 'process_memory', 5)"];
-    S0 -> S1 [label = "('process_memory', 0, 'version_entity', 'process_memory', 5)"];
+    S6 -> S5 [label = "[8]('inode')-('version_entity')>[9]('inode')"];
+    S5 -> S6 [label = "[7]('process_memory')-('sh_write')>[9]('inode')"];
+    S4 -> S5 [label = "[8]('inode')-('version_entity')>[9]('inode')"];
+    S3 -> S4 [label = "[6]('task')-('memory_write')>[7]('process_memory')"];
+    S2 -> S3 [label = "[0]('process_memory')-('version_entity')>[7]('process_memory')"];
+    S1 -> S2 [label = "[5]('process_memory')-('getpgid')>[6]('task')"];
+    S0 -> S1 [label = "[4]('task')-('version_activity')>[6]('task')"];
 }

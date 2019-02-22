@@ -19,7 +19,7 @@ class MotifNode():
 	mn_kernel_version 	 -- the kernel version associated with the node (default to 0)
 	mn_is_initialized 	 -- if the node is initialized (default to False)
 	"""
-	node_id = 0	# unique motif node ID for each new node
+	node_id = 0  # unique motif node ID for each new node
 
 	def __init__(self, mn_ty):
 		self.mn_id = MotifNode.node_id
@@ -69,7 +69,7 @@ def create_motif_node(node_type):
 	return MotifNode(node_type)
 
 
-class MotifEdge():
+class MotifEdge:
 	"""An edge in the motif.
 
 	Attributes:
@@ -104,7 +104,7 @@ class MotifEdge():
 		self.dst_node.mn_id = new_id
 
 
-class RTMTreeNode():
+class RTMTreeNode:
 	"""
 	A binary tree that represents the regular temporal motif (RTM) with regular expression operators in the internal tree nodes and MotifEdges in the leaf nodes.
 
@@ -136,7 +136,7 @@ class RTMTreeNode():
 	value -- value of the node
 	nid   -- tree node ID
 	"""
-	nid = 0	# unique node ID for visualization
+	unid = 0	 # unique node ID for visualization
 
 	def __init__(self, value):
 		"""Constructor to create a node.
@@ -149,8 +149,8 @@ class RTMTreeNode():
 		self.left = None
 		self.right = None
 		self.value = value
-		self.nid = RTMTreeNode.nid
-		RTMTreeNode.nid += 1
+		self.nid = RTMTreeNode.unid
+		RTMTreeNode.update()
 
 	@property
 	def left(self):
@@ -170,6 +170,10 @@ class RTMTreeNode():
 
 	def update_value(self, new_value):
 		self.value = new_value
+
+	@classmethod
+	def update(cls):
+		cls.unid += 1
 
 
 def create_leaf_node(motif_edge):

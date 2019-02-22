@@ -23,7 +23,7 @@ class Converter:
 def _parse(rtmt):
 	"""Parsing an RTMT to a list of ASTs."""
 	if not rtmt:
-		return asts
+		return
 	else:
 		if rtmt.value == '.':
 			if rtmt.left and rtmt.right:
@@ -66,5 +66,6 @@ def _parse(rtmt):
 			diedge = Diedge(rtmt.value.src_node.mn_id, rtmt.value.src_node.mn_ty, rtmt.value.dst_node.mn_id, rtmt.value.dst_node.mn_ty, rtmt.value.me_ty)
 			return DiedgeAST(diedge)
 		else:
+			print((rtmt.value).__class__.__name__)
 			raise ValueError('unknown RTMT node')
 

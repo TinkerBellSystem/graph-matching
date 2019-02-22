@@ -205,9 +205,11 @@ static __always_inline int record_kernel_link(prov_entry_t *node)
 	if (provenance_is_kernel_recorded(node) ||
 	    !provenance_is_recorded(node))
 		return 0;
-	rc = record_relation(RL_RAN_ON, prov_machine, node, NULL, 0);
-	set_kernel_recorded(node);
-	return rc;
+	else {
+		rc = record_relation(RL_RAN_ON, prov_machine, node, NULL, 0);
+		set_kernel_recorded(node);
+		return rc;
+	}
 }
 
 static __always_inline int current_update_shst(struct provenance *cprov, bool read);
@@ -488,9 +490,9 @@ static __always_inline int record_influences_kernel(const uint64_t type,
 	    || provenance_is_opaque(prov_elt(activity)))
 		return 0;
 	if (!provenance_is_tracked(prov_elt(entity))
-	    && !provenance_is_tracked(prov_elt(activity)))
+	    && !provenance_is_tracked(prov_elt(activity))
+			&& !prov_policy.prov_all)
 		return 0;
-
 	rc = record_relation(RL_LOAD_FILE, prov_entry(entity), prov_entry(activity), file, 0);
 	if (rc < 0)
 		goto out;
