@@ -172,14 +172,14 @@ free_buf:
 # 280 "./camflow/provenance_inode.h"
 static struct provenance *get_inode_provenance(struct inode *inode, int may_sleep)
 {
- struct provenance *prov = inode->i_provenance;
+ struct provenance *iprov = inode->i_provenance;
 
  might_sleep_if(may_sleep);
- if (!provenance_is_initialized(prov_elt(prov)) && may_sleep)
-  inode_init_provenance(inode, NULL, prov);
+ if (!provenance_is_initialized(prov_elt(iprov)) && may_sleep)
+  inode_init_provenance(inode, NULL, iprov);
  if (may_sleep)
-  refresh_inode_provenance(inode, prov);
- return prov;
+  refresh_inode_provenance(inode, iprov);
+ return iprov;
 }
 # 302 "./camflow/provenance_inode.h"
 static struct provenance *get_dentry_provenance(struct dentry *dentry, int may_sleep)

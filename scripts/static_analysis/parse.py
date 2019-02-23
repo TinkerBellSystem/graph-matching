@@ -8,7 +8,7 @@
 # or (at your option) any later version.
 from __future__ import print_function
 from pycparser import c_parser, c_ast, parse_file
-from motif.rtm import MotifNode, MotifEdge, create_motif_node, create_alternation_node, create_group_node, create_leaf_node
+from motif.rtm import MotifNode, MotifEdge, create_motif_node, create_alternation_node, create_group_node, create_leaf_node, create_asterisk_node, create_question_mark_node
 from motif.provtype import provenance_relation, provenance_vertex_type, match_relation
 
 r_map = provenance_relation('camflow/type.c')
@@ -46,6 +46,8 @@ def extract_function_argument_names(function_call):
 				arg_names.append(arg.args.exprs[0].name)  # assuming only first argument in FuncCall for simplicity
 			elif type(arg).__name__ == 'Constant':
 				arg_names.append(arg.value)
+			elif type(arg).__name__ == 'StructRef':
+				arg_names.append(arg.name.name)
 			else:
 				print('\33[101m' + '\x1b[6;30;41m[x]\x1b[0m [extract_function_argument_names]  ' + type(
 					arg).__name__ + ' is not yet considered.')
@@ -202,6 +204,29 @@ def eval_function_call(caller_function_name, function_call, function_dict, motif
 		motif_node_dict[get_true_name(caller_function_name + '.' + args[1], name_dict)].append(new_motif_node)
 		motif_edge = MotifEdge(node, new_motif_node, match_relation(r_map, args[0]))
 		return None, create_leaf_node(motif_edge)
+	elif function_call.name.name == 'set_initialized':
+		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Evaluating set_initialized()')
+		args = extract_function_argument_names(function_call)
+		node = motif_node_dict[get_true_name(caller_function_name + '.' + args[0], name_dict)][-1]
+		node.mn_is_initialized = True
+		return None, None
+	elif function_call.name.name == 'node_identifier':
+		# assuming we are always updating the version of the node
+		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Evaluating node_identifier() but do nothing')
+		return None, None
+	elif function_call.name.name == 'update_inode_type':
+		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Evaluating update_inode_type()')
+		args = extract_function_argument_names(function_call)
+		node = motif_node_dict[get_true_name(caller_function_name + '.' + args[1], name_dict)][-1]
+
+		new_motif_node = MotifNode(node.mn_ty)
+		new_motif_node.mn_has_name_recorded = node.mn_has_name_recorded
+		new_motif_node.mn_kernel_version = node.mn_kernel_version
+		new_motif_node.mn_is_initialized = node.mn_is_initialized
+
+		motif_edge = MotifEdge(node, new_motif_node, match_relation(r_map, 'RL_VERSION'))
+		motif_node_dict[get_true_name(caller_function_name + '.' + args[1], name_dict)].append(new_motif_node)
+		return new_motif_node, create_question_mark_node(create_leaf_node(motif_edge))
 	elif function_call.name.name in function_dict:
 		callee_function = function_dict[function_call.name.name]
 		args = extract_function_argument_names(function_call)
@@ -255,6 +280,26 @@ def eval_function_body(function_name, function_body, function_dict, motif_node_d
 			motif_node, tree_node = eval_return(function_name, item, function_dict, motif_node_dict, name_dict)
 			if tree_node is not None:
 				tree = create_group_node(tree, tree_node)
+		elif type(item).__name__ == 'While':  # Case 6: while block
+			tree_node = eval_while(function_name, item, function_dict, motif_node_dict, name_dict)
+			if tree_node is not None:
+				tree = create_group_node(tree, tree_node)
+		elif type(item).__name__ == 'UnaryOp':		# Case 7: node_identifier(prov_elt(prov)).version++;
+			if type(item.expr).__name__ == 'StructRef':
+				if type(item.expr.name).__name__ == 'FuncCall' and item.expr.field.name == 'version':
+					motif_node, tree_node = eval_function_call(function_name, item.expr.name, function_dict, motif_node_dict, name_dict)
+				else:
+					print('\x1b[6;30;41m[x]\x1b[0m [eval_function_body] The type {} is not implemented, or the field name is not version'.format(
+						type(item.expr.name).__name__))
+					raise NotImplementedError('type not implemented properly or with the wrong field name')
+			else:
+				print('\x1b[6;30;41m[x]\x1b[0m [eval_function_body] The type {} is not implemented'.format(
+					type(item.expr).__name__))
+				raise NotImplementedError('type not implemented properly')
+		elif type(item).__name__ == 'Goto':	  # Case 8: goto
+			print('\x1b[6;30;43m[!]\x1b[0m [eval_function_body] Skipping goto statement')
+		elif type(item).__name__ == 'Label':  # Case 9: label associated with goto
+			print('\x1b[6;30;43m[!]\x1b[0m [eval_function_body] Skipping goto label')
 		else:
 			print('\x1b[6;30;41m[x]\x1b[0m [eval_function_body] The type {} is not implemented'.format(
 				type(item).__name__))
@@ -522,6 +567,9 @@ def eval_if_else(function_name, item, function_dict, motif_node_dict, name_dict)
 		motif_node, left = eval_return(function_name, true_branch, function_dict, motif_node_dict, name_dict)
 	elif type(true_branch).__name__ == 'Compound':
 		motif_node, left = eval_function_body(function_name, true_branch, function_dict, motif_node_dict, name_dict)
+	elif type(true_branch).__name__ == 'While':
+		print('\x1b[6;30;41m[x]\x1b[0m [eval_if_else]: While is not implemented properly.')
+		raise NotImplementedError("while not implemented properly")
 	else:
 		left = None
 	# evaluate the `else` branch if it exists
@@ -538,6 +586,9 @@ def eval_if_else(function_name, item, function_dict, motif_node_dict, name_dict)
 		motif_node, right = eval_function_body(function_name, false_branch, function_dict, motif_node_dict, name_dict)
 	elif type(false_branch).__name__ == 'If':  # else if case
 		right = eval_if_else(function_name, false_branch, function_dict, motif_node_dict, name_dict)
+	elif type(false_branch).__name__ == 'While':
+		print('\x1b[6;30;41m[x]\x1b[0m [eval_if_else]: While is not implemented properly.')
+		raise NotImplementedError("while not implemented properly")
 	else:
 		right = None
 
@@ -596,3 +647,28 @@ def eval_return(function_name, statement, function_dict, motif_node_dict, name_d
 		print('\x1b[6;30;43m[!]\x1b[0m [eval_return] Skipping return: {}'.format(
 			ast_snippet(statement.expr)))
 		return None, None
+
+
+def eval_while(function_name, item, function_dict, motif_node_dict, name_dict):
+	"""Evaluate While blocks.
+
+	Arguments:
+	function_name 	-- the name of the function whose if/else statement we are inspecting
+	item 			-- while block to be evaluated
+	function_dict	-- dictionary that saves all function bodies
+	motif_node_dict -- motif node map
+	name_dict 		-- name map
+
+	Returns:
+	an RTMTree, which can be None
+	"""
+	statement = item.stmt
+	if type(statement).__name__ == 'Compound':
+		motif_node, tree_node = eval_function_body(function_name, item.stmt, function_dict, motif_node_dict, name_dict)
+		if tree_node is not None:
+			return create_asterisk_node(tree_node)
+		else:
+			return None
+	else:
+		print('\x1b[6;30;41m[x]\x1b[0m [eval_if_else]: The type {} is not implemented'.format(type(statement).__name__))
+		raise NotImplementedError('type not implemented properly')
