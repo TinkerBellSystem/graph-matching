@@ -24,11 +24,11 @@ list_functions(ast_task, functions)
 
 # eval_function_body(functions['provenance_inode_alloc_security'][1], functions, {})
 
-func_body = functions['provenance_task_alloc'][1]
+func_body = functions['provenance_task_free'][1]
 motif_node_map = dict()
 kernel_node = MotifNode('machine')
 motif_node_map['record_kernel_link.prov_machine'] = [kernel_node]
-_, tree = eval_function_body('provenance_task_alloc', func_body, functions, motif_node_map, {})
+_, tree = eval_function_body('provenance_task_free', func_body, functions, motif_node_map, {})
 g = Graph()
 streamline_rtm(tree)
 visualize_rtm_tree(tree, g)

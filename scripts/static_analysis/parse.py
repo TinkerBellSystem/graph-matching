@@ -191,6 +191,17 @@ def eval_function_call(caller_function_name, function_call, function_dict, motif
 		kernel_node = motif_node_dict['record_kernel_link.prov_machine'][-1]
 		node.mn_kernel_version = kernel_node.mn_kernel_version
 		return None, None
+	elif function_call.name.name == 'record_terminate':
+		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Evaluating record_terminate()')
+		args = extract_function_argument_names(function_call)
+		node = motif_node_dict[get_true_name(caller_function_name + '.' + args[1], name_dict)][-1]
+		new_motif_node = MotifNode(node.mn_ty)
+		new_motif_node.mn_has_name_recorded = node.mn_has_name_recorded
+		new_motif_node.mn_kernel_version = node.mn_kernel_version
+		new_motif_node.mn_is_initialized = node.mn_is_initialized
+		motif_node_dict[get_true_name(caller_function_name + '.' + args[1], name_dict)].append(new_motif_node)
+		motif_edge = MotifEdge(node, new_motif_node, match_relation(r_map, args[0]))
+		return None, create_leaf_node(motif_edge)
 	elif function_call.name.name in function_dict:
 		callee_function = function_dict[function_call.name.name]
 		args = extract_function_argument_names(function_call)
