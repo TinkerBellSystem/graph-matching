@@ -152,6 +152,12 @@ def eval_function_call(caller_function_name, function_call, function_dict, motif
 		node_type = args[0]
 		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Evaluating alloc_provenance()')
 		return create_motif_node(provenance_vertex_type(node_type)), None
+	elif function_call.name.name == 'alloc_long_provenance':
+		args = extract_function_argument_names(function_call)
+		node_type = args[0]
+		# TODO: Fix record_node_name() function in provenance_record.h or try to recognize long_prov_elt in TinkerBell
+		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Evaluating alloc_long_provenance()')
+		return create_motif_node(provenance_vertex_type(node_type)), None
 	elif function_call.name.name == '__write_relation':
 		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Evaluating __write_relation()')
 		args = extract_function_argument_names(function_call)
@@ -394,7 +400,10 @@ def eval_declaration(function_name, declaration, function_dict, motif_node_dict,
 	if (type(declaration.type).__name__ == 'PtrDecl' and type(declaration.type.type).__name__ == 'TypeDecl' and type(
 			declaration.type.type.type).__name__ == 'Struct' and declaration.type.type.type.name == 'provenance') or \
 			(type(declaration.type).__name__ == 'TypeDecl' and type(
-				declaration.type.type).__name__ == 'Struct' and declaration.type.type.name == 'provenance'):
+				declaration.type.type).__name__ == 'Struct' and declaration.type.type.name == 'provenance') or \
+			(type(declaration.type).__name__ == 'PtrDecl' and type(
+				declaration.type.type).__name__ == 'TypeDecl' and type(
+				declaration.type.type.type).__name__ == 'Union' and declaration.type.type.type.name == 'long_prov_elt'):
 		# if it is immediately assigned by a function call
 		if type(declaration.init).__name__ == 'FuncCall':
 			motif_node, tree_node = eval_function_call(function_name, declaration.init, function_dict, motif_node_dict, name_dict)
@@ -626,7 +635,7 @@ def eval_return(function_name, statement, function_dict, motif_node_dict, name_d
 	Arguments:
 
 	function_name 	-- the name of the function whose return statement we are inspecting
-	statement 		-- return statementto be evaluated
+	statement 		-- return statement to be evaluated
 	function_dict	-- dictionary that saves all function bodies
 	motif_node_dict -- motif node map
 	name_dict		-- name map
@@ -638,7 +647,7 @@ def eval_return(function_name, statement, function_dict, motif_node_dict, name_d
 		return eval_function_call(function_name, statement.expr, function_dict, motif_node_dict, name_dict)
 	elif type(statement.expr).__name__ == 'ID':
 		if get_true_name(function_name + '.' + statement.expr.name, name_dict) in motif_node_dict:
-			return motif_node_dict[get_true_name(function_name + '.' + statement.expr.name, name_dict)], None
+			return motif_node_dict[get_true_name(function_name + '.' + statement.expr.name, name_dict)][-1], None
 		else:
 			print('\x1b[6;30;43m[!]\x1b[0m [eval_return] Skipping return due to unrecognized lvalue: {}'.format(
 				ast_snippet(statement.expr.name)))

@@ -78,6 +78,8 @@ def provenance_vertex_type(v_name):
 		or v_name == 'oprov' \
 		or v_name == 'ENT_INODE_UNKNOWN':
 		return 'inode'
+	elif v_name == 'ENT_PATH':
+		return 'path'
 	elif v_name == 'mprov' or v_name == 'ENT_MSG':
 		return 'msg'
 	elif v_name == 'sprov' or v_name == 'ENT_SHM':
