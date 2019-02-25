@@ -122,7 +122,11 @@ def list_functions(ast, dictionary):
 			elif type(function_decl.type.args).__name__ == 'ParamList':
 				function_params = function_decl.type.args.params
 				for param in function_params:
-					param_names.append(param.name)
+					if type(param.type).__name__ == 'TypeDecl' and type(param.type.type).__name__ == 'IdentifierType'\
+							and param.type.type.names[0] == 'void':
+						pass
+					else:
+						param_names.append(param.name)
 			else:
 				#######################################################
 				# We will consider other conditions if we ever see them
@@ -233,6 +237,10 @@ def eval_function_call(caller_function_name, function_call, function_dict, motif
 		motif_edge = MotifEdge(node, new_motif_node, match_relation(r_map, 'RL_VERSION'))
 		motif_node_dict[get_true_name(caller_function_name + '.' + args[1], name_dict)].append(new_motif_node)
 		return new_motif_node, create_question_mark_node(create_leaf_node(motif_edge))
+	elif function_call.name.name == 'current_provenance':
+		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Evaluating current_provenance()')
+		new_motif_node = MotifNode('process_memory')
+		return new_motif_node, None
 	elif function_call.name.name in function_dict:
 		callee_function = function_dict[function_call.name.name]
 		args = extract_function_argument_names(function_call)
@@ -443,10 +451,16 @@ def eval_declaration(function_name, declaration, function_dict, motif_node_dict,
 			return None
 		# if it is not set at all, then it must be set later
 		elif type(declaration.init).__name__ == 'NoneType':
-			if get_true_name(function_name + '.' + declaration.name, name_dict) in motif_node_dict:
+			# TODO: EXCEPTION. for a short-lived union long_prov_elt *fname_prov; We will reset the value.
+			# TODO: We should make sure name conflicts do not exist within function calls of different levels?
+			if type(declaration.type).__name__ == 'PtrDecl' and type(
+				declaration.type.type).__name__ == 'TypeDecl' and type(
+				declaration.type.type.type).__name__ == 'Union' and declaration.type.type.type.name == 'long_prov_elt':
+				motif_node_dict[get_true_name(function_name + '.' + declaration.name, name_dict)] = []
+			elif get_true_name(function_name + '.' + declaration.name, name_dict) in motif_node_dict:
 				print(
 					'\x1b[6;30;41m[x]\x1b[0m [eval_declaration] {} is not set and should not already be in the dictionary.'.format(
-						declaration.name))
+						get_true_name(function_name + '.' + declaration.name, name_dict)))
 				raise RuntimeError('motif node is not set and should not have existed already')
 			else:
 				############################################
@@ -466,9 +480,15 @@ def eval_declaration(function_name, declaration, function_dict, motif_node_dict,
 		else:
 			if get_true_name(function_name + '.' + declaration.name, name_dict) in motif_node_dict:
 				print(
-					'\x1b[6;30;41m[x]\x1b[0m [eval_declaration]: {} is not set in an unknown way but should not already be in the dictionary.'.format(
+					'\x1b[6;30;41m[x]\x1b[0m [eval_declaration]: {} is not set in an unknown way but should not already'
+					' be in the dictionary. We will reset anyways. Check for correctness needed.'.format(
 						declaration.name))
-				raise RuntimeError('motif node is not set in an unknown way but should not have existed already')
+				# raise RuntimeError('motif node is not set in an unknown way but should not have existed already')
+				# TODO: EXCEPTION. provenance_task_setpgid() hook calls get_inode_provenance() multiple times
+				#  which leads to recurrent `iprov` variable.
+				# TODO: We should make sure name conflicts do not exist within function calls of different levels?
+				motif_node_dict[get_true_name(function_name + '.' + declaration.name, name_dict)] = [
+					create_motif_node(provenance_vertex_type(declaration.name))]
 			else:
 				motif_node_dict[get_true_name(function_name + '.' + declaration.name, name_dict)] = [create_motif_node(provenance_vertex_type(declaration.name))]
 				print('\x1b[6;30;43m[!]\x1b[0m [eval_declaration] Inferring motif node from its name {}'.format(declaration.name))

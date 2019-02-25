@@ -112,9 +112,9 @@ static int provenance_cred_prepare(struct cred *new,
 static void provenance_cred_transfer(struct cred *new, const struct cred *old)
 {
  const struct provenance *old_prov = old->provenance;
- struct provenance *prov = new->provenance;
+ struct provenance *cprov = new->provenance;
 
- *prov = *old_prov;
+ *cprov = *old_prov;
 }
 # 279 "./camflow/hooks.c"
 static int provenance_task_fix_setuid(struct cred *new,

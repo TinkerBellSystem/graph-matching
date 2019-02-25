@@ -24,14 +24,14 @@ list_functions(ast_task, functions)
 
 # eval_function_body(functions['provenance_inode_alloc_security'][1], functions, {})
 
-# func_body = functions['update_inode_type'][1]
+# func_body = functions['get_cred_provenance'][1]
 # print(func_body)
 
-func_body = functions['provenance_cred_prepare'][1]
+func_body = functions['provenance_task_setpgid'][1]
 motif_node_map = dict()
 kernel_node = MotifNode('machine')
 motif_node_map['record_kernel_link.prov_machine'] = [kernel_node]
-_, tree = eval_function_body('provenance_cred_prepare', func_body, functions, motif_node_map, {})
+_, tree = eval_function_body('provenance_task_setpgid', func_body, functions, motif_node_map, {})
 g = Graph()
 streamline_rtm(tree)
 visualize_rtm_tree(tree, g)
