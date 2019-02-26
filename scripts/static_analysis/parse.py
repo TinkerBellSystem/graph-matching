@@ -273,6 +273,9 @@ def eval_function_body(function_name, function_body, function_dict, motif_node_d
 	motif_node = None
 	tree = None
 
+	if function_body.block_items is None:
+		return None, None
+
 	for item in function_body.block_items:
 		if type(item).__name__ == 'FuncCall':  # Case 1: provenance-graph-related function call
 			motif_node, tree_node = eval_function_call(function_name, item, function_dict, motif_node_dict, name_dict)
@@ -380,6 +383,9 @@ def eval_assignment(function_name, assignment, function_dict, motif_node_dict, n
 		print('\x1b[6;30;43m[!]\x1b[0m [eval_assignment] Skipping assignment: {}'.format(ast_snippet(assignment)))
 		return None
 	elif type(assignment.lvalue).__name__ == 'FuncCall':
+		print('\x1b[6;30;43m[!]\x1b[0m [eval_assignment] Skipping assignment: {}'.format(ast_snippet(assignment)))
+		return None
+	elif type(assignment.lvalue).__name__ == 'ArrayRef':
 		print('\x1b[6;30;43m[!]\x1b[0m [eval_assignment] Skipping assignment: {}'.format(ast_snippet(assignment)))
 		return None
 	else:

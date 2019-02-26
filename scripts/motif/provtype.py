@@ -96,6 +96,12 @@ def provenance_vertex_type(v_name):
 		return 'argv'
 	elif v_name == 'ENT_ENV':
 		return 'env'
+	elif v_name == 'ENT_XATTR':
+		return 'xattr'
+	elif v_name == 'ENT_ADDR':
+		return 'addr'
+	elif v_name == 'ENT_SBLCK':
+		return 'sb'
 	else:
 		print('\x1b[6;30;41m[x]\x1b[0m [provenance_vertex_type]: Unknown vertex type {} '.format(v_name))
 		raise ValueError('unknown vertex type')
