@@ -100,8 +100,10 @@ def provenance_vertex_type(v_name):
 		return 'xattr'
 	elif v_name == 'ENT_ADDR':
 		return 'addr'
-	elif v_name == 'ENT_SBLCK':
+	elif v_name == 'ENT_SBLCK' or v_name == 'sbprov':
 		return 'sb'
+	elif v_name == 'ENT_PCKCNT':
+		return 'pckcnt'
 	else:
 		print('\x1b[6;30;41m[x]\x1b[0m [provenance_vertex_type]: Unknown vertex type {} '.format(v_name))
 		raise ValueError('unknown vertex type')

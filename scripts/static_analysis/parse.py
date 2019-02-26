@@ -43,11 +43,24 @@ def extract_function_argument_names(function_call):
 			elif type(arg).__name__ == 'UnaryOp':
 				arg_names.append(arg.expr.name)
 			elif type(arg).__name__ == 'FuncCall':
-				arg_names.append(arg.args.exprs[0].name)  # assuming only first argument in FuncCall for simplicity
+				# assuming only first argument in FuncCall for simplicity
+				if type(arg.args.exprs[0]).__name__ == 'ID':
+					# e.g.: FuncCall(foo(a));
+					arg_names.append(arg.args.exprs[0].name)
+				elif type(arg.args.exprs[0]).__name__ == 'UnaryOp':
+					# e.g.: FuncCall(foo(&a));
+					arg_names.append(arg.args.exprs[0].expr.name)
+				else:
+					print('\33[101m' + '\x1b[6;30;41m[x]\x1b[0m [extract_function_argument_names]  ' + type(
+						arg.args.exprs[0]).__name__ + ' is not yet considered.')
+					raise NotImplementedError('type not implemented properly')
 			elif type(arg).__name__ == 'Constant':
 				arg_names.append(arg.value)
 			elif type(arg).__name__ == 'StructRef':
 				arg_names.append(arg.name.name)
+			elif type(arg).__name__ == 'BinaryOp':
+				# TODO: this case exists in `get_arg_page()` but the value itself is not relevant. So we just use left.
+				arg_names.append(arg.left.name)
 			else:
 				print('\33[101m' + '\x1b[6;30;41m[x]\x1b[0m [extract_function_argument_names]  ' + type(
 					arg).__name__ + ' is not yet considered.')
@@ -153,12 +166,12 @@ def eval_function_call(caller_function_name, function_call, function_dict, motif
 	"""
 	if function_call.name.name == "alloc_provenance":
 		args = extract_function_argument_names(function_call)
-		node_type = args[0]
+		node_type = get_true_name(caller_function_name + '.' + args[0], name_dict).split('.')[-1]
 		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Evaluating alloc_provenance()')
 		return create_motif_node(provenance_vertex_type(node_type)), None
 	elif function_call.name.name == 'alloc_long_provenance':
 		args = extract_function_argument_names(function_call)
-		node_type = args[0]
+		node_type = get_true_name(caller_function_name + '.' + args[0], name_dict).split('.')[-1]
 		# TODO: Fix record_node_name() function in provenance_record.h or try to recognize long_prov_elt in TinkerBell
 		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Evaluating alloc_long_provenance()')
 		return create_motif_node(provenance_vertex_type(node_type)), None
@@ -241,6 +254,11 @@ def eval_function_call(caller_function_name, function_call, function_dict, motif
 		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Evaluating current_provenance()')
 		new_motif_node = MotifNode('process_memory')
 		return new_motif_node, None
+	elif function_call.name.name == 'task_cred_xxx':
+		# TODO: simnply return a MotifNode with `process_memory` type but does not associate it with the task
+		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Evaluating task_cred_xxx()')
+		new_motif_node = MotifNode('process_memory')
+		return new_motif_node, None
 	elif function_call.name.name in function_dict:
 		callee_function = function_dict[function_call.name.name]
 		args = extract_function_argument_names(function_call)
@@ -317,6 +335,13 @@ def eval_function_body(function_name, function_body, function_dict, motif_node_d
 			print('\x1b[6;30;43m[!]\x1b[0m [eval_function_body] Skipping goto statement')
 		elif type(item).__name__ == 'Label':  # Case 9: label associated with goto
 			print('\x1b[6;30;43m[!]\x1b[0m [eval_function_body] Skipping goto label')
+		elif type(item).__name__ == 'Switch':  # Case 10: Switch statement
+			tree_node = eval_switch(function_name, item, function_dict, motif_node_dict, name_dict)
+			if tree_node is not None:
+				tree = create_group_node(tree, tree_node)
+		elif type(item).__name__ == 'For':  # Case 11: For loop
+			# TODO: only occurs in `provenance_sb_kern_mount` and does not affect motifs, so we ignore for now
+			pass
 		else:
 			print('\x1b[6;30;41m[x]\x1b[0m [eval_function_body] The type {} is not implemented'.format(
 				type(item).__name__))
@@ -439,11 +464,15 @@ def eval_declaration(function_name, declaration, function_dict, motif_node_dict,
 		elif type(declaration.init).__name__ == 'ID':
 			if declaration.init.name == 'NULL':
 				# it should be the first time we see the name in the dictionary
+				# TODO: We should make sure name conflicts do not exist within function calls of different levels?
+				# TODO: More cases where this restraint causes failure. Remove the restraint for now.
 				if get_true_name(function_name + '.' + declaration.name, name_dict) in motif_node_dict:
 					print(
-						'\x1b[6;30;41m[x]\x1b[0m [eval_declaration] {} is set to NULL and should not already be in the dictionary.'.format(
-							declaration.name))
-					raise RuntimeError('motif node is set to NULL and should not have existed already')
+						'\x1b[6;30;41m[x]\x1b[0m [eval_declaration] {} is set to NULL and should not already be in the dictionary.'
+						' We will reset anyways. Check for correctness.'
+							.format(get_true_name(function_name + '.' + declaration.name, name_dict)))
+					# raise RuntimeError('motif node is set to NULL and should not have existed already')
+					motif_node_dict[get_true_name(function_name + '.' + declaration.name, name_dict)] = []
 				else:
 					motif_node_dict[get_true_name(function_name + '.' + declaration.name, name_dict)] = []
 			else:
@@ -468,23 +497,24 @@ def eval_declaration(function_name, declaration, function_dict, motif_node_dict,
 			if get_true_name(function_name + '.' + declaration.name, name_dict) in motif_node_dict:
 				print(
 					'\x1b[6;30;41m[x]\x1b[0m [eval_declaration] {} is not set and should not already be in the dictionary.'
-					'We will reset anyways. Check for correctness.'.format(
+					' We will reset anyways. Check for correctness.'.format(
 						get_true_name(function_name + '.' + declaration.name, name_dict)))
 				# raise RuntimeError('motif node is not set and should not have existed already')
 				motif_node_dict[get_true_name(function_name + '.' + declaration.name, name_dict)] = []
 			else:
 				############################################
-				# We would encounter an exception here!
+				# TODO: EXCEPTION. We would encounter an exception here!
 				# TODO: Refactoring CamFlow Code is required
 				############################################
 				#################################################################
-				# The following hack should not exist in TinkerBell Motif Engine.
+				# TODO: The following hack should not exist in TinkerBell Motif Engine.
 				#################################################################
-				# if declaration.name == 'pckprov':
-				# motif_node_dict[declaration.name] = [create_motif_node(provenance_vertex_type(declaration.name))]
-				# else:
+				if declaration.name == 'pckprov':
+					motif_node_dict[get_true_name(function_name + '.' + declaration.name, name_dict)] = \
+						[create_motif_node(provenance_vertex_type(declaration.name))]
+				else:
 				#################################################################
-				motif_node_dict[get_true_name(function_name + '.' + declaration.name, name_dict)] = []
+					motif_node_dict[get_true_name(function_name + '.' + declaration.name, name_dict)] = []
 			return None
 		# it must be set through other methods, so we can only infer the type from its name
 		else:
@@ -609,6 +639,9 @@ def eval_if_else(function_name, item, function_dict, motif_node_dict, name_dict)
 	elif type(true_branch).__name__ == 'While':
 		print('\x1b[6;30;41m[x]\x1b[0m [eval_if_else]: While is not implemented properly.')
 		raise NotImplementedError("while not implemented properly")
+	elif type(true_branch).__name__ == 'Switch':
+		print('\x1b[6;30;41m[x]\x1b[0m [eval_if_else]: Switch is not implemented properly.')
+		raise NotImplementedError("Switch not implemented properly")
 	else:
 		left = None
 	# evaluate the `else` branch if it exists
@@ -628,6 +661,9 @@ def eval_if_else(function_name, item, function_dict, motif_node_dict, name_dict)
 	elif type(false_branch).__name__ == 'While':
 		print('\x1b[6;30;41m[x]\x1b[0m [eval_if_else]: While is not implemented properly.')
 		raise NotImplementedError("while not implemented properly")
+	elif type(false_branch).__name__ == 'Switch':
+		print('\x1b[6;30;41m[x]\x1b[0m [eval_if_else]: Switch is not implemented properly.')
+		raise NotImplementedError("Switch not implemented properly")
 	else:
 		right = None
 
@@ -710,4 +746,52 @@ def eval_while(function_name, item, function_dict, motif_node_dict, name_dict):
 			return None
 	else:
 		print('\x1b[6;30;41m[x]\x1b[0m [eval_if_else]: The type {} is not implemented'.format(type(statement).__name__))
+		raise NotImplementedError('type not implemented properly')
+
+
+def eval_switch(function_name, item, function_dict, motif_node_dict, name_dict):
+	"""Evaluate Switch blocks.
+
+		Arguments:
+		function_name 	-- the name of the function whose if/else statement we are inspecting
+		item 			-- while block to be evaluated
+		function_dict	-- dictionary that saves all function bodies
+		motif_node_dict -- motif node map
+		name_dict 		-- name map
+
+		Returns:
+		an RTMTree, which can be None
+	"""
+	statement = item.stmt
+	if type(statement).__name__ == 'Compound':
+		options = statement.block_items
+		tree = None
+		for op in options:
+			if type(op).__name__ == 'Case' or type(op).__name__ == 'Default':
+				opstmts = op.stmts
+				tree_node = None
+				for opstmt in opstmts:
+					if type(opstmt).__name__ == 'Assignment':
+						node = eval_assignment(function_name, opstmt, function_dict, motif_node_dict, name_dict)
+						if node is not None:
+							tree_node = create_group_node(tree_node, node)
+					elif type(opstmt).__name__ == 'FuncCall':
+						motif_node, node = eval_function_call(function_name, opstmt, function_dict, motif_node_dict, name_dict)
+						if node is not None:
+							tree_node = create_group_node(tree_node, node)
+					elif type(opstmt).__name__ == 'Break':
+						pass
+					else:
+						print('\x1b[6;30;41m[x]\x1b[0m [eval_switch]: The type {} is not implemented'.format(
+							type(opstmt).__name__))
+						raise NotImplementedError('type not implemented properly')
+				if tree_node is not None:
+					tree = create_alternation_node(tree, tree_node)
+			else:
+				print('\x1b[6;30;41m[x]\x1b[0m [eval_switch]: The type {} is not implemented'.format(
+					type(op).__name__))
+				raise NotImplementedError('type not implemented properly')
+		return tree
+	else:
+		print('\x1b[6;30;41m[x]\x1b[0m [eval_switch]: The type {} is not implemented'.format(type(statement).__name__))
 		raise NotImplementedError('type not implemented properly')
