@@ -453,15 +453,19 @@ def eval_declaration(function_name, declaration, function_dict, motif_node_dict,
 		elif type(declaration.init).__name__ == 'NoneType':
 			# TODO: EXCEPTION. for a short-lived union long_prov_elt *fname_prov; We will reset the value.
 			# TODO: We should make sure name conflicts do not exist within function calls of different levels?
-			if type(declaration.type).__name__ == 'PtrDecl' and type(
-				declaration.type.type).__name__ == 'TypeDecl' and type(
-				declaration.type.type.type).__name__ == 'Union' and declaration.type.type.type.name == 'long_prov_elt':
-				motif_node_dict[get_true_name(function_name + '.' + declaration.name, name_dict)] = []
-			elif get_true_name(function_name + '.' + declaration.name, name_dict) in motif_node_dict:
+			# TODO: More cases where this restraint causes failure. Remove the restraint for now.
+			# if type(declaration.type).__name__ == 'PtrDecl' and type(
+			# 	declaration.type.type).__name__ == 'TypeDecl' and type(
+			# 	declaration.type.type.type).__name__ == 'Union' and declaration.type.type.type.name == 'long_prov_elt':
+			# 	motif_node_dict[get_true_name(function_name + '.' + declaration.name, name_dict)] = []
+			# elif get_true_name(function_name + '.' + declaration.name, name_dict) in motif_node_dict:
+			if get_true_name(function_name + '.' + declaration.name, name_dict) in motif_node_dict:
 				print(
-					'\x1b[6;30;41m[x]\x1b[0m [eval_declaration] {} is not set and should not already be in the dictionary.'.format(
+					'\x1b[6;30;41m[x]\x1b[0m [eval_declaration] {} is not set and should not already be in the dictionary.'
+					'We will reset anyways. Check for correctness.'.format(
 						get_true_name(function_name + '.' + declaration.name, name_dict)))
-				raise RuntimeError('motif node is not set and should not have existed already')
+				# raise RuntimeError('motif node is not set and should not have existed already')
+				motif_node_dict[get_true_name(function_name + '.' + declaration.name, name_dict)] = []
 			else:
 				############################################
 				# We would encounter an exception here!
@@ -481,7 +485,7 @@ def eval_declaration(function_name, declaration, function_dict, motif_node_dict,
 			if get_true_name(function_name + '.' + declaration.name, name_dict) in motif_node_dict:
 				print(
 					'\x1b[6;30;41m[x]\x1b[0m [eval_declaration]: {} is not set in an unknown way but should not already'
-					' be in the dictionary. We will reset anyways. Check for correctness needed.'.format(
+					' be in the dictionary. We will reset anyways. Check for correctness.'.format(
 						declaration.name))
 				# raise RuntimeError('motif node is not set in an unknown way but should not have existed already')
 				# TODO: EXCEPTION. provenance_task_setpgid() hook calls get_inode_provenance() multiple times
