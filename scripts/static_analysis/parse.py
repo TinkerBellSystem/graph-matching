@@ -11,7 +11,7 @@ from pycparser import c_parser, c_ast, parse_file
 from motif.rtm import MotifNode, MotifEdge, create_motif_node, create_alternation_node, create_group_node, create_leaf_node, create_asterisk_node, create_question_mark_node
 from motif.provtype import provenance_relation, provenance_vertex_type, match_relation
 
-r_map = provenance_relation('camflow/type.c')
+r_map = provenance_relation('./camflow-dev/security/provenance/type.c')
 
 
 def ast_snippet(ast_snippet):
