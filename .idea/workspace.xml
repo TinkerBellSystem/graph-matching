@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="24f504e0-b978-4458-b6d5-5380d5ef79cb" name="Default Changelist" comment="Make more progress. Current hook still failing. inode name is complex. Update provenance_inode.h">
+    <list default="true" id="24f504e0-b978-4458-b6d5-5380d5ef79cb" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/static_analysis/parse.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/static_analysis/parse.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/test.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -14,11 +12,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/scripts/static_analysis/parse.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="583">
-              <caret line="483" column="13" lean-forward="true" selection-start-line="483" selection-start-column="13" selection-end-line="483" selection-end-column="13" />
+            <state relative-caret-position="242">
+              <caret line="185" column="53" selection-start-line="185" selection-start-column="37" selection-end-line="185" selection-end-column="53" />
               <folding>
                 <element signature="e#379#416#0" expanded="true" />
               </folding>
@@ -29,8 +27,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/scripts/test.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="103">
-              <caret line="32" column="65" lean-forward="true" selection-start-line="32" selection-start-column="65" selection-end-line="32" selection-end-column="65" />
+            <state relative-caret-position="555">
+              <caret line="37" column="51" selection-start-line="37" selection-start-column="51" selection-end-line="37" selection-end-column="51" />
               <folding>
                 <element signature="e#0#37#0" expanded="true" />
               </folding>
@@ -38,56 +36,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/scripts/camflow/hooks.c">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="247">
-              <caret line="462" column="38" selection-start-line="462" selection-start-column="11" selection-end-line="462" selection-end-column="38" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/dot/0_tree.dot">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="90">
-              <caret line="762" column="1" selection-start-column="37" selection-end-line="762" selection-end-column="1" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/scripts/camflow/provenance_record.h">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="159">
-              <caret line="214" column="46" selection-start-line="214" selection-start-column="27" selection-end-line="214" selection-end-column="46" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/scripts/motif/rtm.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1470">
-              <caret line="31" selection-start-line="31" selection-end-line="31" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/scripts/camflow/provenance_task.h">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="399">
-              <caret line="183" column="44" selection-start-line="183" selection-start-column="44" selection-end-line="183" selection-end-column="44" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/scripts/camflow/provenance_inode.h">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="252">
-              <caret line="279" column="62" selection-start-line="279" selection-start-column="42" selection-end-line="279" selection-end-column="62" />
+            <state relative-caret-position="900">
+              <caret line="60" column="44" selection-end-line="74" selection-end-column="1" />
             </state>
           </provider>
         </entry>
@@ -95,20 +48,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/scripts/motif/provtype.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-7">
-              <caret line="58" column="58" lean-forward="true" selection-start-line="58" selection-start-column="58" selection-end-line="58" selection-end-column="58" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/scripts/provenance_tree.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1">
-              <caret line="634" column="37" lean-forward="true" selection-start-line="634" selection-start-column="37" selection-end-line="634" selection-end-column="37" />
-              <folding>
-                <element signature="e#384#393#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="563">
+              <caret line="102" column="51" selection-start-line="102" selection-start-column="45" selection-end-line="102" selection-end-column="51" />
             </state>
           </provider>
         </entry>
@@ -124,36 +65,36 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>uses_</find>
-      <find>create_leaf_node</find>
-      <find>filter_update_node</find>
-      <find>provenance_task_alloc</find>
-      <find>set_kernel_recorded</find>
-      <find>match_relation</find>
-      <find>uses_two</find>
-      <find>informs</find>
-      <find>record_terminate</find>
-      <find>record_</find>
-      <find>record_inode_name_from_dentry</find>
-      <find>record_relation</find>
-      <find>update_inode</find>
-      <find>inode</find>
-      <find>provenance_task_fix_setuid</find>
-      <find>get_cred</find>
-      <find>refresh_inode_provenance</find>
-      <find>record_task_name</find>
-      <find>get_file_provenance</find>
-      <find>inode_init_provenance</find>
-      <find>update_inode_type</find>
-      <find>refresh_</find>
-      <find>record_inode_name</find>
-      <find>record_node_name</find>
-      <find>get_task_provenance</find>
-      <find>get_cred_provenance</find>
-      <find>get_inode_provenance</find>
-      <find>record_kernel_link</find>
-      <find>current_update_shst</find>
       <find>We will reset</find>
+      <find>current_update_shst</find>
+      <find>queue_save_provenance</find>
+      <find>provenance_inode_post_setxattr</find>
+      <find>provenance_kernel_read_file</find>
+      <find>provenance_file_send_sigiotask</find>
+      <find>__mq_msgrcv</find>
+      <find>provenance_socket_socketpair</find>
+      <find>record_influences_kernel</find>
+      <find>alloc_long_provenance</find>
+      <find>get_cred_provenance</find>
+      <find>get_socket_inode_provenance</find>
+      <find>provenance_socket_recvmsg_always</find>
+      <find>get_sk_provenance</find>
+      <find>provenance_vertex_type</find>
+      <find>record_write_xattr</find>
+      <find>sbprov</find>
+      <find>record_packet_content</find>
+      <find>provenance_sb_kern_mount</find>
+      <find>acct_arg_size</find>
+      <find>provenance_bprm_check_security</find>
+      <find>record_args</find>
+      <find>copy_argv_bprm</find>
+      <find>get_arg_page</find>
+      <find>record_arg</find>
+      <find>provenance_parse_skb_ipv4</find>
+      <find>provenance_socket_sock_rcv_skb</find>
+      <find>record_kernel_link</find>
+      <find>record_relation</find>
+      <find>__update_version</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -164,7 +105,6 @@
       <list>
         <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/scripts/static_analysis/functions.py" />
-        <option value="$PROJECT_DIR$/scripts/camflow/provenance_net.h" />
         <option value="$PROJECT_DIR$/scripts/camflow/type.c" />
         <option value="$PROJECT_DIR$/scripts/Makefile" />
         <option value="$PROJECT_DIR$/scripts/motif/rtm.py" />
@@ -173,10 +113,11 @@
         <option value="$PROJECT_DIR$/scripts/camflow/provenance_record.h" />
         <option value="$PROJECT_DIR$/scripts/camflow/provenance_inode.h" />
         <option value="$PROJECT_DIR$/scripts/camflow/hooks.c" />
-        <option value="$PROJECT_DIR$/scripts/motif/provtype.py" />
         <option value="$PROJECT_DIR$/scripts/camflow/provenance_task.h" />
-        <option value="$PROJECT_DIR$/scripts/test.py" />
+        <option value="$PROJECT_DIR$/scripts/camflow/provenance_net.h" />
+        <option value="$PROJECT_DIR$/scripts/motif/provtype.py" />
         <option value="$PROJECT_DIR$/scripts/static_analysis/parse.py" />
+        <option value="$PROJECT_DIR$/scripts/test.py" />
       </list>
     </option>
   </component>
@@ -201,12 +142,6 @@
               <item name="graph-matching" type="b2602c69:ProjectViewProjectNode" />
               <item name="graph-matching" type="462c0819:PsiDirectoryNode" />
               <item name="scripts" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="graph-matching" type="b2602c69:ProjectViewProjectNode" />
-              <item name="graph-matching" type="462c0819:PsiDirectoryNode" />
-              <item name="scripts" type="462c0819:PsiDirectoryNode" />
-              <item name="camflow" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="graph-matching" type="b2602c69:ProjectViewProjectNode" />
@@ -261,7 +196,7 @@
       <workItem from="1550788930978" duration="1131000" />
       <workItem from="1550838144503" duration="18816000" />
       <workItem from="1550871957782" duration="13567000" />
-      <workItem from="1551120345210" duration="12003000" />
+      <workItem from="1551120345210" duration="27158000" />
     </task>
     <task id="LOCAL-00001" summary="Make more progress. One hook is verified. Some TODOs left.">
       <created>1550879170776</created>
@@ -291,17 +226,38 @@
       <option name="project" value="LOCAL" />
       <updated>1551138486330</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Remove a constraint in `eval_declaration` regarding the name. This allows the hook `provenance_task_setpgid` to pass. But we need to check for correctness.">
+      <created>1551142571807</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1551142571807</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Tested all hooks. 11 hooks left to fix.">
+      <created>1551145990672</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1551145990672</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Tested all hooks. All have passed. Now check for corretness of generated motifs.">
+      <created>1551197084747</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1551197084747</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="73029000" />
+    <option name="totallyTimeSpent" value="88184000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-2560" y="0" width="2560" height="1440" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.0802224" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.0802224" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -315,7 +271,7 @@
       <window_info anchor="bottom" id="Version Control" order="8" />
       <window_info anchor="bottom" id="Database Changes" order="9" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="11" visible="true" weight="0.2919708" />
+      <window_info anchor="bottom" id="Terminal" order="11" visible="true" weight="0.41532847" />
       <window_info anchor="bottom" id="Python Console" order="12" weight="0.34160584" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -357,7 +313,10 @@
     <MESSAGE value="Make more progress. Two hooks are verified. Some TODOs left." />
     <MESSAGE value="Make more progress. Current hook still failing. inode name is complex. Update provenance_inode.h" />
     <MESSAGE value="&quot;provenance_cred_prepare&quot; contains multiple functions being called several times. This may be common in other hooks too. Add several TODOs to make sure we can handle those cases." />
-    <option name="LAST_COMMIT_MESSAGE" value="&quot;provenance_cred_prepare&quot; contains multiple functions being called several times. This may be common in other hooks too. Add several TODOs to make sure we can handle those cases." />
+    <MESSAGE value="Remove a constraint in `eval_declaration` regarding the name. This allows the hook `provenance_task_setpgid` to pass. But we need to check for correctness." />
+    <MESSAGE value="Tested all hooks. 11 hooks left to fix." />
+    <MESSAGE value="Tested all hooks. All have passed. Now check for corretness of generated motifs." />
+    <option name="LAST_COMMIT_MESSAGE" value="Tested all hooks. All have passed. Now check for corretness of generated motifs." />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/scripts/motif/__init__.py">
@@ -482,13 +441,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/scripts/camflow/provenance_net.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="695">
-          <caret line="357" lean-forward="true" selection-start-line="357" selection-end-line="357" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/scripts/provenance_tree.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1">
@@ -499,72 +451,90 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/scripts/motif/provtype.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-7">
-          <caret line="58" column="58" lean-forward="true" selection-start-line="58" selection-start-column="58" selection-end-line="58" selection-end-column="58" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/dot/0_tree.dot">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="762" column="1" selection-start-column="37" selection-end-line="762" selection-end-column="1" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/scripts/motif/rtm.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1470">
-          <caret line="31" selection-start-line="31" selection-end-line="31" />
+        <state relative-caret-position="360">
+          <caret line="153" lean-forward="true" selection-start-line="153" selection-end-line="153" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/motif/provtype.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="563">
+          <caret line="102" column="51" selection-start-line="102" selection-start-column="45" selection-end-line="102" selection-end-column="51" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/scripts/camflow/provenance_inode.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="252">
-          <caret line="279" column="62" selection-start-line="279" selection-start-column="42" selection-end-line="279" selection-end-column="62" />
+        <state relative-caret-position="490">
+          <caret line="408" column="57" lean-forward="true" selection-start-line="408" selection-start-column="57" selection-end-line="408" selection-end-column="57" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/scripts/camflow/hooks.c">
+    <entry file="file://$PROJECT_DIR$/scripts/camflow/provenance_task.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="247">
-          <caret line="462" column="38" selection-start-line="462" selection-start-column="11" selection-end-line="462" selection-end-column="38" />
+        <state relative-caret-position="944">
+          <caret line="594" column="32" selection-start-line="594" selection-start-column="25" selection-end-line="594" selection-end-column="32" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/scripts/test.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="103">
-          <caret line="32" column="65" lean-forward="true" selection-start-line="32" selection-start-column="65" selection-end-line="32" selection-end-column="65" />
+        <state relative-caret-position="555">
+          <caret line="37" column="51" selection-start-line="37" selection-start-column="51" selection-end-line="37" selection-end-column="51" />
           <folding>
             <element signature="e#0#37#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/scripts/camflow/provenance_task.h">
+    <entry file="file://$PROJECT_DIR$/scripts/camflow/provenance_net.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="399">
-          <caret line="183" column="44" selection-start-line="183" selection-start-column="44" selection-end-line="183" selection-end-column="44" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/scripts/camflow/provenance_record.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="159">
-          <caret line="214" column="46" selection-start-line="214" selection-start-column="27" selection-end-line="214" selection-end-column="46" />
+        <state relative-caret-position="395">
+          <caret line="166" column="52" selection-start-line="166" selection-start-column="27" selection-end-line="166" selection-end-column="52" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/scripts/static_analysis/parse.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="583">
-          <caret line="483" column="13" lean-forward="true" selection-start-line="483" selection-start-column="13" selection-end-line="483" selection-end-column="13" />
+        <state relative-caret-position="242">
+          <caret line="185" column="53" selection-start-line="185" selection-start-column="37" selection-end-line="185" selection-end-column="53" />
           <folding>
             <element signature="e#379#416#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/camflow/hooks.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="422">
+          <caret line="111" column="24" selection-start-line="111" selection-start-column="16" selection-end-line="111" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/camflow/wget.log">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/camflow/provenance_record.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="249">
+          <caret line="87" column="42" selection-start-line="87" selection-start-column="27" selection-end-line="87" selection-end-column="42" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/camflow/NOTES.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="SPLIT">
+          <first_editor />
+          <second_editor />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dot/0_tree.dot">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="900">
+          <caret line="60" column="44" selection-end-line="74" selection-end-column="1" />
         </state>
       </provider>
     </entry>

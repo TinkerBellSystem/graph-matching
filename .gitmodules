@@ -1,0 +1,3 @@
+[submodule "scripts/camflow-dev"]
+	path = scripts/camflow-dev
+	url = https://github.com/CamFlow/camflow-dev.git
