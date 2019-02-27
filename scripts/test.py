@@ -28,14 +28,14 @@ list_functions(ast_task, functions)
 # print(func_body)
 
 # TODO: NOTE hook `__mq_msgrcv` is a helper function and should not be analyzed as a hook!
-func_body = functions['provenance_bprm_check_security'][1]
+func_body = functions['provenance_task_alloc'][1]
 motif_node_map = dict()
 kernel_node = MotifNode('machine')
 # TODO: `prov_machine` occurs in two different places, although they should represent the same machine.
 # TODO: `prov_machine` is hard-coded.
 motif_node_map['record_kernel_link.prov_machine'] = [kernel_node]
 motif_node_map['record_influences_kernel.prov_machine'] = motif_node_map['record_kernel_link.prov_machine']
-_, tree = eval_function_body('provenance_bprm_check_security', func_body, functions, motif_node_map, {})
+_, tree = eval_function_body('provenance_task_alloc', func_body, functions, motif_node_map, {})
 g = Graph()
 streamline_rtm(tree)
 visualize_rtm_tree(tree, g)
