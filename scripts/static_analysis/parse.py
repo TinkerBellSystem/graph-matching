@@ -562,12 +562,22 @@ def eval_if_condition(function_name, item, function_dict, motif_node_dict, name_
 			# case: if (shmflg & SHM_RDONLY) {...} in "provenance_shm_shmat"; shmflg can be only be determined at runtime
 			if condition.left.name == 'shmflg':
 				return True
-		elif type(condition.left).__name__ == 'FuncCall':
+		if type(condition.right).__name__ == 'ID':
+			# case: if (!provenance_is_initialized(prov_elt(iprov)) && may_sleep) in "get_inode_provenance"
+			if condition.right.name == 'may_sleep':
+				return True
+			# case: if (prov_type(prov_elt(node)) == ACT_TASK) in "record_node_name"
+			if condition.right.name == 'ACT_TASK':
+				return True
+			# case: if (vm_read_exec_mayshare(flags) && read) in "current_update_shst"
+			if condition.right.name == 'read':
+				return True
+		if type(condition.left).__name__ == 'FuncCall':
 			# case: if (provenance_is_kernel_recorded(node) || !provenance_is_recorded(node)) in "provenance_rcord.h"
 			# TODO: We can actually determine if kernel is recorded, but how do we parse it?
 			if condition.left.name.name == 'provenance_is_kernel_recorded':
 				return True
-		elif type(condition.left).__name__ == 'BinaryOp':
+		if type(condition.left).__name__ == 'BinaryOp':
 			if type(condition.left.left).__name__ == 'ID':
 				# case: if ((perms & (DIR__WRITE)) != 0) in "provenance_file_permission"; perms can only be determined at runtime
 				if condition.left.left.name == 'perms':
@@ -584,22 +594,30 @@ def eval_if_condition(function_name, item, function_dict, motif_node_dict, name_
 				# case: if (sock->sk->sk_family == PF_UNIX &&...) in "provenance_socket_recvmsg", "provenance_socket_recvmsg_always", "provenance_socket_sendmsg", "provenance_socket_sendmsg_always"; sock->sk->sk_family can only be determined at runtime
 				if condition.left.right.name == 'PF_UNIX':
 					return True
+		if type(condition.right).__name__ == 'UnaryOp':
+			# case: if (vm_write_mayshare(flags) && !read) in "current_update_shst"
+			if type(condition.right.expr).__name__  == 'ID':
+				if condition.right.expr.name == 'read':
+					return True
 	elif type(condition).__name__ == 'FuncCall':
 		# case: if (is_inode_dir(inode)) in "provenance_file_permission"; inode type can only be determined at runtime
 		if condition.name.name == 'is_inode_dir':
 			return True
 		# case: else if (is_inode_socket(inode)) in "provenance_file_permission"
-		elif condition.name.name == 'is_inode_socket':
+		if condition.name.name == 'is_inode_socket':
 			return True
 		# case: if ( vm_mayshare(flags) ) in "provenance_mmap_munmap"; flags can only be determined at runtime
-		elif condition.name.name == 'vm_mayshare':
+		if condition.name.name == 'vm_mayshare':
 			return True
 	elif type(condition).__name__ == 'ID':
 		# case: if (iprovb) in "provenance_socket_sendmsg", "provenance_socket_sendmsg_always"
 		if condition.name == 'iprovb':
 			return True
 		# case: if (pprov) in "provenance_socket_recvmsg", "provenance_socket_recvmsg_always"
-		elif condition.name == 'pprov':
+		if condition.name == 'pprov':
+			return True
+		# case: if (may_sleep) in "get_inode_provenance"
+		if condition.name == 'may_sleep':
 			return True
 	#######################################################
 	# We will consider other conditions if we ever see them
@@ -642,6 +660,9 @@ def eval_if_else(function_name, item, function_dict, motif_node_dict, name_dict)
 	elif type(true_branch).__name__ == 'Switch':
 		print('\x1b[6;30;41m[x]\x1b[0m [eval_if_else]: Switch is not implemented properly.')
 		raise NotImplementedError("Switch not implemented properly")
+	elif type(true_branch).__name__ == 'For':
+		print('\x1b[6;30;41m[x]\x1b[0m [eval_if_else]: For is not implemented properly.')
+		raise NotImplementedError("For not implemented properly")
 	else:
 		left = None
 	# evaluate the `else` branch if it exists
@@ -664,13 +685,73 @@ def eval_if_else(function_name, item, function_dict, motif_node_dict, name_dict)
 	elif type(false_branch).__name__ == 'Switch':
 		print('\x1b[6;30;41m[x]\x1b[0m [eval_if_else]: Switch is not implemented properly.')
 		raise NotImplementedError("Switch not implemented properly")
+	elif type(false_branch).__name__ == 'For':
+		print('\x1b[6;30;41m[x]\x1b[0m [eval_if_else]: For is not implemented properly.')
+		raise NotImplementedError("For not implemented properly")
 	else:
 		right = None
 
 	if left or right:
 		# only under certain circumstances do we actually create alternation node
 		if eval_if_condition(function_name, item, function_dict, motif_node_dict, name_dict):
-			return create_alternation_node(left, right)
+			# case: if (may_sleep) in 'get_inode_provenance'
+			if type(item.cond).__name__ == 'ID' and item.cond.name == 'may_sleep' \
+					and 'get_inode_provenance.may_sleep' in name_dict \
+					and name_dict['get_inode_provenance.may_sleep'].split('.')[1] == 'false':
+				if right is not None:
+					print(
+					'\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} has may_sleep and is false, we return non-None else branch'.format(
+						ast_snippet(item.cond)))
+					return right
+				else:
+					print(
+						'\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} has may_sleep and is false, and else branch is None'.format(
+							ast_snippet(item.cond)))
+					return None
+			# case: if (!provenance_is_initialized(prov_elt(iprov)) && may_sleep) in 'get_inode_provenance'
+			elif type(item.cond).__name__ == 'BinaryOp' and type(item.cond.right).__name__ == 'ID' \
+				and item.cond.right.name == 'may_sleep' and 'get_inode_provenance.may_sleep' in name_dict \
+				and name_dict['get_inode_provenance.may_sleep'].split('.')[1] == 'false':
+				if right is not None:
+					print(
+						'\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} has may_sleep and is false, we return non-None else branch'.format(
+							ast_snippet(item.cond)))
+					return right
+				else:
+					print(
+						'\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} has may_sleep and is false, and else branch is None'.format(
+							ast_snippet(item.cond)))
+					return None
+			# case: if (vm_read_exec_mayshare(flags) && read) in 'current_update_shst'
+			elif type(item.cond).__name__ == 'BinaryOp' and type(item.cond.right).__name__ == 'ID' \
+					and item.cond.right.name == 'read' and 'current_update_shst.read' in name_dict \
+					and name_dict['current_update_shst.read'].split('.')[1] == 'false':
+				if right is not None:
+					print(
+						'\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} has read and is false, we return non-None else branch'.format(
+							ast_snippet(item.cond)))
+					return right
+				else:
+					print(
+						'\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} has may_sleep and is false, and else branch is None'.format(
+							ast_snippet(item.cond)))
+					return None
+			# case: if (vm_write_mayshare(flags) && !read) in 'current_update_shst'
+			elif type(item.cond).__name__ == 'BinaryOp' and type(item.cond.right).__name__ == 'UnaryOp' \
+					and type(item.cond.right.expr).__name__ == 'ID' and item.cond.right.expr.name == 'read' \
+					and 'current_update_shst.read' in name_dict and name_dict['current_update_shst.read'].split('.')[1] == 'true':
+				if right is not None:
+					print(
+						'\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} has read and is false, we return non-None else branch'.format(
+							ast_snippet(item.cond)))
+					return right
+				else:
+					print(
+						'\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} has may_sleep and is false, and else branch is None'.format(
+							ast_snippet(item.cond)))
+					return None
+			else:
+				return create_alternation_node(left, right)
 		else:
 			print(
 				'\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} is not considered, so no alternation node is produced'.format(ast_snippet(item.cond)))

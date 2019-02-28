@@ -60,7 +60,7 @@ def provenance_vertex_type(v_name):
 	2. Can we identify specific inode type based on the name?
 	"""
 	if v_name == 'cprov' \
-		or v_name=='nprov' \
+		or v_name =='nprov' \
 		or v_name == 'old_prov' \
 		or v_name == 'pprov' \
 		or v_name == 'ENT_PROC':
