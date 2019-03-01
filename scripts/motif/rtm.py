@@ -24,10 +24,6 @@ class MotifNode():
 	def __init__(self, mn_ty):
 		self.mn_id = MotifNode.node_id
 		self.mn_ty = mn_ty
-		self.mn_has_outgoing = False
-		self.mn_has_name_recorded = False
-		self.mn_kernel_version = 0
-		self.mn_is_initialized = False
 		MotifNode.node_id += 1
 
 	@property
@@ -37,22 +33,6 @@ class MotifNode():
 	@property
 	def mn_ty(self):
 		return self.__mn_ty
-
-	@property
-	def mn_has_outgoing(self):
-		return self.__mn_has_outgoing
-
-	@property
-	def mn_has_name_recorded(self):
-		return self.__mn_has_name_recorded
-
-	@property
-	def mn_kernel_version(self):
-		return self.__mn_kernel_version
-
-	@property
-	def mn_is_initialized(self):
-		return self.__mn_is_initialized
 
 	def __eq__(self, other):
 		return self.mn_id == other.mn_id and self.mn_ty == other.mn_ty

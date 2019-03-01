@@ -187,66 +187,42 @@ def eval_function_call(caller_function_name, function_call, function_dict, motif
 		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Evaluating __update_version()')
 		args = extract_function_argument_names(function_call)
 		original_node = motif_node_dict[get_true_name(caller_function_name + '.' + args[1], name_dict)][-1]
-		if original_node.mn_has_outgoing is False:
-			return original_node, None
 		if args[0] == 'RL_VERSION_TASK' or args[0] == 'RL_VERSION' or args[0] == 'RL_NAMED' or args[0] == 'RL_NAMED_PROCESS':
 			return original_node, None
 		else:
 			new_motif_node = MotifNode(original_node.mn_ty)
-			new_motif_node.mn_has_name_recorded = original_node.mn_has_name_recorded
-			new_motif_node.mn_kernel_version = original_node.mn_kernel_version
-			new_motif_node.mn_is_initialized = original_node.mn_is_initialized
 			if original_node.mn_ty == 'task':
 				edge = MotifEdge(original_node, new_motif_node, match_relation(r_map, 'RL_VERSION_TASK'))
 			else:
 				edge = MotifEdge(original_node, new_motif_node, match_relation(r_map, 'RL_VERSION'))
 			motif_node_dict[get_true_name(caller_function_name + '.' + args[1], name_dict)].append(new_motif_node)
-			return new_motif_node, create_leaf_node(edge)
+			return new_motif_node, create_question_mark_node(create_leaf_node(edge))
 	elif function_call.name.name == 'set_has_outgoing':
-		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Evaluating set_has_outgoing()')
-		args = extract_function_argument_names(function_call)
-		node = motif_node_dict[get_true_name(caller_function_name + '.' + args[0], name_dict)][-1]
-		node.mn_has_outgoing = True
+		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Skipping set_has_outgoing()')
 		return None, None
 	elif function_call.name.name == 'set_kernel_recorded':
-		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Evaluating set_kernel_recorded()')
-		args = extract_function_argument_names(function_call)
-		node = motif_node_dict[get_true_name(caller_function_name + '.' + args[0], name_dict)][-1]
-		# TODO: 'record_kernel_link.prov_machine' hard-coded
-		kernel_node = motif_node_dict['record_kernel_link.prov_machine'][-1]
-		node.mn_kernel_version = kernel_node.mn_kernel_version
+		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Skipping set_kernel_recorded()')
 		return None, None
 	elif function_call.name.name == 'record_terminate':
 		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Evaluating record_terminate()')
 		args = extract_function_argument_names(function_call)
 		node = motif_node_dict[get_true_name(caller_function_name + '.' + args[1], name_dict)][-1]
 		new_motif_node = MotifNode(node.mn_ty)
-		new_motif_node.mn_has_name_recorded = node.mn_has_name_recorded
-		new_motif_node.mn_kernel_version = node.mn_kernel_version
-		new_motif_node.mn_is_initialized = node.mn_is_initialized
 		motif_node_dict[get_true_name(caller_function_name + '.' + args[1], name_dict)].append(new_motif_node)
 		motif_edge = MotifEdge(node, new_motif_node, match_relation(r_map, args[0]))
 		return None, create_leaf_node(motif_edge)
 	elif function_call.name.name == 'set_initialized':
-		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Evaluating set_initialized()')
-		args = extract_function_argument_names(function_call)
-		node = motif_node_dict[get_true_name(caller_function_name + '.' + args[0], name_dict)][-1]
-		node.mn_is_initialized = True
+		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Skipping set_initialized()')
 		return None, None
 	elif function_call.name.name == 'node_identifier':
 		# assuming we are always updating the version of the node
-		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Evaluating node_identifier() but do nothing')
+		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Skipping node_identifier()')
 		return None, None
 	elif function_call.name.name == 'update_inode_type':
 		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Evaluating update_inode_type()')
 		args = extract_function_argument_names(function_call)
 		node = motif_node_dict[get_true_name(caller_function_name + '.' + args[1], name_dict)][-1]
-
 		new_motif_node = MotifNode(node.mn_ty)
-		new_motif_node.mn_has_name_recorded = node.mn_has_name_recorded
-		new_motif_node.mn_kernel_version = node.mn_kernel_version
-		new_motif_node.mn_is_initialized = node.mn_is_initialized
-
 		motif_edge = MotifEdge(node, new_motif_node, match_relation(r_map, 'RL_VERSION'))
 		motif_node_dict[get_true_name(caller_function_name + '.' + args[1], name_dict)].append(new_motif_node)
 		return new_motif_node, create_question_mark_node(create_leaf_node(motif_edge))
@@ -509,12 +485,12 @@ def eval_declaration(function_name, declaration, function_dict, motif_node_dict,
 				#################################################################
 				# TODO: The following hack should not exist in TinkerBell Motif Engine.
 				#################################################################
-				if declaration.name == 'pckprov':
-					motif_node_dict[get_true_name(function_name + '.' + declaration.name, name_dict)] = \
-						[create_motif_node(provenance_vertex_type(declaration.name))]
-				else:
+				# if declaration.name == 'pckprov':
+				# 	motif_node_dict[get_true_name(function_name + '.' + declaration.name, name_dict)] = \
+				# 		[create_motif_node(provenance_vertex_type(declaration.name))]
+				# else:
 				#################################################################
-					motif_node_dict[get_true_name(function_name + '.' + declaration.name, name_dict)] = []
+				motif_node_dict[get_true_name(function_name + '.' + declaration.name, name_dict)] = []
 			return None
 		# it must be set through other methods, so we can only infer the type from its name
 		else:

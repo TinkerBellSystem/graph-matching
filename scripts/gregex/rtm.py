@@ -228,16 +228,24 @@ def streamline_rtm(rtm):
 	if not rtm:
 		return
 	if rtm.value == '.':
-		if rtm.left and rtm.left.value == '.':
-			if rtm.left.left and not rtm.left.right:
+		if rtm.left is not None and rtm.right is None:
+			if rtm.left.value == '.':
 				rtm.left = rtm.left.left
-			elif rtm.left.right and not rtm.left.left:
-				rtm.left = rtm.left.right
-		if rtm.right and rtm.right.value == '.':
-			if rtm.right.left and not rtm.right.right:
-				rtm.right = rtm.right.left
-			elif rtm.right.right and not rtm.right.left:
+				rtm.right = rtm.left.right
+		elif rtm.right is not None and rtm.left is None:
+			if rtm.right.value == '.':
+				rtm.left = rtm.right.left
 				rtm.right = rtm.right.right
+		# if rtm.left and rtm.left.value == '.':
+		# 	if rtm.left.left and not rtm.left.right:
+		# 		rtm.left = rtm.left.left
+		# 	elif rtm.left.right and not rtm.left.left:
+		# 		rtm.left = rtm.left.right
+		# if rtm.right and rtm.right.value == '.':
+		# 	if rtm.right.left and not rtm.right.right:
+		# 		rtm.right = rtm.right.left
+		# 	elif rtm.right.right and not rtm.right.left:
+		# 		rtm.right = rtm.right.right
 	if rtm.value == '*':
 		if rtm.left and rtm.left.value == '?':
 			assert(rtm.right is None)
