@@ -7,12 +7,14 @@ from pycparser import c_parser, c_ast, parse_file
 from static_analysis.parse import *
 from gregex.rtm import visualize_rtm_tree, streamline_rtm
 from gregex.graphviz import *
+from gregex.converter import *
+from gregex.ast import *
 
-ast_hooks = parse_file("./camflow/hooks_pp.c")
-ast_inode = parse_file("./camflow/provenance_inode_pp.h")
-ast_net = parse_file("./camflow/provenance_net_pp.h")
-ast_record = parse_file("./camflow/provenance_record_pp.h")
-ast_task = parse_file("./camflow/provenance_task_pp.h")
+ast_hooks = parse_file("./camflow-dev/security/provenance/hooks_pp.c")
+ast_inode = parse_file("./camflow-dev/security/provenance/include/provenance_inode_pp.h")
+ast_net = parse_file("./camflow-dev/security/provenance/include/provenance_net_pp.h")
+ast_record = parse_file("./camflow-dev/security/provenance/include/provenance_record_pp.h")
+ast_task = parse_file("./camflow-dev/security/provenance/include/provenance_task_pp.h")
 
 functions = dict()
 
@@ -28,14 +30,14 @@ list_functions(ast_task, functions)
 # print(func_body)
 
 # TODO: NOTE hook `__mq_msgrcv` is a helper function and should not be analyzed as a hook!
-func_body = functions['provenance_task_alloc'][1]
+func_body = functions['provenance_cred_prepare'][1]
 motif_node_map = dict()
 kernel_node = MotifNode('machine')
 # TODO: `prov_machine` occurs in two different places, although they should represent the same machine.
 # TODO: `prov_machine` is hard-coded.
 motif_node_map['record_kernel_link.prov_machine'] = [kernel_node]
 motif_node_map['record_influences_kernel.prov_machine'] = motif_node_map['record_kernel_link.prov_machine']
-_, tree = eval_function_body('provenance_task_alloc', func_body, functions, motif_node_map, {})
+_, tree = eval_function_body('provenance_cred_prepare', func_body, functions, motif_node_map, {})
 g = Graph()
 streamline_rtm(tree)
 visualize_rtm_tree(tree, g)
@@ -56,8 +58,6 @@ f.close()
 # with open('../dot/0' + '_dfa.dot', 'w') as f:
 #     dfa.print_graphviz(f)
 # f.close()
-
-# print(functions['__update_version'][1])
 
 # for item in func_body.block_items:
 # 	if type(item).__name__ == 'FuncCall':
