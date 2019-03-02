@@ -246,14 +246,14 @@ def streamline_rtm(rtm):
 		# 		rtm.right = rtm.right.left
 		# 	elif rtm.right.right and not rtm.right.left:
 		# 		rtm.right = rtm.right.right
-	if rtm.value == '*':
+	elif rtm.value == '*':
 		if rtm.left and rtm.left.value == '?':
 			assert(rtm.right is None)
 			rtm.left = rtm.left.left
 		if rtm.right and rtm.right.value == "?":
 			assert(rtm.left is None)
 			rtm.right = rtm.right.right
-	if rtm.value == '|':
+	elif rtm.value == '|':
 		if rtm.left and not rtm.right:
 			rtm.value = '?'
 			if rtm.left.value == '.':
