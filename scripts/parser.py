@@ -47,6 +47,19 @@ def _parse_nodes(json_string, nlm_G):
 				else:
 					nlm_G[uid] = entity[uid]["prov:type"]
 
+	if "agent" in json_object:
+		agent = json_object["agent"]
+		for uid in agent:
+			if uid in nlm_G:
+				logging.debug("the ID of the agent node shows up more than once: {}".format(uid))
+			else:
+				if "prov:type" not in agent[uid]:
+					logging.debug("skipping a problematic agent node with no 'prov:type'. ID: {}".format(uid))
+				else:
+					nlm_G[uid] = agent[uid]["prov:type"]
+
+
+
 def parse_nodes(filename, nlm_G):
 	"""Parsing nodes from CamFlow JSON provenance.
 
@@ -147,6 +160,30 @@ def parse_edges(filename, nlm_G, E_G):
 
 					edgeID = wasDerivedFrom[uid]["cf:id"]
 					edgeTP = wasDerivedFrom[uid]["prov:type"]
+
+					E_G.append((srcTP, srcUID, edgeTP, dstTP, dstUID, edgeID))
+
+			if "wasAssociatedWith" in json_object:
+				wasAssociatedWith = json_object["wasAssociatedWith"]
+				for uid in wasAssociatedWith:
+					srcUID = wasAssociatedWith[uid]["prov:agent"]
+					dstUID = wasAssociatedWith[uid]["prov:activity"]
+					if srcUID not in nlm_G:
+						logging.debug(
+							"skipping an edge in 'wasAssociatedWith' because we cannot find the source node. Node ID: {}".format(
+								srcUID))
+						continue
+					if dstUID not in nlm_G:
+						logging.debug(
+							"skipping an edge in 'wasAssociatedWith' because we cannot find the destination node. Node ID: {}".format(
+								dstUID))
+						continue
+
+					srcTP = nlm_G[srcUID]
+					dstTP = nlm_G[dstUID]
+
+					edgeID = wasAssociatedWith[uid]["cf:id"]
+					edgeTP = wasAssociatedWith[uid]["prov:type"]
 
 					E_G.append((srcTP, srcUID, edgeTP, dstTP, dstUID, edgeID))
 
