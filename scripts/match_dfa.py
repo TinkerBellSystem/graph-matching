@@ -112,6 +112,7 @@ def match_dfa(dfaname, dfa, G):
 
 	"""
 	f = open('../matches/' + dfaname + '.txt', 'w')
+	print("\x1b[6;30;42m[+]\x1b[0m" + 'Matching ' + dfaname)
 
 	start = 0	# starting index of edges in @G
 	end = len(G)				# Pass the last index of edge in @G. 
@@ -129,6 +130,7 @@ def match_dfa(dfaname, dfa, G):
 		# print("process to the next starting point at {}...".format(start))
 		# all the rest of the graph is matched.
 		if start == end:
+			f.write(repr(matches))
 			return matches
 
 		# start to find matches
@@ -150,9 +152,9 @@ def match_dfa(dfaname, dfa, G):
 				# print("skipping edge #{}".format(current_index))
 				current_index += 1
 				continue
-
+			print("matching edge #{}...".format(current_index))
 			if match_transition(current_states, G[current_index], tracker, inverse_tracker):
-				# print("matched edge #{}...".format(current_index))
+				print("matched edge #{}...".format(current_index))
 				indices.append(current_index)
 				indicator[current_index] = 0
 
@@ -160,6 +162,7 @@ def match_dfa(dfaname, dfa, G):
 				for state in current_states:
 					if state.accepting is not None:
 						# if we have reached an accepting state
+						print("Reached an accepting state...")
 						matches.append(indices)
 						accepted = 1
 						break
