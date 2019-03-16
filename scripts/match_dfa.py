@@ -30,6 +30,8 @@ def id_dict(ids):
 
 def match_types(diedge, edge):
 	"""Match the node and edge type of a motif edge @diedge and the edge @edge of the graph."""
+	print("Matching a motif edge's types {}({}), {}, {}({}), with a graph edge's types {}, {}, {}"
+		  .format(diedge.srcTP, diedge.srcID, diedge.edgeTP, diedge.dstTP, diedge.dstID, edge[0], edge[2], edge[3]))
 	if diedge.srcTP == edge[0] and diedge.edgeTP == edge[2] and diedge.dstTP == edge[3]:
 		return True
 	else:
@@ -52,6 +54,8 @@ def match_types(diedge, edge):
 
 def tracker_no_conflict(diedge, edge, ids):
 	"""When matching node IDs of @diedge (in DFA) and those of @edge (in G), check if there exists any conflicts in @ids."""
+	print("Matching motif source node {} ({}) to {}, and destintaion node {} ({}) to {}"
+		  .format(diedge.srcID, ids[diedge.srcID], edge[1], diedge.dstID, ids[diedge.dstID], edge[4]))
 	if (ids[diedge.srcID] == None or ids[diedge.srcID] == edge[1]) and (ids[diedge.dstID] == None or ids[diedge.dstID] == edge[4]):
 		return True
 	else:
@@ -59,6 +63,8 @@ def tracker_no_conflict(diedge, edge, ids):
 
 def inverse_tracker_no_conflict(edge, diedge, ids):
 	"""When matching node IDs of @edge (in G) and those of @diedge (in DFA), check if there exists any conflicts in @ids."""
+	print("Matching graph source node {} ({}) to {}, and destintaion node {} ({}) to {}"
+		  .format(edge[1], ids.get(edge[1]), diedge.srcID, edge[4], ids.get(edge[4]), diedge.dstID))
 	if (edge[1] not in ids or ids[edge[1]] == diedge.srcID) and (edge[4] not in ids or ids[edge[4]] == diedge.dstID):
 		return True
 	else:
@@ -93,6 +99,7 @@ def match_transition(states, edge, tracker, inverse_tracker):
 		states.pop(i)
 		tracker.pop(i)
 		inverse_tracker.pop(i)
+	print("Number of states: {}".format(len(states)))
 	return matched
 
 def match_dfa(dfaname, dfa, G):
@@ -116,7 +123,7 @@ def match_dfa(dfaname, dfa, G):
 
 	start = 0	# starting index of edges in @G
 	end = len(G)				# Pass the last index of edge in @G. 
-	indicator = [1] * len(G)	# indicator[i] = 0 means G[i] is temporarily matched to the NFA
+	indicator = [1] * len(G)	# indicator[i] = 0 means G[i] is temporarily matched to the DFA
 								# We will set indicator[i] back to 1 if it turns out that it
 								# was a false match, then G[i] will need to be considered again
 	matches = []	# the returned list that contains lists of matched edge indices

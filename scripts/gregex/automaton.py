@@ -101,7 +101,7 @@ class AutomatonState(object):
 					ID representing the rule that this accepts; None otherwise
 	transitions -- A set of outgoing transitions from this state represented as
 					a dictionary. The values of the dictionary depend on the
-					type of automaton (determinstic vs non-deterministic)
+					type of automaton (deterministic vs non-deterministic)
 	number -- If this state is in the automaton, a non-negative integer that is
 				unique within the automaton; None otherwise
 	"""
