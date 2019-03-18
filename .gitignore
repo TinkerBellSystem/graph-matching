@@ -1,2 +1,5 @@
 *.pyc
 scripts/vagrant/.vagrant/
+matches/
+dot/
+.idea/
