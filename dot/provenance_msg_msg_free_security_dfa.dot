@@ -1,8 +1,0 @@
-digraph DFA {
-    rankdir = LR;
-    I [style = invis];
-    I -> S0;
-    S0 [label = <s<sub>0</sub>>, shape = circle];
-    S1 [label = <s<sub>1,1</sub>>, shape = circle, peripheries = 2];
-    S0 -> S1 [label = "[0]('msg')-('free')>[1]('msg')"];
-}

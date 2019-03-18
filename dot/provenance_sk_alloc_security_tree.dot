@@ -1,7 +1,0 @@
-digraph RGL__DirectedAdjacencyGraph {4[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-4 -> 2[fontsize = 8, color="#000000"]
-
-2[fontsize = 8,label = "3/machine-ran_on->0/process_memory",shape = rectangle, fillcolor="#fffacd", style = filled]
-
-}

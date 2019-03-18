@@ -13,20 +13,6 @@
 
 import copy
 
-def id_dict(ids):
-	"""Returns a new ID dictionary given the list of IDs in the motif.
-
-	Arguments:
-	ids: a list of IDs exist in the motif
-
-	Returns:
-	An initialized dictionary that maps every ID in @ids to None
-
-	"""
-	id_dict = dict()
-	for nid in ids:
-		id_dict[nid] = None
-	return id_dict
 
 def match_types(diedge, edge):
 	"""Match the node and edge type of a motif edge @diedge and the edge @edge of the graph."""
@@ -63,11 +49,18 @@ def get_canonical_id(mid, canonical):
 def tracker_no_conflict(diedge, edge, ids, canonical):
 	"""When matching node IDs of @diedge (in DFA) and those of @edge (in G), check if there exists any conflicts in @ids."""
 	print("Matching motif source node {}/{} ({}) to {}, and destintaion node {}/{} ({}) to {}"
-		  .format(diedge.srcID, get_canonical_id(diedge.srcID, canonical), ids[get_canonical_id(diedge.srcID, canonical)],
+		  .format(diedge.srcID, get_canonical_id(diedge.srcID, canonical), ids.get(get_canonical_id(diedge.srcID, canonical)),
 				  edge[1], diedge.dstID, get_canonical_id(diedge.dstID, canonical),
-				  ids[get_canonical_id(diedge.dstID, canonical)], edge[4]))
-	if (ids[get_canonical_id(diedge.srcID, canonical)] is None or ids[get_canonical_id(diedge.srcID, canonical)] == edge[1]) \
-			and (ids[get_canonical_id(diedge.dstID, canonical)] is None or ids[get_canonical_id(diedge.dstID, canonical)] == edge[4]):
+				  ids.get(get_canonical_id(diedge.dstID, canonical)), edge[4]))
+	# a special '*' case
+	if diedge.edgeTP == 'sh_read':
+		# inode ID matching is ghosted
+		if ids.get(get_canonical_id(diedge.dstID, canonical)) is None or ids[get_canonical_id(diedge.dstID, canonical)] == edge[4]:
+			return True
+		else:
+			return False
+	elif (ids.get(get_canonical_id(diedge.srcID, canonical)) is None or ids[get_canonical_id(diedge.srcID, canonical)] == edge[1]) \
+			and (ids.get(get_canonical_id(diedge.dstID, canonical)) is None or ids[get_canonical_id(diedge.dstID, canonical)] == edge[4]):
 		return True
 	else:
 		return False
@@ -95,22 +88,24 @@ def match_transition(states, edge, tracker, inverse_tracker, canonical):
 		for transition in transitions:
 			transition_diedge = transition[0]
 			next_state = transition[1]
-			if match_types(transition_diedge, edge) and tracker_no_conflict(transition_diedge, edge, tracker[i], canonical) \
+			if match_types(transition_diedge, edge):
+				if tracker_no_conflict(transition_diedge, edge, tracker[i], canonical) \
 					and inverse_tracker_no_conflict(edge, transition_diedge, inverse_tracker[i], canonical):
-				# we find a perfect match
-				if transition_diedge.edgeTP == 'version_activity' or transition_diedge.edgeTP == 'version_entity':
-					canonical.pop(transition_diedge.dstID, None)
-				tracker_copy = copy.deepcopy(tracker[i])
-				tracker_copy[get_canonical_id(transition_diedge.srcID, canonical)] = edge[1]
-				tracker_copy[get_canonical_id(transition_diedge.dstID, canonical)] = edge[4]
-				inverse_tracker_copy = copy.deepcopy(inverse_tracker[i])
-				inverse_tracker_copy[edge[1]] = get_canonical_id(transition_diedge.srcID, canonical)
-				inverse_tracker_copy[edge[4]] = get_canonical_id(transition_diedge.dstID, canonical)
-				states.append(next_state)
-				tracker.append(tracker_copy)
-				inverse_tracker.append(inverse_tracker_copy)
-				to_delete.add(i)
-				matched = True
+					# we find a perfect match
+					# if the match is version, then we update the canonical map
+					if transition_diedge.edgeTP == 'version_activity' or transition_diedge.edgeTP == 'version_entity':
+						canonical.pop(transition_diedge.dstID, None)
+					tracker_copy = copy.deepcopy(tracker[i])
+					tracker_copy[get_canonical_id(transition_diedge.srcID, canonical)] = edge[1]
+					tracker_copy[get_canonical_id(transition_diedge.dstID, canonical)] = edge[4]
+					inverse_tracker_copy = copy.deepcopy(inverse_tracker[i])
+					inverse_tracker_copy[edge[1]] = get_canonical_id(transition_diedge.srcID, canonical)
+					inverse_tracker_copy[edge[4]] = get_canonical_id(transition_diedge.dstID, canonical)
+					states.append(next_state)
+					tracker.append(tracker_copy)
+					inverse_tracker.append(inverse_tracker_copy)
+					to_delete.add(i)
+					matched = True
 	for i in to_delete:
 		states.pop(i)
 		tracker.pop(i)
@@ -159,7 +154,7 @@ def match_dfa(dfaname, dfa, G, canonical):
 
 		# start to find matches
 		current_states = [dfa.initial] 	# start from the initial state of the DFA
-		tracker = [id_dict(dfa.ids)]# a list of dictionaries that track the correspondence between
+		tracker = [dict()]# a list of dictionaries that track the correspondence between
 									# node IDs in DFA and those in the graph
 									# We start with just one such dictionary in the list
 									# but we may have more as more than one transition is matched

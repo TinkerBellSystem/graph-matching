@@ -1,7 +1,0 @@
-digraph RGL__DirectedAdjacencyGraph {2[fontsize = 8,label = ".",shape = ellipse, fillcolor="#e6e6fa", style = filled]
-
-2 -> 0[fontsize = 8, color="#000000"]
-
-0[fontsize = 8,label = "0/shm-free->1/shm",shape = rectangle, fillcolor="#fffacd", style = filled]
-
-}
