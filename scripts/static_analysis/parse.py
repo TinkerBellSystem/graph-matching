@@ -235,6 +235,10 @@ def eval_function_call(caller_function_name, function_call, function_dict, motif
 		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Evaluating task_cred_xxx()')
 		new_motif_node = MotifNode('process_memory')
 		return new_motif_node, None
+	elif function_call.name.name == 'provenance_alloc_with_ipv4_skb':
+		print('\x1b[6;30;42m[+]\x1b[0m [eval_function_call] Evaluating provenance_alloc_with_ipv4_skb()')
+		new_motif_node = MotifNode('inode')
+		return new_motif_node, None
 	elif function_call.name.name in function_dict:
 		callee_function = function_dict[function_call.name.name]
 		args = extract_function_argument_names(function_call)
