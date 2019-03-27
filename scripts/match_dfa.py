@@ -59,6 +59,12 @@ def tracker_no_conflict(diedge, edge, ids, canonical):
 			return True
 		else:
 			return False
+	elif diedge.edgeTP == 'version_activity' or diedge.edgeTP == 'version_entity':
+		# destination should be ghosted
+		if ids.get(get_canonical_id(diedge.srcID, canonical)) is None or ids[get_canonical_id(diedge.srcID, canonical)] == edge[1]:
+			return True
+		else:
+			return False
 	elif (ids.get(get_canonical_id(diedge.srcID, canonical)) is None or ids[get_canonical_id(diedge.srcID, canonical)] == edge[1]) \
 			and (ids.get(get_canonical_id(diedge.dstID, canonical)) is None or ids[get_canonical_id(diedge.dstID, canonical)] == edge[4]):
 		return True
@@ -85,6 +91,7 @@ def match_transition(states, edge, tracker, inverse_tracker, canonical):
 		state = states[i]
 
 		transitions = state._all_transitions()
+		print("Checking state: {} with {} transitions".format(i, len(transitions)))
 		for transition in transitions:
 			transition_diedge = transition[0]
 			next_state = transition[1]
@@ -177,16 +184,17 @@ def match_dfa(dfaname, dfa, G, canonical):
 				indices.append(current_index)
 				indicator[current_index] = 0
 
-				accepted = 0
+				# accepted = 0
 				for state in current_states:
 					if state.accepting is not None:
 						# if we have reached an accepting state
 						print("Reached an accepting state...")
-						matches.append(indices)
-						accepted = 1
-						break
-				if accepted:
-					break
+						indices_copy = copy.deepcopy(indices)
+						matches.append(indices_copy)
+						# accepted = 1
+						# break
+				# if accepted:
+				# 	break
 
 			current_index += 1
 			# print("current_index is {}".format(current_index))
@@ -198,8 +206,9 @@ def match_dfa(dfaname, dfa, G, canonical):
 				indicator[index] = 1
 		# move on to the next starting point
 		start += 1
-	f.write(repr(matches))
+	f.write(repr(map(list,set(map(tuple,matches)))))
 	# return matches
+
 
 def match_dfa_wrapper(args):
 	"""wrapper around match_dfa function so that multiprocessing pool can run with multiple arguments."""
