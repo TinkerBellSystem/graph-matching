@@ -82,6 +82,7 @@ def inverse_tracker_no_conflict(edge, diedge, ids, canonical):
 	else:
 		return False
 
+
 def match_transition(states, edge, tracker, inverse_tracker, canonicals):
 	"""Match one transition in states with the edge in the graph."""
 	matched = False
@@ -115,13 +116,14 @@ def match_transition(states, edge, tracker, inverse_tracker, canonicals):
 					canonicals.append(canonical_copy)
 					to_delete.add(i)
 					matched = True
-	for i in to_delete:
+	for i in sorted(to_delete, reverse=True):
 		states.pop(i)
 		tracker.pop(i)
 		inverse_tracker.pop(i)
 		canonicals.pop(i)
 	print("Number of states: {}".format(len(states)))
 	return matched
+
 
 def match_dfa(dfaname, dfa, G, canonical):
 	"""Matches all motifs of dfa in the graph G.
