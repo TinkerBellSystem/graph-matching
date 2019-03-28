@@ -86,7 +86,8 @@ def inverse_tracker_no_conflict(edge, diedge, ids, canonical):
 def match_transition(states, edge, tracker, inverse_tracker, canonicals):
 	"""Match one transition in states with the edge in the graph."""
 	matched = False
-	to_delete = set()
+	# We cannot delete states because we may falsely proceed if we are matched with an edge not belonging to the motif
+	# to_delete = set()
 	states_len = len(states)
 	for i in range(states_len):
 		state = states[i]
@@ -114,13 +115,13 @@ def match_transition(states, edge, tracker, inverse_tracker, canonicals):
 					tracker.append(tracker_copy)
 					inverse_tracker.append(inverse_tracker_copy)
 					canonicals.append(canonical_copy)
-					to_delete.add(i)
+					# to_delete.add(i)
 					matched = True
-	for i in sorted(to_delete, reverse=True):
-		states.pop(i)
-		tracker.pop(i)
-		inverse_tracker.pop(i)
-		canonicals.pop(i)
+	# for i in sorted(to_delete, reverse=True):
+	# 	states.pop(i)
+	# 	tracker.pop(i)
+	# 	inverse_tracker.pop(i)
+	# 	canonicals.pop(i)
 	print("Number of states: {}".format(len(states)))
 	return matched
 
@@ -190,6 +191,7 @@ def match_dfa(dfaname, dfa, G, canonical):
 				indices.append(current_index)
 				indicator[current_index] = 0
 
+				# NOTE: we don't do accept and break because we may want to continue matching even if an accepting state is reached
 				# accepted = 0
 				for state in current_states:
 					if state.accepting is not None:
