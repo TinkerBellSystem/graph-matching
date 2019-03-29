@@ -557,6 +557,8 @@ def eval_if_condition(function_name, item, function_dict, motif_node_dict, name_
 			# TODO: We can actually determine if kernel is recorded, but how do we parse it?
 			if condition.left.name.name == 'provenance_is_kernel_recorded':
 				return True
+			if condition.left.name.name == 'provenance_is_name_recorded':
+				return True
 		if type(condition.left).__name__ == 'BinaryOp':
 			if type(condition.left.left).__name__ == 'ID':
 				# case: if ((perms & (DIR__WRITE)) != 0) in "provenance_file_permission"; perms can only be determined at runtime
@@ -564,6 +566,9 @@ def eval_if_condition(function_name, item, function_dict, motif_node_dict, name_
 					return True
 				# case: if ((prot & (PROT_WRITE)) != 0) in "provenance_mmap_file"; prot can only be determined at runtime
 				elif condition.left.left.name == 'prot':
+					return True
+			elif type(condition.left.left).__name__ == 'FuncCall':
+				if condition.left.left.name.name == 'provenance_is_name_recorded':
 					return True
 			elif type(condition.left.left).__name__ == 'BinaryOp':
 				if type(condition.left.left.left).__name__ == 'ID':
