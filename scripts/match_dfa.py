@@ -86,8 +86,8 @@ def inverse_tracker_no_conflict(edge, diedge, ids, canonical):
 def match_transition(states, edge, tracker, inverse_tracker, canonicals):
 	"""Match one transition in states with the edge in the graph."""
 	matched = False
-	# We cannot delete states because we may falsely proceed if we are matched with an edge not belonging to the motif
-	# to_delete = set()
+	# We can delete the state and safely proceed to the next state because we are doing thread-level matching
+	to_delete = set()
 	states_len = len(states)
 	for i in range(states_len):
 		state = states[i]
@@ -115,13 +115,13 @@ def match_transition(states, edge, tracker, inverse_tracker, canonicals):
 					tracker.append(tracker_copy)
 					inverse_tracker.append(inverse_tracker_copy)
 					canonicals.append(canonical_copy)
-					# to_delete.add(i)
+					to_delete.add(i)
 					matched = True
-	# for i in sorted(to_delete, reverse=True):
-	# 	states.pop(i)
-	# 	tracker.pop(i)
-	# 	inverse_tracker.pop(i)
-	# 	canonicals.pop(i)
+	for i in sorted(to_delete, reverse=True):
+		states.pop(i)
+		tracker.pop(i)
+		inverse_tracker.pop(i)
+		canonicals.pop(i)
 	print("Number of states: {}".format(len(states)))
 	return matched
 
@@ -143,7 +143,7 @@ def match_dfa(dfaname, dfa, G, canonical):
 	All sets of edge indices that belong to the same motif (DFA)
 
 	"""
-	f = open('../matches/' + dfaname + '.txt', 'w')
+	f = open('../matches/' + dfaname + '.txt', 'a+')
 	print("\x1b[6;30;42m[+]\x1b[0m" + 'Matching ' + dfaname)
 
 	start = 0	# starting index of edges in @G
@@ -162,8 +162,9 @@ def match_dfa(dfaname, dfa, G, canonical):
 		# print("process to the next starting point at {}...".format(start))
 		# all the rest of the graph is matched.
 		if start == end:
-			f.write(repr(matches))
-			return matches
+			f.write(repr(map(list, set(map(tuple, matches)))))
+			f.write("\n")
+			return
 
 		# start to find matches
 		current_states = [dfa.initial] 	# start from the initial state of the DFA
@@ -177,6 +178,7 @@ def match_dfa(dfaname, dfa, G, canonical):
 									# but we may have more as more than one transition is matched
 		canonicals = [canonical]# a list of canonical maps
 		indices = []	# currently matched indices of edges in graph @G
+		real_indices = []	# matched indices but real ID
 
 		current_index = start
 
@@ -189,6 +191,7 @@ def match_dfa(dfaname, dfa, G, canonical):
 			if match_transition(current_states, G[current_index], tracker, inverse_tracker, canonicals):
 				print("matched edge #{}...".format(current_index))
 				indices.append(current_index)
+				real_indices.append(G[current_index][5])
 				indicator[current_index] = 0
 
 				# NOTE: we don't do accept and break because we may want to continue matching even if an accepting state is reached
@@ -197,8 +200,8 @@ def match_dfa(dfaname, dfa, G, canonical):
 					if state.accepting is not None:
 						# if we have reached an accepting state
 						print("Reached an accepting state...")
-						indices_copy = copy.deepcopy(indices)
-						matches.append(indices_copy)
+						real_indices_copy = copy.deepcopy(real_indices)
+						matches.append(real_indices_copy)
 						# accepted = 1
 						# break
 				# if accepted:
@@ -214,7 +217,8 @@ def match_dfa(dfaname, dfa, G, canonical):
 				indicator[index] = 1
 		# move on to the next starting point
 		start += 1
-	f.write(repr(map(list,set(map(tuple,matches)))))
+	f.write(repr(map(list, set(map(tuple, matches)))))
+	f.write("\n")
 	# return matches
 
 

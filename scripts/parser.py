@@ -12,10 +12,12 @@ import logging
 import hashlib
 import argparse
 
+
 def nodeidgen(hashstr):
 	hasher = hashlib.md5()
 	hasher.update(hashstr)
 	return int(hasher.hexdigest()[:8], 16) # make sure it is only 32 bits
+
 
 def _parse_nodes(json_string, nlm_G):
 	"""Parsing nodes from a CamFlow provenance JSON string.
@@ -59,7 +61,6 @@ def _parse_nodes(json_string, nlm_G):
 					nlm_G[uid] = agent[uid]["prov:type"]
 
 
-
 def parse_nodes(filename, nlm_G):
 	"""Parsing nodes from CamFlow JSON provenance.
 
@@ -71,12 +72,13 @@ def parse_nodes(filename, nlm_G):
 			_parse_nodes(line, nlm_G)
 	f.close()
 
+
 def parse_edges(filename, nlm_G, E_G):
 	"""Parse timestamped edges from CamFlow JSON provenance.
 
 	Arguments:
 	nlm_G -- A mapping of nodes in G (graph) to its label
-	E_G -- A list of edges in G sorted chronologically by timestamp
+	E_G -- A list of edges. Post-processing is needed to sorted the edges based on their thread IDs and timestamps.
 	"""
 
 	with open(filename) as f:
@@ -101,7 +103,9 @@ def parse_edges(filename, nlm_G, E_G):
 					edgeID = used[uid]["cf:id"]	# Can be used as timestamp
 					edgeTP = used[uid]["prov:type"]
 
-					E_G.append((srcTP, srcUID, edgeTP, dstTP, dstUID, edgeID))
+					threadID = used[uid]["cf:task_id"]
+
+					E_G.append((srcTP, srcUID, edgeTP, dstTP, dstUID, edgeID, threadID))
 			
 			if "wasGeneratedBy" in json_object:
 				wasGeneratedBy = json_object["wasGeneratedBy"]
@@ -121,7 +125,9 @@ def parse_edges(filename, nlm_G, E_G):
 					edgeID = wasGeneratedBy[uid]["cf:id"]
 					edgeTP = wasGeneratedBy[uid]["prov:type"]
 
-					E_G.append((srcTP, srcUID, edgeTP, dstTP, dstUID, edgeID))
+					threadID = wasGeneratedBy[uid]["cf:task_id"]
+
+					E_G.append((srcTP, srcUID, edgeTP, dstTP, dstUID, edgeID, threadID))
 								
 			if "wasInformedBy" in json_object:
 				wasInformedBy = json_object["wasInformedBy"]
@@ -141,7 +147,9 @@ def parse_edges(filename, nlm_G, E_G):
 					edgeID = wasInformedBy[uid]["cf:id"]
 					edgeTP = wasInformedBy[uid]["prov:type"]
 
-					E_G.append((srcTP, srcUID, edgeTP, dstTP, dstUID, edgeID))
+					threadID = wasInformedBy[uid]["cf:task_id"]
+
+					E_G.append((srcTP, srcUID, edgeTP, dstTP, dstUID, edgeID, threadID))
 
 			if "wasDerivedFrom" in json_object:
 				wasDerivedFrom = json_object["wasDerivedFrom"]
@@ -161,7 +169,9 @@ def parse_edges(filename, nlm_G, E_G):
 					edgeID = wasDerivedFrom[uid]["cf:id"]
 					edgeTP = wasDerivedFrom[uid]["prov:type"]
 
-					E_G.append((srcTP, srcUID, edgeTP, dstTP, dstUID, edgeID))
+					threadID = wasDerivedFrom[uid]["cf:task_id"]
+
+					E_G.append((srcTP, srcUID, edgeTP, dstTP, dstUID, edgeID, threadID))
 
 			if "wasAssociatedWith" in json_object:
 				wasAssociatedWith = json_object["wasAssociatedWith"]
@@ -185,9 +195,12 @@ def parse_edges(filename, nlm_G, E_G):
 					edgeID = wasAssociatedWith[uid]["cf:id"]
 					edgeTP = wasAssociatedWith[uid]["prov:type"]
 
-					E_G.append((srcTP, srcUID, edgeTP, dstTP, dstUID, edgeID))
+					threadID = wasAssociatedWith[uid]["cf:task_id"]
+
+					E_G.append((srcTP, srcUID, edgeTP, dstTP, dstUID, edgeID, threadID))
 
 	f.close()
+
 
 def comp_two_edges(e1, e2):
 	"""Comparison function for sorting edges based on timestamps.
@@ -206,6 +219,33 @@ def comp_two_edges(e1, e2):
 	else:
 		return -1
 
+
+def post_process(E_all, E_Gs):
+	"""
+	Post process a list of edges of all thread IDs and unordered to
+	1) put all edges of the same IDs in the same E_G list.
+	2) Witin each E_G list, sort the edges based on their timestamps.
+
+	:param E_all: a list of all edges
+	:param E_Gs: a list of lists of E_G
+	:return: None
+	"""
+	# map thread ID to a list E_G
+	dictID = dict()
+
+	for e in E_all:
+		threadID = long(e[6])
+		if threadID not in dictID:
+			dictID[threadID] = list()
+			dictID[threadID].append(e)
+		else:
+			dictID[threadID].append(e)
+
+	for threadID, E_G in dictID.iteritems():
+		E_G.sort(comp_two_edges)
+		E_Gs.append(E_G)
+
+
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Parse CamFlow Data for TinkerBell.')
 	parser.add_argument('-v', '--verbose', action='store_true', help='increase console verbosity')
@@ -216,11 +256,12 @@ if __name__ == "__main__":
 	logging.basicConfig(filename='error.log',level=logging.DEBUG)
 
 	nlm_G = dict()
-	E_G = list()
-	parse_nodes(args.input, nlm_G)
-	parse_edges(args.input, nlm_G, E_G)
-	E_G.sort(comp_two_edges)
+	# E_Gs is now a list of graph G. All edges fo the same thread ID is in the same E_G
+	E_Gs = list()
 
-	print(str(len(E_G)))
-	# for i in range(len(E_G)):
-		# print repr(E_G[i])
+	# E_all is a list of edges; they are not sorted and contain edges of different thrad IDs.
+	# We will process E_all to sort the edges and put them in respective E_G in E_Gs
+	E_all = list()
+	parse_nodes(args.input, nlm_G)
+	parse_edges(args.input, nlm_G, E_all)
+	post_process(E_all, E_Gs)
