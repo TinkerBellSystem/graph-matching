@@ -126,6 +126,26 @@ def match_transition(states, edge, tracker, inverse_tracker, canonicals):
 	return matched
 
 
+def is_consecutive(l):
+	"""
+	Check if a list @l have consecutive elements
+	:param l: the list to check
+	:return: True (if consecutive) or False
+	"""
+	l = list(map(int, l))
+	l.sort()
+	next_elem = None
+	for elem in l:
+		if next_elem is None:
+			next_elem = elem
+		else:
+			if elem != next_elem + 1:
+				return False
+			else:
+				next_elem = elem
+	return True
+
+
 def match_dfa(dfaname, dfa, G, canonical):
 	"""Matches all motifs of dfa in the graph G.
 
@@ -201,7 +221,9 @@ def match_dfa(dfaname, dfa, G, canonical):
 						# if we have reached an accepting state
 						print("Reached an accepting state...")
 						real_indices_copy = copy.deepcopy(real_indices)
-						matches.append(real_indices_copy)
+						# only considered matched if real indices are consecutive
+						if is_consecutive(real_indices_copy):
+							matches.append(real_indices_copy)
 						# accepted = 1
 						# break
 				# if accepted:
