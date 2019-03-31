@@ -20,6 +20,7 @@ ast_inode = parse_file("./camflow-dev/security/provenance/include/provenance_ino
 ast_net = parse_file("./camflow-dev/security/provenance/include/provenance_net_pp.h")
 ast_record = parse_file("./camflow-dev/security/provenance/include/provenance_record_pp.h")
 ast_task = parse_file("./camflow-dev/security/provenance/include/provenance_task_pp.h")
+ast_netfilter = parse_file("./camflow-dev/security/provenance/netfilter_pp.c")
 
 functions = dict()
 list_functions(ast_hooks, functions)
@@ -27,6 +28,7 @@ list_functions(ast_inode, functions)
 list_functions(ast_net, functions)
 list_functions(ast_record, functions)
 list_functions(ast_task, functions)
+list_functions(ast_netfilter, functions)
 
 # func_body = functions['record_node_name'][1]
 # print(func_body)
@@ -99,6 +101,17 @@ hooks.append('provenance_mq_timedsend')
 # # hooks.append('provenance_socket_sendmsg')
 # # hooks.append('provenance_socket_recvmsg')
 #
+hooks.append('provenance_socket_sock_rcv_skb')
+hooks.append('provenance_unix_stream_connect')
+hooks.append('provenance_unix_may_send')
+hooks.append('provenance_bprm_check_security')
+hooks.append('provenance_bprm_set_creds')
+hooks.append('provenance_bprm_committing_creds')
+hooks.append('provenance_sb_alloc_security')
+hooks.append('provenance_sb_free_security')
+hooks.append('provenance_sb_kern_mount')
+
+hooks.append('provenance_ipv4_out')
 
 trees = dict()
 for hook in hooks:
@@ -154,8 +167,8 @@ for hookname, motif in trees.iteritems():
 nlm_G = dict()
 E_Gs = list()
 E_all = list()
-parser.parse_nodes("../doc/thread.log", nlm_G)
-parser.parse_edges("../doc/thread.log", nlm_G, E_all)
+parser.parse_nodes("../doc/tcp.log", nlm_G)
+parser.parse_edges("../doc/tcp.log", nlm_G, E_all)
 parser.post_process(E_all, E_Gs)
 for E_G in E_Gs:
     print(E_G)
