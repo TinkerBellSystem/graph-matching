@@ -99,7 +99,7 @@ def provenance_vertex_type(v_name):
 	elif v_name == 'ENT_XATTR':
 		return 'xattr'
 	elif v_name == 'ENT_ADDR':
-		return 'addr'
+		return 'address'
 	elif v_name == 'ENT_SBLCK' or v_name == 'sbprov':
 		return 'sb'
 	elif v_name == 'ENT_PCKCNT':
