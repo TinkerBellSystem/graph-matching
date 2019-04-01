@@ -90,7 +90,7 @@ def provenance_vertex_type(v_name):
 		return 'iattr'
 	elif v_name == 'bprov' or v_name == 'ENT_INODE_MMAP':
 		return 'mmaped_file'
-	elif v_name == 'pckprov':
+	elif v_name == 'pckprov' or v_name == 'ENT_PACKET':
 		return 'packet'
 	elif v_name == 'ENT_ARG':
 		return 'argv'
