@@ -52,9 +52,16 @@ def tracker_no_conflict(diedge, edge, ids, canonical):
 		  .format(diedge.srcID, get_canonical_id(diedge.srcID, canonical), ids.get(get_canonical_id(diedge.srcID, canonical)),
 				  edge[1], diedge.dstID, get_canonical_id(diedge.dstID, canonical),
 				  ids.get(get_canonical_id(diedge.dstID, canonical)), edge[4]))
-	# a special '*' case
+	# a special '*' case for sh_read
 	if diedge.edgeTP == 'sh_read':
 		# inode ID matching is ghosted
+		if ids.get(get_canonical_id(diedge.dstID, canonical)) is None or ids[get_canonical_id(diedge.dstID, canonical)] == edge[4]:
+			return True
+		else:
+			return False
+	# a special '*' case for arg/env (only in the hook 'provenance_bprm_check_security')
+	elif diedge.edgeTP == 'arg' or diedge.edgeTP == 'env':
+		# argv or env's ID matching (source) is ghosted
 		if ids.get(get_canonical_id(diedge.dstID, canonical)) is None or ids[get_canonical_id(diedge.dstID, canonical)] == edge[4]:
 			return True
 		else:
