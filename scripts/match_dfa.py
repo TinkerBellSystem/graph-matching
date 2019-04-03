@@ -59,6 +59,13 @@ def tracker_no_conflict(diedge, edge, ids, canonical):
 			return True
 		else:
 			return False
+	# the same special '*' case for sh_write
+	elif diedge.edgeTP == 'sh_write':
+		# inode ID matching is ghosted
+		if ids.get(get_canonical_id(diedge.srcID, canonical)) is None or ids[get_canonical_id(diedge.srcID, canonical)] == edge[1]:
+			return True
+		else:
+			return False
 	# a special '*' case for arg/env (only in the hook 'provenance_bprm_check_security')
 	elif diedge.edgeTP == 'arg' or diedge.edgeTP == 'env':
 		# argv or env's ID matching (source) is ghosted
@@ -84,7 +91,13 @@ def inverse_tracker_no_conflict(edge, diedge, ids, canonical):
 	print("Matching graph source node {} ({}) to {}/{}, and destintaion node {} ({}) to {}/{}"
 		  .format(edge[1], ids.get(edge[1]), diedge.srcID, get_canonical_id(diedge.srcID, canonical),
 				  edge[4], ids.get(edge[4]), diedge.dstID, get_canonical_id(diedge.dstID, canonical)))
-	if (edge[1] not in ids or ids[edge[1]] == get_canonical_id(diedge.srcID, canonical)) \
+	# ghost inode in sh_write since the identity is hard to pinpoint
+	if diedge.edgeTP == 'sh_write':
+		if edge[1] not in ids or ids[edge[1]] == get_canonical_id(diedge.srcID, canonical):
+			return True
+		else:
+			return False
+	elif (edge[1] not in ids or ids[edge[1]] == get_canonical_id(diedge.srcID, canonical)) \
 			and (edge[4] not in ids or ids[edge[4]] == get_canonical_id(diedge.dstID, canonical)):
 		return True
 	else:
@@ -120,7 +133,9 @@ def match_transition(states, edge, tracker, inverse_tracker, canonicals):
 					# the inode (source node) in the provenance "sh_read" edge is not matched to any node in the motif
 					if transition_diedge.edgeTP != 'sh_read':
 						inverse_tracker_copy[edge[1]] = get_canonical_id(transition_diedge.srcID, canonical_copy)
-					inverse_tracker_copy[edge[4]] = get_canonical_id(transition_diedge.dstID, canonical_copy)
+					# the inode (destination node) in the provenance "sh_write" edge is not matched to any node in the motif
+					if transition_diedge.edgeTP != 'sh_write':
+						inverse_tracker_copy[edge[4]] = get_canonical_id(transition_diedge.dstID, canonical_copy)
 					states.append(next_state)
 					tracker.append(tracker_copy)
 					inverse_tracker.append(inverse_tracker_copy)
