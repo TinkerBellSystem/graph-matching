@@ -116,11 +116,13 @@ class QuestionMarkAST(AST):
 		self.operand = operand
 
 	def _thompson(self):
+		new_initial = NFAState()
 		(initial, accepting) = self.operand._thompson()
 
-		initial.add_transition(None, accepting)
+		new_initial.add_transition(None, initial)
+		new_initial.add_transition(None, accepting)
 
-		return (initial, accepting)
+		return (new_initial, accepting)
 
 	def __repr__(self):
 		return 'QuestionMarkAST({})'.format(repr(self.operand))
