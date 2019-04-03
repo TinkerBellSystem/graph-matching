@@ -634,22 +634,17 @@ def eval_if_condition(function_name, item, function_dict, motif_node_dict, name_
         return False
 
 
-def eval_if_else(function_name, item, function_dict, motif_node_dict, name_dict):
-    """Evaluate (nesting) if/else blocks.
-	Only if/else blocks that contain statements that create MotifNodes/TreeNodes are of interest here.
-	Within those blocks, only specific if/else condition checks are of interest here.
-	Most if/else are for error handling only. 
-
-	Arguments:
-	function_name 	-- the name of the function whose if/else statement we are inspecting
-	item 			-- if/else block to be evaluated
-	function_dict	-- dictionary that saves all function bodies
-	motif_node_dict -- motif node map
-	name_dict 		-- name map
-
-	Returns:
-	an RTMTree, which can be None
-	"""
+def eval_if_else_helper_left(function_name, item, function_dict, motif_node_dict, name_dict):
+    """
+    Evaluate (nesting) if/else blocks. This is the helper function to eval_if_else.
+    This only evaluate's the if branch in if/else
+    :param function_name: the name of the function whose if/else statement we are inspecting
+    :param item: if/else block to be evaluated
+    :param function_dict: dictionary that saves all function bodies
+    :param motif_node_dict: motif node map
+    :param name_dict: name map
+    :return: left branch of an RTMTree, which can be None
+    """
     # evaluate the `if` branch first
     true_branch = item.iftrue
     if type(true_branch).__name__ == 'FuncCall':
@@ -673,6 +668,19 @@ def eval_if_else(function_name, item, function_dict, motif_node_dict, name_dict)
         raise NotImplementedError("For not implemented properly")
     else:
         left = None
+    return left
+
+def eval_if_else_helper_right(function_name, item, function_dict, motif_node_dict, name_dict):
+    """
+    Evaluate (nesting) if/else blocks. This is the helper function to eval_if_else.
+    This only evaluate's the else branch in if/else
+    :param function_name: the name of the function whose if/else statement we are inspecting
+    :param item: if/else block to be evaluated
+    :param function_dict: dictionary that saves all function bodies
+    :param motif_node_dict: motif node map
+    :param name_dict: name map
+    :return: right branch of an RTMTree, which can be None
+    """
     # evaluate the `else` branch if it exists
     false_branch = item.iffalse
     if type(false_branch).__name__ == 'FuncCall':
@@ -698,92 +706,110 @@ def eval_if_else(function_name, item, function_dict, motif_node_dict, name_dict)
         raise NotImplementedError("For not implemented properly")
     else:
         right = None
+    return right
 
-    if left or right:
-        # only under certain circumstances do we actually create alternation node
-        if eval_if_condition(function_name, item, function_dict, motif_node_dict, name_dict):
-            # case: if (may_sleep) in 'get_inode_provenance'
-            if type(item.cond).__name__ == 'ID' and item.cond.name == 'may_sleep' \
-                    and 'get_inode_provenance.may_sleep' in name_dict \
-                    and name_dict['get_inode_provenance.may_sleep'].split('.')[1] == 'false':
-                if right is not None:
-                    print(
-                        '\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} has may_sleep and is false, we return non-None else branch'.format(
-                            ast_snippet(item.cond)))
-                    return right
-                else:
-                    print(
-                        '\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} has may_sleep and is false, and else branch is None'.format(
-                            ast_snippet(item.cond)))
-                    return None
-            # case: if (!provenance_is_initialized(prov_elt(iprov)) && may_sleep) in 'get_inode_provenance'
-            elif type(item.cond).__name__ == 'BinaryOp' and type(item.cond.right).__name__ == 'ID' \
-                    and item.cond.right.name == 'may_sleep' and 'get_inode_provenance.may_sleep' in name_dict \
-                    and name_dict['get_inode_provenance.may_sleep'].split('.')[1] == 'false':
-                if right is not None:
-                    print(
-                        '\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} has may_sleep and is false, we return non-None else branch'.format(
-                            ast_snippet(item.cond)))
-                    return right
-                else:
-                    print(
-                        '\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} has may_sleep and is false, and else branch is None'.format(
-                            ast_snippet(item.cond)))
-                    return None
-            # case: if (vm_read_exec_mayshare(flags) && read) in 'current_update_shst'
-            elif type(item.cond).__name__ == 'BinaryOp' and type(item.cond.right).__name__ == 'ID' \
-                    and item.cond.right.name == 'read' and 'current_update_shst.read' in name_dict \
-                    and name_dict['current_update_shst.read'].split('.')[1] == 'false':
-                if right is not None:
-                    print(
-                        '\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} has read and is false, we return non-None else branch'.format(
-                            ast_snippet(item.cond)))
-                    return right
-                else:
-                    print(
-                        '\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} has may_sleep and is false, and else branch is None'.format(
-                            ast_snippet(item.cond)))
-                    return None
-            # case: if (vm_write_mayshare(flags) && !read) in 'current_update_shst'
-            elif type(item.cond).__name__ == 'BinaryOp' and type(item.cond.right).__name__ == 'UnaryOp' \
-                    and type(item.cond.right.expr).__name__ == 'ID' and item.cond.right.expr.name == 'read' \
-                    and 'current_update_shst.read' in name_dict and name_dict['current_update_shst.read'].split('.')[
-                1] == 'true':
-                if right is not None:
-                    print(
-                        '\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} has read and is false, we return non-None else branch'.format(
-                            ast_snippet(item.cond)))
-                    return right
-                else:
-                    print(
-                        '\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} has may_sleep and is false, and else branch is None'.format(
-                            ast_snippet(item.cond)))
-                    return None
-            else:
-                return create_alternation_node(left, right)
-        else:
-            print(
-                '\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} is not considered, so no alternation node is produced'.format(
-                    ast_snippet(item.cond)))
-            if left is not None and right is None:
-                return left
-            elif left is None and right is not None:
+
+def eval_if_else(function_name, item, function_dict, motif_node_dict, name_dict):
+    """Evaluate (nesting) if/else blocks.
+	Only if/else blocks that contain statements that create MotifNodes/TreeNodes are of interest here.
+	Within those blocks, only specific if/else condition checks are of interest here.
+	Most if/else are for error handling only. 
+
+	Arguments:
+	function_name 	-- the name of the function whose if/else statement we are inspecting
+	item 			-- if/else block to be evaluated
+	function_dict	-- dictionary that saves all function bodies
+	motif_node_dict -- motif node map
+	name_dict 		-- name map
+
+	Returns:
+	an RTMTree, which can be None
+	"""
+    # only under certain circumstances do we actually create alternation node
+    if eval_if_condition(function_name, item, function_dict, motif_node_dict, name_dict):
+        # case: if (may_sleep) in 'get_inode_provenance'
+        if type(item.cond).__name__ == 'ID' and item.cond.name == 'may_sleep' \
+                and 'get_inode_provenance.may_sleep' in name_dict \
+                and name_dict['get_inode_provenance.may_sleep'].split('.')[1] == 'false':
+            right = eval_if_else_helper_right(function_name, item, function_dict, motif_node_dict, name_dict)
+            if right is not None:
+                print(
+                    '\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} has may_sleep and is false, we return non-None else branch'.format(
+                        ast_snippet(item.cond)))
                 return right
             else:
-                return create_group_node(left, right)
-    # if only one branch is not None, we need not create a group node
-    ##################################################################
-    # What are the cases where we ignore if/else alternation, and why?
-    ##################################################################
-    # if left is None:
-    # 	return right
-    # if right is None:
-    # 	return left
-    # return create_group_node(left, right)
-    ##################################################################
+                print(
+                    '\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} has may_sleep and is false, and else branch is None'.format(
+                        ast_snippet(item.cond)))
+                return None
+        # case: if (!provenance_is_initialized(prov_elt(iprov)) && may_sleep) in 'get_inode_provenance'
+        elif type(item.cond).__name__ == 'BinaryOp' and type(item.cond.right).__name__ == 'ID' \
+                and item.cond.right.name == 'may_sleep' and 'get_inode_provenance.may_sleep' in name_dict \
+                and name_dict['get_inode_provenance.may_sleep'].split('.')[1] == 'false':
+            right = eval_if_else_helper_right(function_name, item, function_dict, motif_node_dict, name_dict)
+            if right is not None:
+                print(
+                    '\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} has may_sleep and is false, we return non-None else branch'.format(
+                        ast_snippet(item.cond)))
+                return right
+            else:
+                print(
+                    '\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} has may_sleep and is false, and else branch is None'.format(
+                        ast_snippet(item.cond)))
+                return None
+        # case: if (vm_read_exec_mayshare(flags) && read) in 'current_update_shst'
+        elif type(item.cond).__name__ == 'BinaryOp' and type(item.cond.right).__name__ == 'ID' \
+                and item.cond.right.name == 'read' and 'current_update_shst.read' in name_dict \
+                and name_dict['current_update_shst.read'].split('.')[1] == 'false':
+            right = eval_if_else_helper_right(function_name, item, function_dict, motif_node_dict, name_dict)
+            if right is not None:
+                print(
+                    '\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} has read and is false, we return non-None else branch'.format(
+                        ast_snippet(item.cond)))
+                return right
+            else:
+                print(
+                    '\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} has read and is false, and else branch is None'.format(
+                        ast_snippet(item.cond)))
+                return None
+        # case: if (vm_write_mayshare(flags) && !read) in 'current_update_shst'
+        elif type(item.cond).__name__ == 'BinaryOp' and type(item.cond.right).__name__ == 'UnaryOp' \
+                and type(item.cond.right.expr).__name__ == 'ID' and item.cond.right.expr.name == 'read' \
+                and 'current_update_shst.read' in name_dict and name_dict['current_update_shst.read'].split('.')[
+            1] == 'true':
+            right = eval_if_else_helper_right(function_name, item, function_dict, motif_node_dict, name_dict)
+            if right is not None:
+                print(
+                    '\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} has read and is false, we return non-None else branch'.format(
+                        ast_snippet(item.cond)))
+                return right
+            else:
+                print(
+                    '\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} has read and is false, and else branch is None'.format(
+                        ast_snippet(item.cond)))
+                return None
+        else:
+            left = eval_if_else_helper_left(function_name, item, function_dict, motif_node_dict, name_dict)
+            right = eval_if_else_helper_right(function_name, item, function_dict, motif_node_dict, name_dict)
+            if left is None and right is None:
+                return None
+            else:
+                return create_alternation_node(left, right)
     else:
-        print('\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Skipping if/else block that results in None')
-        return None
+        print(
+            '\x1b[6;30;43m[!]\x1b[0m [eval_if_else] Condition: {} is not considered, so no alternation node is produced'.format(
+                ast_snippet(item.cond)))
+        left = eval_if_else_helper_left(function_name, item, function_dict, motif_node_dict, name_dict)
+        right = eval_if_else_helper_right(function_name, item, function_dict, motif_node_dict, name_dict)
+        if left is None and right is None:
+            return None
+        elif left is not None and right is None:
+            return left
+        elif left is None and right is not None:
+            return right
+        else:
+            #TODO: Should we actually create group node? This may be a potential bug.
+            return create_group_node(left, right)
 
 
 def eval_return(function_name, statement, function_dict, motif_node_dict, name_dict):
