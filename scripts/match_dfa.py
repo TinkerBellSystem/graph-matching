@@ -78,6 +78,7 @@ def tracker_no_conflict(diedge, edge, ids, canonical):
 	else:
 		return False
 
+
 def inverse_tracker_no_conflict(edge, diedge, ids, canonical):
 	"""When matching node IDs of @edge (in G) and those of @diedge (in DFA), check if there exists any conflicts in @ids."""
 	print("Matching graph source node {} ({}) to {}/{}, and destintaion node {} ({}) to {}/{}"
@@ -116,7 +117,9 @@ def match_transition(states, edge, tracker, inverse_tracker, canonicals):
 					tracker_copy[get_canonical_id(transition_diedge.srcID, canonical_copy)] = edge[1]
 					tracker_copy[get_canonical_id(transition_diedge.dstID, canonical_copy)] = edge[4]
 					inverse_tracker_copy = copy.deepcopy(inverse_tracker[i])
-					inverse_tracker_copy[edge[1]] = get_canonical_id(transition_diedge.srcID, canonical_copy)
+					# the inode (source node) in the provenance "sh_read" edge is not matched to any node in the motif
+					if transition_diedge.edgeTP != 'sh_read':
+						inverse_tracker_copy[edge[1]] = get_canonical_id(transition_diedge.srcID, canonical_copy)
 					inverse_tracker_copy[edge[4]] = get_canonical_id(transition_diedge.dstID, canonical_copy)
 					states.append(next_state)
 					tracker.append(tracker_copy)
