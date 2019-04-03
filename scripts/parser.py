@@ -224,7 +224,7 @@ def post_process(E_all, E_Gs):
 	"""
 	Post process a list of edges of all thread IDs and unordered to
 	1) put all edges of the same IDs in the same E_G list.
-	2) Witin each E_G list, sort the edges based on their timestamps.
+	2) Within each E_G list, sort the edges based on their timestamps.
 
 	:param E_all: a list of all edges
 	:param E_Gs: a list of lists of E_G

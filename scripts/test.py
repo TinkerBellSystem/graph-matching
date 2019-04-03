@@ -167,8 +167,8 @@ for hookname, motif in trees.iteritems():
 nlm_G = dict()
 E_Gs = list()
 E_all = list()
-parser.parse_nodes("../doc/tcp.log", nlm_G)
-parser.parse_edges("../doc/tcp.log", nlm_G, E_all)
+parser.parse_nodes("../doc/mmap2.log", nlm_G)
+parser.parse_edges("../doc/mmap2.log", nlm_G, E_all)
 parser.post_process(E_all, E_Gs)
 for E_G in E_Gs:
     print(E_G)
@@ -176,12 +176,26 @@ for E_G in E_Gs:
 
 # pool = Pool(6)
 # args = []
+hooks2indices = dict()
+indices2hooks = dict()
 for num, E_G in enumerate(E_Gs):
     print("************************************************ Matching Graph {}".format(num))
     canonicals_copy = copy.deepcopy(canonicals)
     for dfaname, dfa in dfas.iteritems():
         # args.append((dfaname, dfa, E_G))
-        mdfa.match_dfa(dfaname, dfa, E_G, canonicals_copy[dfaname])
+        mdfa.match_dfa(dfaname, dfa, E_G, canonicals_copy[dfaname], hooks2indices, indices2hooks)
+
+matched = dict()
+# Calculate the total size of the graph
+total_graph_size = 0
+for E_G in E_Gs:
+    total_graph_size += len(E_G)
+mdfa.match_hooks(total_graph_size, hooks2indices, indices2hooks, matched)
+
+print("Printing the results===============================")
+for key, value in matched.iteritems():
+    print("{} -> {}".format(key, value))
+
 # pool.map(mdfa.match_dfa_wrapper, args)
 
 # converter = Converter(tree)
