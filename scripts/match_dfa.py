@@ -190,9 +190,11 @@ def post_match_precheck(l, G, dfaname):
 			return False
 		else:
 			return True
-	elif dfaname is 'provenance_kernel_read_file':
+	# We remove this condition because CamFlow fixes the issue.
+	# elif dfaname is 'provenance_kernel_read_file':
 		# TODO: Put in the paper: one option was left out
 		# TODO: GitHub: Create a new relationship such as load_undefined so that all load relationship will always be recorded one way or another
+		# TODO: [UPDATE] This issue is currently fixed. Note in the paper.
 		# provenance_kernel_read_file: we would expect one of the following:
 		# 1. `inode -load_file-> task` and `task -load_unknown-> machine`
 		# 2. `inode -load_file-> task` and `task -load_firmware-> machine`
@@ -204,14 +206,14 @@ def post_match_precheck(l, G, dfaname):
 		# 8. `inode -load_file-> task` and `task -load_certificate-> machine`
 
 		# if we do not see `load_file` then we will discard any matches without it
-		with_load_file = False
-		for index in l:
-			if G[index][2] == 'load_file':
-				with_load_file = True
-		if not with_load_file:
-			return False
-		else:
-			return True
+		# with_load_file = False
+		# for index in l:
+		# 	if G[index][2] == 'load_file':
+		# 		with_load_file = True
+		# if not with_load_file:
+		# 	return False
+		# else:
+		# 	return True
 	elif dfaname is 'provenance_file_permission':
 		# provenance_file_permission: we would most likely expect one or more of the following, in that order:
 		# 1. `process_memory -memory_read-> task` and `task -write-> inode`
@@ -310,8 +312,10 @@ def post_match_precheck(l, G, dfaname):
 	# provenance_inode_post_setxattr: `process_memory -memory_read-> task` and `task -setxattr-> xattr` and `xattr -setxattr_inode-> inode` and `xattr -removexattr_inode-> inode` must exist in this order
 	# provenance_inode_readline: `inode -read_link-> task` and `task -memory_write-> process_memory` must exist in this order
 	# provenance_inode_removexattr: `process_memory -memory_read-> task` and `task -removexattr-> xattr` and `xattr -setxattr_inode-> inode` and `xattr -removexattr_inode-> inode` must exist in this order
+	# TODO: [UPDATE] The issue below has been fixed through CamFlow. Note in the paper.
 	# provenance_inode_rename: `process_memory -memory_read-> task` and `task -link-> inode` must exist in this order #TODO: To be confused with provenance_inode_link # GitHub: Should have its own type
 	# provenance_inode_setattr: `process_memory -memory_read-> task` and `task -setattr-> iattr` and `iattr -setattr_inode-> inode` must exist in this order
+	#TODO: [UPDATE] The issue below has been fixed through CamFlow. Note in the paper.
 	# provenance_inode_setxattr: #TODO: Only versioning and naming exist in this hook? To be confused with provenance_inode_getsecurity # GitHub issue: Should do nothing
 	# provenance_inode_symlink: `process_memory -memory_read-> task` and `task -symlink-> inode` must exist in this order
 	# provenance_inode_unlink: `process_memory -memory_read-> task` and `task -unlink-> inode` must exist in this order
@@ -330,6 +334,7 @@ def post_match_precheck(l, G, dfaname):
 	# 1. `shm -sh_attach_read-> task` and `task -memory_write-> process_memory`
 	# 2. `shm -sh_attach_read-> task` and `task -memory_write-> process_memory` and `process_memory -memory_read-> task` and `task -sh_attach_write-> shm`
 	# provenance_shm_shmdt: `process_memory -memory_read-> task` and `task -shmdt-> shm` must exist in this order
+	# TODO: [UPDATE] The issue below has been fixed through CamFlow. Note in the paper.
 	# provenance_sk_alloc_security: #TODO: Only versioning and namning exist in this hook? # GitHub: Should do nothing
 	# provenance_socket_accept: `inode -accept_socket-> inode` and `inode -accept-> task` and `task -memory_write-> process_memory` must exist in this order
 	# provenance_socket_bind: `process_memory -memory_read-> task` and `task -bind-> inode` must exist in this order
@@ -346,6 +351,7 @@ def post_match_precheck(l, G, dfaname):
 	# provenance_task_getpgid: `process_memory -getpgid-> task` and `task -memory_write-> process_memory` must exist in this order
 	# provenance_task_setpgid: `process_memory -memory_read-> task` and `task -setpgid-> process_memory` must exist in this order
 	# provenance_unix_may_send: `process_memory -send_unix-> inode` must be matched
+	# TODO: [UPDATE] The issue below has been fixed through CamFlow. Note in the paper.
 	# provenance_unix_stream_connect: `process_memory -memory_read-> task` and `task -connect-> inode` must exist in this order #TODO: To be confused with provenance_socket_connect # GitHub: Use another name to be able to distinguish
 	else:
 		return True
