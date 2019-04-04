@@ -903,7 +903,9 @@ def eval_switch(function_name, item, function_dict, motif_node_dict, name_dict):
                         print('\x1b[6;30;41m[x]\x1b[0m [eval_switch]: The type {} is not implemented'.format(
                             type(opstmt).__name__))
                         raise NotImplementedError('type not implemented properly')
-                if tree_node is not None:
+                if tree is None:
+                    tree = tree_node
+                elif tree_node is not None:
                     tree = create_alternation_node(tree, tree_node)
             else:
                 print('\x1b[6;30;41m[x]\x1b[0m [eval_switch]: The type {} is not implemented'.format(
