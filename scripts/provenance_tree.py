@@ -18,7 +18,7 @@ def relation_to_str(str):
 	Returns a corresponding relation string given the relation name.
 	The information is stored in "type.c".
 	"""
-	with open('./camflow/type.c', 'r') as f:
+	with open('./camflow-dev/security/provenance/type.c', 'r') as f:
 		for line in f:
 			matched = re.match(r"\s*static\s*const\s*char\s*RL_STR_(\w+)\[\]\s*=\s*\"(\w+)\"\s*;\s*\/\/\s*([\w\s]+)", line.strip())	# Match the lines in the "type.c" file that contains types.
 			if matched is not None:	# Find the right lines
@@ -1118,7 +1118,7 @@ def uses(edge_type, entity_node, activity_node, activity_mem_node, file, flags, 
 	"""
 	Parse and analyze "uses" function in "provenance_record.h".
 	"""
-	function_decl, function_body = parser('./camflow/provenance_record_pp.h', 'uses')
+	function_decl, function_body = parser('./camflow-dev/security/provenance/include/provenance_record_pp.h', 'uses')
 
 	ty = relation_to_str(edge_type)
 	caller_parameters = caller_parameter_names(function_decl)
@@ -1130,7 +1130,7 @@ def uses_two(edge_type, entity_node, activity_node, file, flags, motif_node_dict
 	"""
 	Parse and analyze "uses_two" function in "provenance_record.h".
 	"""
-	function_decl, function_body = parser('./camflow/provenance_record_pp.h', 'uses_two')
+	function_decl, function_body = parser('./camflow-dev/security/provenance/include/provenance_record_pp.h', 'uses_two')
 	
 	ty = relation_to_str(edge_type)
 	caller_parameters = caller_parameter_names(function_decl)
@@ -1142,7 +1142,7 @@ def generates(edge_type, activity_mem_node, activity_node, entity_node, file, fl
 	"""
 	Parse and analyze "generates" function in "provenance_record.h".
 	"""
-	function_decl, function_body = parser('./camflow/provenance_record_pp.h', 'generates')
+	function_decl, function_body = parser('./camflow-dev/security/provenance/include/provenance_record_pp.h', 'generates')
 	
 	ty = relation_to_str(edge_type)
 	caller_parameters = caller_parameter_names(function_decl)
@@ -1154,7 +1154,7 @@ def derives(edge_type, from_node, to_node, file, flags, motif_node_dict):
 	"""
 	Parse and analyze "derives" function in "provenance_record.h".
 	"""
-	function_decl, function_body = parser('./camflow/provenance_record_pp.h', 'derives')
+	function_decl, function_body = parser('./camflow-dev/security/provenance/include/provenance_record_pp.h', 'derives')
 	
 	ty = relation_to_str(edge_type)
 	caller_parameters = caller_parameter_names(function_decl)
@@ -1166,7 +1166,7 @@ def informs(edge_type, from_node, to_node, file, flags, motif_node_dict):
 	"""
 	Parse and analyze "informs" function in "provenance_record.h".
 	"""
-	function_decl, function_body = parser('./camflow/provenance_record_pp.h', 'informs')
+	function_decl, function_body = parser('./camflow-dev/security/provenance/include/provenance_record_pp.h', 'informs')
 	
 	ty = relation_to_str(edge_type)
 	caller_parameters = caller_parameter_names(function_decl)
