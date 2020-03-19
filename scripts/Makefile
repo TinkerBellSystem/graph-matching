@@ -28,8 +28,8 @@ remedy_hooks:
 	$(SED) 's,^#include "memcpy_ss.h",//&,' ./camflow-dev/security/provenance/hooks.c
 
 	$(SED) "s;container_of(fown, struct file, f_owner);container_of(fown, file, f_owner);" ./camflow-dev/security/provenance/hooks.c
-	$(SED) "s,call_provenance_alloc((prov_entry_t \*)\&pckprov),call_provenance_alloc(pckprov)," ./camflow-dev/security/provenance/hooks.c
-	$(SED) "s,call_provenance_free((prov_entry_t \*)\&pckprov),call_provenance_free(pckprov)," ./camflow-dev/security/provenance/hooks.c
+	$(SED) "s,call_provenance_alloc((prov_entry_t\*)\&pckprov),call_provenance_alloc(pckprov)," ./camflow-dev/security/provenance/hooks.c
+	$(SED) "s,call_provenance_free((prov_entry_t\*)\&pckprov),call_provenance_free(pckprov)," ./camflow-dev/security/provenance/hooks.c
 	$(SED) "s,__lsm_ro_after_init,," ./camflow-dev/security/provenance/hooks.c
 	$(SED) "s,__ro_after_init,," ./camflow-dev/security/provenance/hooks.c
 	$(SED) 's,^LIST_HEAD,//&,' ./camflow-dev/security/provenance/hooks.c
