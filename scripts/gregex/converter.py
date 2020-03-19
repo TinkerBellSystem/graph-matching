@@ -11,8 +11,8 @@
 
 from automaton import Diedge
 from ast import DiedgeAST, KleeneAST, QuestionMarkAST, AlternationAST, ConcatenationAST
-# from rtm import MotifNode, MotifEdge, RTMTreeNode
-from motif.rtm import *
+from rtm import MotifNode, MotifEdge, RTMTreeNode
+# from motif.rtm import *
 
 class Converter:
 	"""An RTMT-to-Regex-AST converter."""
