@@ -209,7 +209,7 @@ def eval_function_call(func_call, motif_node_dict):
             print('\33[101m' + '[error][eval_function_call]:  ' + arg_names[1] + ' in get_inode_provenance is unknown.\033[0m')
             exit(1)
         return provenance.get_inode_provenance(None, arg1, motif_node_dict)
-    # CamFlow "get_dentry_provenance" takes two arguments but only the second argument is needed for modeling.  
+    # CamFlow "get_dentry_provenance" takes two arguments but only the second argument is needed for modeling.
     elif func_call.name.name == 'get_dentry_provenance':
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
@@ -337,7 +337,7 @@ def eval_function_call(func_call, motif_node_dict):
             print('\33[101m' + '[error][eval_function_call]:  ' + arg2 + ' in record_read_xattr must have values in the dictionary.\033[0m')
             exit(1)
         return provenance.record_read_xattr(val0, val1, val2, None, motif_node_dict)
-    # CamFlow "get_file_provenance" takes two arguments but only the second argument is needed for modeling.  
+    # CamFlow "get_file_provenance" takes two arguments but only the second argument is needed for modeling.
     elif func_call.name.name == 'get_file_provenance':
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
@@ -374,10 +374,10 @@ def eval_function_call(func_call, motif_node_dict):
     # CamFlow "get_socket_inode_provenance" takes one argument but it is not needed for modeling.
     elif func_call.name.name == 'get_socket_provenance':
         return provenance.get_socket_provenance(None, motif_node_dict)
-    # CamFlow "get_socket_inode_provenance" takes one argument but it is not needed for modeling.  
+    # CamFlow "get_socket_inode_provenance" takes one argument but it is not needed for modeling.
     elif func_call.name.name == 'get_socket_inode_provenance':
         return provenance.get_socket_inode_provenance(None, motif_node_dict)
-    # CamFlow "record_address" takes three arguments but only the last argument is needed for modeling. 
+    # CamFlow "record_address" takes three arguments but only the last argument is needed for modeling.
     elif func_call.name.name == 'record_address':
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
@@ -390,13 +390,13 @@ def eval_function_call(func_call, motif_node_dict):
             print('\33[101m' + '[error][eval_function_call]:  ' + arg2 + ' in record_address must have values in the dictionary.\033[0m')
             exit(1)
         return provenance.record_address(None, None, val2, motif_node_dict)
-    # CamFlow "get_sk_inode_provenance" takes one argument but it is not needed for modeling.  
+    # CamFlow "get_sk_inode_provenance" takes one argument but it is not needed for modeling.
     elif func_call.name.name == 'get_sk_inode_provenance':
         return provenance.get_sk_inode_provenance(None, motif_node_dict)
     # CamFlow "get_sk_provenance" takes one argument but it is not needed for modeling.
     elif func_call.name.name == 'get_sk_provenance':
         return provenance.get_sk_provenance(None, motif_node_dict)
-    # CamFlow "record_packet_content" takes two arguments but only the second argument is needed for modeling. 
+    # CamFlow "record_packet_content" takes two arguments but only the second argument is needed for modeling.
     elif func_call.name.name == 'record_packet_content':
         args = func_call.args.exprs
         arg_names = get_arg_name(args)
@@ -477,7 +477,7 @@ def eval_declaration(declaration, motif_node_dict):
             else:
                 # it should be the first time we see the name in the dictionary
                 if declaration.name in motif_node_dict:
-                    print('\33[101m' + '[error][eval_declaration]:  ' + declaration.name + ' should not already be in the dictionary.\033[0m')                    
+                    print('\33[101m' + '[error][eval_declaration]:  ' + declaration.name + ' should not already be in the dictionary.\033[0m')
                     exit(1)
                 else:
                     motif_node_dict[declaration.name] = [motif_node]
@@ -487,7 +487,7 @@ def eval_declaration(declaration, motif_node_dict):
             if declaration.init.name == 'NULL':
                 # it should be the first time we see the name in the dictionary
                 if declaration.name in motif_node_dict:
-                    print('\33[101m' + '[error][eval_declaration]:  ' + declaration.name + ' is set to NULL and should not already be in the dictionary.\033[0m')                    
+                    print('\33[101m' + '[error][eval_declaration]:  ' + declaration.name + ' is set to NULL and should not already be in the dictionary.\033[0m')
                     exit(1)
                 else:
                     motif_node_dict[declaration.name] = []
@@ -496,13 +496,13 @@ def eval_declaration(declaration, motif_node_dict):
                 # We will consider other conditions if we ever see them
                 # POSSIBLE CODE HERE.
                 #######################################################
-                print('\33[101m' + '[error][eval_declaration]:  ' + declaration.name + ' is set to an unknown condition that is not considered yet.\033[0m')                    
+                print('\33[101m' + '[error][eval_declaration]:  ' + declaration.name + ' is set to an unknown condition that is not considered yet.\033[0m')
                 exit(1)
             return None
         # if it is not set at all, then it must be set later
         elif type(declaration.init).__name__ == 'NoneType':
             if declaration.name in motif_node_dict:
-                print('\33[101m' + '[error][eval_declaration]:  ' + declaration.name + ' is not set and should not already be in the dictionary.\033[0m')                    
+                print('\33[101m' + '[error][eval_declaration]:  ' + declaration.name + ' is not set and should not already be in the dictionary.\033[0m')
                 exit(1)
             else:
                 #######################################################
@@ -517,12 +517,12 @@ def eval_declaration(declaration, motif_node_dict):
         # it must be set through other methods, so we can only infer the type from its name
         else:
             if declaration.name in motif_node_dict:
-                print('\33[101m' + '[error][eval_declaration]:  ' + declaration.name + ' is not set in an unknown way but should not already be in the dictionary.\033[0m')                    
+                print('\33[101m' + '[error][eval_declaration]:  ' + declaration.name + ' is not set in an unknown way but should not already be in the dictionary.\033[0m')
                 exit(1)
             else:
                 motif_node_dict[declaration.name] = [provenance.create_motif_node(declaration.name)]
             return None
-            
+
     else:
         return None
 
@@ -535,7 +535,7 @@ def eval_return(statement, motif_node_dict):
     if type(statement.expr).__name__ == 'FuncCall':
         motif_node, tree_node = eval_function_call(statement.expr, motif_node_dict)
         if motif_node:
-            print('\33[101m' + '[error][eval_return]: return statement should not generate a new MotifNode.\033[0m')                    
+            print('\33[101m' + '[error][eval_return]: return statement should not generate a new MotifNode.\033[0m')
             exit(1)
         else:
             return tree_node
@@ -596,18 +596,18 @@ def eval_if_condition(condition):
     #######################################################
     else:
         return False
-    
+
 def eval_if_else(item, motif_node_dict):
     """
     Evaluate (nesting) if/else blocks.
     Only if/else blocks that contain statements that create MotifNodes/TreeNodes are of interest here.
     Within those blocks, only specific if/else condition checks are of interest here.
-    Most if/else are for error handling only. 
+    Most if/else are for error handling only.
     """
     # evaluate the `if` branch first
     true_branch = item.iftrue
     if type(true_branch).__name__ == 'FuncCall':
-        motif_node, left = eval_function_call(true_branch, motif_node_dict)             
+        motif_node, left = eval_function_call(true_branch, motif_node_dict)
     elif type(true_branch).__name__ == 'Assignment':
         left = eval_assignment(true_branch, motif_node_dict)
     elif type(true_branch).__name__ == 'Decl':
@@ -690,7 +690,7 @@ def eval_hook(function_body, motif_node_dict):
 
 def eval_function_declaration(function_decl, motif_node_dict):
     """
-    If hook function declaration contains provenance MotifNodes in their parameter list, 
+    If hook function declaration contains provenance MotifNodes in their parameter list,
     we need to include them in the @motif_node_dict
     This function is currently for the special the "__mq_msgrcv" case.
     """
@@ -705,10 +705,10 @@ def eval_function_declaration(function_decl, motif_node_dict):
 # with either declarations or function definitions.
 
 # A C parser must also have all the types declared
-# to build the correct AST. 
+# to build the correct AST.
 
 # Parse the preprocessed hooks.c file.
-ast = parse_file("./camflow-dev/security/provenance/hooks_pp.c")
+ast = parse_file("../../security/provenance/hooks_pp.c")
 # Uncomment the following line to see the AST in a nice, human
 # readable way. show() is the most useful tool in exploring ASTs
 # created by pycparser. See the c_ast.py file for the options you
@@ -744,10 +744,10 @@ for ext in ast.ext:
 
         # Now we only care about functions that are hook definitions
         # Their names all start with "provenance",
-        # with the exception that some calls "__mq_msgsnd", and "__mq_msgrcv" that contain real definitons. 
+        # with the exception that some calls "__mq_msgsnd", and "__mq_msgrcv" that contain real definitons.
         # We deal with "__mq_msgsnd", and "__mq_msgrcv" first,
         # Then go through all the rest of the functions again.
-        
+
         if function_name.startswith("__mq_msgsnd") or function_name.startswith("__mq_msgrcv"):
             # The body of FuncDef is a Compound, which is a placeholder for a block surrounded by {}
             function_body = ext.body
@@ -760,13 +760,13 @@ for ext in ast.ext:
             motif_node_dict = {}
             print("\x1b[6;30;42m" + "Evaluating " + function_name + " hook..." + '\x1b[0m')
             function_decl = ext.decl
-            # We must preprocess function declaration for "__mq_msgrcv" 
+            # We must preprocess function declaration for "__mq_msgrcv"
             # because their declaration contains provenance MotifNode declarations that are needed to exist.
             eval_function_declaration(function_decl, motif_node_dict)
             motif = eval_hook(function_body, motif_node_dict)
             hooks[function_name] = motif
             print("\x1b[6;30;42m" + 'Success!' + '\x1b[0m')
-        
+
 # We go through each hook function again to draw model graphs.
 for ext in ast.ext:
     if type(ext).__name__ == 'FuncDef':
@@ -787,7 +787,7 @@ for ext in ast.ext:
                     print("\x1b[6;30;42m" + 'Success!' + '\x1b[0m')
                 else:
                     print('\33[5;30;42m[warning]' + function_name + " does not have an RTM Motif." + '\033[0m')
-                    
+
 # Deal with function hooks that are not explicitly defined
 hooks['provenance_socket_sendmsg'] = hooks['provenance_socket_sendmsg_always']
 hooks['provenance_socket_recvmsg'] = hooks['provenance_socket_recvmsg_always']
@@ -841,8 +841,8 @@ for hookname, motif in hooks.iteritems():
 # for dfaname, dfa in dfas.iteritems():
 #     args.append((dfaname, dfa, E_G))
 # pool.map(mdfa.match_dfa_wrapper, args)
-    
-    
+
+
 #     # os.system('dot -Tpng ../dot/'+ hookname +'_tree.dot -o ../img/'+ hookname +'_tree.png')
 
 # print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")

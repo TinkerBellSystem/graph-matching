@@ -15,12 +15,12 @@ import copy
 import match_dfa as mdfa
 from multiprocessing import Pool
 
-ast_hooks = parse_file("./camflow-dev/security/provenance/hooks_pp.c")
-ast_inode = parse_file("./camflow-dev/security/provenance/include/provenance_inode_pp.h")
-ast_net = parse_file("./camflow-dev/security/provenance/include/provenance_net_pp.h")
-ast_record = parse_file("./camflow-dev/security/provenance/include/provenance_record_pp.h")
-ast_task = parse_file("./camflow-dev/security/provenance/include/provenance_task_pp.h")
-ast_netfilter = parse_file("./camflow-dev/security/provenance/netfilter_pp.c")
+ast_hooks = parse_file("../../security/provenance/hooks_pp.c")
+ast_inode = parse_file("../../security/provenance/include/provenance_inode_pp.h")
+ast_net = parse_file("../../security/provenance/include/provenance_net_pp.h")
+ast_record = parse_file("../../security/provenance/include/provenance_record_pp.h")
+ast_task = parse_file("../../security/provenance/include/provenance_task_pp.h")
+ast_netfilter = parse_file("../../security/provenance/netfilter_pp.c")
 
 functions = dict()
 list_functions(ast_hooks, functions)
