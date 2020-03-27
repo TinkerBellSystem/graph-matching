@@ -119,11 +119,26 @@ remedy_netfilter:
 preprocess_netfilter:
 	gcc -D'__always_inline=' -D'uint64_t=int' -D'prov_entry_t=int' -D'bool=int' -D'uint16_t=int' -D'uint32_t=int' -D'size_t=int' -D'uint8_t=int' -D'vm_flags_t=int' -D'pid_t=int' -D'unsigned=' -D'__net_init=' -D'__net_exit=' -D'__init=' -D'__exit=' -E ./camflow-dev/security/provenance/netfilter.c > ./camflow-dev/security/provenance/netfilter_pp.c
 
-analyze:
+venv/bin/activate: requirements.txt
+	test -f venv/bin/activate || virtualenv -p $(shell which python3) venv
+	. venv/bin/activate ; \
+	pip install -Ur requirements.txt ; \
+	pip freeze | sort > requirements.txt
+	touch venv/bin/activate
+
+clean-pyc:
+	find . -name '*.pyc' -delete
+	find . -name "*.pyo" -delete
+	find . -name "*~" -delete
+	find . -name '__pycache__' -type d | xargs rm -fr
+
+analyze: clean-pyc venv/bin/activate
 	cd ../ && mkdir -p dot
 	python main.py
 
-all: remedy_hooks preprocess_hooks remedy_record preprocess_record remedy_inode preprocess_inode remedy_net preprocess_net remedy_task preprocess_task remedy_netfilter preprocess_netfilter
+prepare: remedy_hooks preprocess_hooks remedy_record preprocess_record remedy_inode preprocess_inode remedy_net preprocess_net remedy_task preprocess_task remedy_netfilter preprocess_netfilter
+
+all: prepare analyze
 
 draw_all:
 	python draw.py
