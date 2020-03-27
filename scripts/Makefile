@@ -134,6 +134,7 @@ clean-pyc:
 
 analyze: clean-pyc venv/bin/activate
 	cd ../ && mkdir -p dot
+	. venv/bin/activate ; \
 	python main.py
 
 prepare: remedy_hooks preprocess_hooks remedy_record preprocess_record remedy_inode preprocess_inode remedy_net preprocess_net remedy_task preprocess_task remedy_netfilter preprocess_netfilter

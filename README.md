@@ -12,16 +12,13 @@ We will run the code on the `hotfix` branch for now:
 cd graph-matching/
 git checkout hotfix
 ```
-Activate the python virtual environment:
-```
-source venv/bin/activate
-```
 Finally, run the following commands to execute:
 ```
 cd scripts/
 make all
-make analyze
 ```
+## TODO
+- [ ] Python cannot find local modules when automatically activate virtual environment, but if we manually activate `venv`, this problem goes away.
 
 ## Notes
 1. `alloc_provenance()` is considered a bottom-level function (i.e, not further recursively parsed).
