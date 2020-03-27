@@ -12,7 +12,7 @@ from motif.rtm import MotifNode, MotifEdge, create_motif_node, create_alternatio
     create_leaf_node, create_asterisk_node, create_question_mark_node
 from motif.provtype import provenance_relation, provenance_vertex_type, match_relation
 
-r_map = provenance_relation('../../security/provenance/type.c')
+r_map = provenance_relation('../../../security/provenance/type.c')
 
 
 def ast_snippet(ast_snippet):

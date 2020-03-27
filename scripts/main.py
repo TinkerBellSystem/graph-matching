@@ -708,7 +708,7 @@ def eval_function_declaration(function_decl, motif_node_dict):
 # to build the correct AST.
 
 # Parse the preprocessed hooks.c file.
-ast = parse_file("../../security/provenance/hooks_pp.c")
+ast = parse_file("../../../security/provenance/hooks_pp.c")
 # Uncomment the following line to see the AST in a nice, human
 # readable way. show() is the most useful tool in exploring ASTs
 # created by pycparser. See the c_ast.py file for the options you
