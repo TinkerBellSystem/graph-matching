@@ -120,7 +120,7 @@ preprocess_netfilter:
 	gcc -D'__always_inline=' -D'uint64_t=int' -D'prov_entry_t=int' -D'bool=int' -D'uint16_t=int' -D'uint32_t=int' -D'size_t=int' -D'uint8_t=int' -D'vm_flags_t=int' -D'pid_t=int' -D'unsigned=' -D'__net_init=' -D'__net_exit=' -D'__init=' -D'__exit=' -E ../../../security/provenance/netfilter.c > ../../../security/provenance/netfilter_pp.c
 
 venv/bin/activate: requirements.txt
-	test -f venv/bin/activate || virtualenv -p $(shell which python3) venv
+	test -f venv/bin/activate || virtualenv -p python3 venv
 	. venv/bin/activate ; \
 	pip install -Ur requirements.txt ; \
 	pip freeze | sort > requirements.txt
