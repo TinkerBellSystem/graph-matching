@@ -19,6 +19,7 @@ remedy_hooks:
 	$(SED) 's,^#include <linux/xattr.h>,//&,' ./camflow-dev/security/provenance/hooks.c
 	$(SED) 's,^#include <linux/file.h>,//&,' ./camflow-dev/security/provenance/hooks.c
 	$(SED) 's,^#include <linux/workqueue.h>,//&,' ./camflow-dev/security/provenance/hooks.c
+	$(SED) 's,^#include <linux/ptrace.h>,//&,' ./camflow-dev/security/provenance/hooks.c
 	$(SED) 's,^#include "provenance.h",//&,' ./camflow-dev/security/provenance/hooks.c
 	$(SED) 's,^#include "provenance_record.h",//&,' ./camflow-dev/security/provenance/hooks.c
 	$(SED) 's,^#include "provenance_net.h",//&,' ./camflow-dev/security/provenance/hooks.c
@@ -36,9 +37,14 @@ remedy_hooks:
 	$(SED) "s,__init,," ./camflow-dev/security/provenance/hooks.c
 
 	$(SED) "s,#ifdef CONFIG_SECURITY_FLOW_FRIENDLY,#ifndef CONFIG_SECURITY_FLOW_FRIENDLY," ./camflow-dev/security/provenance/hooks.c
+	$(SED) "s;^DEFINE_LSM(provenance) =;struct lsm_provenance;" ./camflow-dev/security/provenance/hooks.c
+	$(SED) "s!.name = \"provenance\",!int name;!" ./camflow-dev/security/provenance/hooks.c
+	$(SED) "s!.blobs = \&provenance_blob_sizes,!int blobs;!" ./camflow-dev/security/provenance/hooks.c
+	$(SED) "s!.init = provenance_init,!int init;!" ./camflow-dev/security/provenance/hooks.c
+
 
 preprocess_hooks:
-	gcc -D'gfp_t=int' -D'umode_t=int' -D'__user=int' -D'vm_flags_t=int' -D'pid_t=int' -D'size_t=int' -D'bool=int' -D'uint32_t=int' -D'uint8_t=int' -D'uint16_t=int' -E ./camflow-dev/security/provenance/hooks.c > ./camflow-dev/security/provenance/hooks_pp.c
+	gcc -D'gfp_t=int' -D'umode_t=int' -D'__user=int' -D'vm_flags_t=int' -D'pid_t=int' -D'size_t=int' -D'bool=int' -D'uint32_t=int' -D'uint8_t=int' -D'uint16_t=int' -D'spinlock_t=int' -E ./camflow-dev/security/provenance/hooks.c > ./camflow-dev/security/provenance/hooks_pp.c
 
 remedy_record:
 	$(SED) 's,^#include "provenance.h",//&,' ./camflow-dev/security/provenance/include/provenance_record.h
