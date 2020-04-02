@@ -5,7 +5,12 @@ Our latest execution of this repository (March 2020 on the `hotfix` branch) on a
 ## Run
 Make sure you clone this repository recursively:
 ```
-git clone --recursive https://github.com/TinkerBellSystem/graph-matching.git
+git clone -b hotfix --recursive https://github.com/TinkerBellSystem/graph-matching.git
+```
+If the submodule is not in sync, try:
+```
+git submodule sync
+git submodule update --init --recursive --remote
 ```
 We will run the code on the `hotfix` branch for now:
 ```
