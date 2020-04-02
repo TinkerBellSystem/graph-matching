@@ -19,6 +19,7 @@ remedy_hooks:
 	$(SED) 's,^#include <linux/xattr.h>,//&,' ../../../security/provenance/hooks.c
 	$(SED) 's,^#include <linux/file.h>,//&,' ../../../security/provenance/hooks.c
 	$(SED) 's,^#include <linux/workqueue.h>,//&,' ../../../security/provenance/hooks.c
+	$(SED) 's,^#include <linux/ptrace.h>,//&,' ../../../security/provenance/hooks.c
 	$(SED) 's,^#include "provenance.h",//&,' ../../../security/provenance/hooks.c
 	$(SED) 's,^#include "provenance_record.h",//&,' ../../../security/provenance/hooks.c
 	$(SED) 's,^#include "provenance_net.h",//&,' ../../../security/provenance/hooks.c
@@ -36,9 +37,14 @@ remedy_hooks:
 	$(SED) "s,__init,," ../../../security/provenance/hooks.c
 
 	$(SED) "s,#ifdef CONFIG_SECURITY_FLOW_FRIENDLY,#ifndef CONFIG_SECURITY_FLOW_FRIENDLY," ../../../security/provenance/hooks.c
+	$(SED) "s;^DEFINE_LSM(provenance) =;struct lsm_provenance;" ../../../security/provenance/hooks.c
+	$(SED) "s!.name = \"provenance\",!int name;!" ../../../security/provenance/hooks.c
+	$(SED) "s!.blobs = \&provenance_blob_sizes,!int blobs;!" ../../../security/provenance/hooks.c
+	$(SED) "s!.init = provenance_init,!int init;!" ../../../security/provenance/hooks.c
+
 
 preprocess_hooks:
-	gcc -D'gfp_t=int' -D'umode_t=int' -D'__user=int' -D'vm_flags_t=int' -D'pid_t=int' -D'size_t=int' -D'bool=int' -D'uint32_t=int' -D'uint8_t=int' -D'uint16_t=int' -E ../../../security/provenance/hooks.c > ../../../security/provenance/hooks_pp.c
+	gcc -D'gfp_t=int' -D'umode_t=int' -D'__user=int' -D'vm_flags_t=int' -D'pid_t=int' -D'size_t=int' -D'bool=int' -D'uint32_t=int' -D'uint8_t=int' -D'uint16_t=int' -D'spinlock_t=int' -E ../../../security/provenance/hooks.c > ../../../security/provenance/hooks_pp.c
 
 remedy_record:
 	$(SED) 's,^#include "provenance.h",//&,' ../../../security/provenance/include/provenance_record.h
