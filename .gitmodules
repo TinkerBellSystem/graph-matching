@@ -1,5 +1,5 @@
-[submodule "scripts/camflow-dev"]
-	path = scripts/camflow-dev
+[submodule "model/camflow-dev"]
+	path = model/camflow-dev
 	url = https://github.com/CamFlow/camflow-dev.git
 [submodule "camflow-dev"]
 	branch = dev
