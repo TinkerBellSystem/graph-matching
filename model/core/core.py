@@ -7,7 +7,7 @@
 # published by the Free Software Foundation; either version 2 of the License,
 # or (at your option) any later version.
 
-# PyCParser reference: https://github.com/eliben/pycparser
+from __future__ import print_function
 import logging
 logger = logging.getLogger(__name__)
 
@@ -69,6 +69,64 @@ def parse_funcs(ast):
             funcs[function_name] = {"params": params, "body": body}
     
     return funcs
+
+
+def eval_func_body(func_name, func_body, func_dict, node_dict, name_dict):
+    """Evaluate a Compound (function body is a Compound).
+
+    Arguments:
+    func_name       -- the name of the function whose body we are inspecting
+    func_body       -- function body to be evaluated
+    func_dict       -- dict that stores all function bodies
+    node_dict       -- MotifNode dict
+    name_dict       -- name dict
+
+    Returns:
+    a MotifNode and an RTMTree, both of which can be None."""
+    node = None
+    tree = None
+
+    # The body of FuncDef is a Compound, which is a placeholder for a block surrounded by {}
+    # The following goes through the declarations and statements in the function body
+    for block in func_body.block_items:
+        logger.debug("\x1b[6;30;42m[+]\x1b[0m Evaluating {}".format(type(block).__name__))
+        # Case 1: provenance-graph-related function call
+        if type(block).__name__ == "FuncCall":
+            raise NotImplementedError("{} is not properly implemented properly".format(type(block).__name__))
+        # Case 2: rc = ...
+        elif type(block).__name__ == "Assignment":
+            raise NotImplementedError("{} is not properly implemented properly".format(type(block).__name__))
+        # Case 3: declaration with initialization
+        elif type(block).__name__ == "Assignment":
+            raise NotImplementedError("{} is not properly implemented properly".format(type(block).__name__))
+        # Case 4: if/else
+        elif type(block).__name__ == "If":
+            raise NotImplementedError("{} is not properly implemented properly".format(type(block).__name__))
+        # Case 5: return with function call
+        elif type(block).__name__ == 'Return':
+            raise NotImplementedError("{} is not properly implemented properly".format(type(block).__name__))
+        # Case 6: while block
+        elif type(block).__name__ == 'While':
+            raise NotImplementedError("{} is not properly implemented properly".format(type(block).__name__))
+        # Case 7: unary operation such as: node_identifier(prov_elt(prov)).version++;
+        elif type(block).__name__ == 'UnaryOp':
+            raise NotImplementedError("{} is not properly implemented properly".format(type(block).__name__))
+        # Case 8: goto
+        elif type(block).__name__ == 'Goto':
+            raise NotImplementedError("{} is not properly implemented properly".format(type(block).__name__))
+        # Case 9: label associated with goto
+        elif type(block).__name__ == 'Label':
+            raise NotImplementedError("{} is not properly implemented properly".format(type(block).__name__))
+        # Case 10: Switch statement
+        elif type(block).__name__ == 'Switch':
+            raise NotImplementedError("{} is not properly implemented properly".format(type(block).__name__))
+        # Case 11: For loop
+        elif type(block).__name__ == 'For':
+            raise NotImplementedError("{} is not properly implemented properly".format(type(block).__name__))
+        else:
+            raise NotImplementedError("{} is not properly implemented properly".format(type(block).__name__))
+
+    return node, tree
 
 
 # Quick module test

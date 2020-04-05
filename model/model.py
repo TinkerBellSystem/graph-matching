@@ -63,13 +63,25 @@ def main(args):
     hooks = list()
     hooks.append('provenance_cred_free')
 
+    # a dictionary that maps each hook to its RTMTree we constructed
+    trees = dict()
     # model all the hooks in the list
     for hook in hooks:
         func = funcs[hook]["body"]
         # Get the location of the hook definition for easy debugging and identification
-        function_def = FuncDefVisitor(hook)
+        func_def = FuncDefVisitor(hook)
         #TODO: hooks from other than ast_hooks are not properly handled
-        function_def.visit(ast_hooks)
+        func_def.visit(ast_hooks)
+
+        # Evaluate the hook (core)
+        # Each hook has its own MotifNode map
+        nodes = dict()
+        _, tree = core.eval_func_body(hook, func, funcs, nodes, dict())
+        if tree is None:
+            logger.warning("\x1b[6;30;43m[!]\x1b[0m Hook {} has no RTMTress".format(hook))
+            continue
+        trees[hook] = tree
+        logger.info("\x1b[6;30;42m[+]\x1b[0m Hook {} RTMTree is constructed".format(hook))
 
 
 if __name__ == "__main__":

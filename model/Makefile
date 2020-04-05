@@ -128,7 +128,7 @@ preprocess_netfilter:
 	gcc -D'__always_inline=' -D'uint64_t=int' -D'prov_entry_t=int' -D'bool=int' -D'uint16_t=int' -D'uint32_t=int' -D'size_t=int' -D'uint8_t=int' -D'vm_flags_t=int' -D'pid_t=int' -D'unsigned=' -D'__net_init=' -D'__net_exit=' -D'__init=' -D'__exit=' -E $(CAMFLOW)/security/provenance/netfilter.c > $(CAMFLOW)/security/provenance/netfilter_pp.c
 
 venv/bin/activate: requirements.txt
-	test -f venv/bin/activate || virtualenv -p $(shell which python3) venv
+	test -f venv/bin/activate || virtualenv -p $(shell which python) venv
 	. venv/bin/activate ; \
 	pip install -Ur requirements.txt ; \
 	pip freeze | sort > requirements.txt
@@ -143,7 +143,10 @@ clean-pyc:
 analyze: clean-pyc venv/bin/activate
 	cd ../ && mkdir -p dot
 	. venv/bin/activate ; \
-	python main.py
+	python model.py --camflow $(CAMFLOW)
+
+debug:
+	python model.py --camflow $(CAMFLOW) -vv
 
 prepare: remedy_hooks preprocess_hooks remedy_record preprocess_record remedy_inode preprocess_inode remedy_net preprocess_net remedy_task preprocess_task remedy_netfilter preprocess_netfilter
 
