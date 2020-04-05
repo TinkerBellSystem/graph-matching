@@ -3,3 +3,4 @@ scripts/vagrant/.vagrant/
 matches/
 dot/
 .idea/
+*.log
