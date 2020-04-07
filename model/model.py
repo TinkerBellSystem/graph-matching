@@ -68,6 +68,7 @@ def main(args):
     # model all the hooks in the list
     for hook in hooks:
         func = funcs[hook]["body"]
+        logger.debug(func)
         # Get the location of the hook definition for easy debugging and identification
         func_def = FuncDefVisitor(hook)
         #TODO: hooks from other than ast_hooks are not properly handled
@@ -96,7 +97,7 @@ if __name__ == "__main__":
 
     # set up logging
     logFormatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s", datefmt="%m/%d/%Y %I:%M:%S %p")
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger()
     # log to log file
     fileHandler = logging.FileHandler(args.log)
     fileHandler.setFormatter(logFormatter)
