@@ -100,7 +100,7 @@ def create_leaf_node(motif_edge):
     return RTMTreeNode(motif_edge)
 
 
-def create_unary_node(value, left):
+def create_unary_node(op, left):
     """This function creates a unary internal node,
     which can be either "*" or "?".
     Shared memory read/write can result in "*"
@@ -108,14 +108,14 @@ def create_unary_node(value, left):
     Version updates can result in "?" internal node.
 
     Argument:
-    value   -- the "*" or "?" operator
+    op      -- the "*" or "?" operator
     left    -- a leaf node or an internal node"""
-    unary_node = RTMTreeNode(value)
+    unary_node = RTMTreeNode(op)
     unary_node.left = left
     return unary_node
 
 
-def create_binary_node(value, left, right):
+def create_binary_node(op, left, right):
     """This function creates a binary internal node,
     which can be either "." (group) or "|" (alternation).
     Compound block can result in group relation.
@@ -124,11 +124,80 @@ def create_binary_node(value, left, right):
     None, but not both at the same time.
     
     Argument:
-    value   -- the "." or "|" operator
+    op      -- the "." or "|" operator
     left    -- a leaf node or internal node or None
     right   -- a leaf node or internal node or None"""
-    binary_node = RTMTreeNode(value)
+    binary_node = RTMTreeNode(op)
     binary_node.left = left
     binary_node.right = right
     return binary_node
+
+
+#TODO: not complete. Further reduction is possible!
+def postprocess(rtm):
+    """Post-processing constructed RTMTree to remove redundant internal nodes/structures.
+
+    Argument:
+    rtm     -- an RTMTree; it is mutated directly after it is postprocessed
+
+    Returns:
+    None."""
+    if not rtm:
+        return
+
+    # Merge parent and child if the parent is "." and has only one child
+    if rtm.value == ".":
+        if rtm.left and not rtm.right:
+            rtm.value = rtm.left.value
+            rtm.left = rtm.left.left
+            rtm.right = rtm.left.right
+        elif rtm.right and not rtm.left:
+            rtm.value = rtm.right.value
+            rtm.left = rtm.right.left
+            rtm.right = rtm.right.right
+    postprocess(rtm.left)
+    postprocess(rtm.right)
+
+
+def visualize(rtm, g):
+    """Visualize RTMTree using GraphViz
+
+    Argument:
+    rtm     -- the RTMTree to be visualized
+    g       -- the resulting GraphViz graph
+
+    Returns:
+    None."""
+
+    def is_op(v):
+        """Check if a value is an operator.
+
+        Argument:
+        v       -- the value to check
+
+        Returns:
+        boolean."""
+        if v == "*" or \
+           v == "?" or \
+           v == "." or \
+           v == "|":
+               return True
+        else:
+            return False
+
+    if not rtm:
+        return
+
+    if is_op(rtm.value):
+        g.add_entity("{}".format(rtm.nid), True, rtm.value)
+    else:
+        value = "{}({})-{}->{}({})".format(rtm.value.src.id, rtm.value.src.t, rtm.value.t, rtm.value.dst.id, rtm.value.dst.t)
+        g.add_entity("{}".format(rtm.nid), False, value)
+
+    if rtm.left:
+        g.add_edge("{}".format(rtm.nid), "{}".format(rtm.left.nid))
+        visualize(rtm.left, g)
+    if rtm.right:
+        g.add_edge("{}".format(rtm.nid), "{}".format(rtm.right.nid))
+        visualize(rtm.right, g)
 

@@ -12,10 +12,13 @@ from __future__ import print_function
 import argparse
 import sys
 import os
+import re
 import pycparser
 import logging
 
 import core.core as core
+import motif.mtree as mtree
+from motif.graphviz import RTMGraph
 
 
 class FuncDefVisitor(pycparser.c_ast.NodeVisitor):
@@ -26,6 +29,31 @@ class FuncDefVisitor(pycparser.c_ast.NodeVisitor):
         """Returns the location of the function definition in the parsed C file"""
         if node.decl.name == self.function_name:
             logger.info("\x1b[6;30;42m[+]\x1b[0m Evaluating hook: {} ({})".format(self.function_name, node.decl.coord))
+
+
+def create_relation_dict(fp):
+    """Create a mapping between CamFlow's provenance relation definitions
+    and relation name strings by parsing the definition code in security/provenance/type.c.
+    The code that we parse is in the format:
+    static const char RL_STR_UNKNOWN[] = "unknown";
+    The mapping would look like: "RL_STR_UNKNOWN" -> "unknown"
+    We only need to call this function once to construct the map.
+
+    Argument:
+    fp          -- the code file path ("security/provenance/type.c")
+
+    Returns:
+    a dictionary."""
+    rel_dict = dict()
+    
+    with open(fp, "r") as f:
+        for l in f:
+            matched = re.match(r"\s*static\s*const\s*char\s*RL_STR_(\w+)\[\]\s*=\s*\"(\w+)\"\s*;\s*\/\/\s*([\w\s]+)", l.strip())
+            if matched:
+                rel = "RL_" + matched.group(1)
+                rel_dict[rel] = matched.group(2)
+
+    return rel_dict
 
 
 def main(args):
@@ -48,6 +76,10 @@ def main(args):
     netfilter_file = "{}/security/provenance/netfilter_pp.c".format(args.camflow)
     ast_netfilter = pycparser.parse_file(netfilter_file)
     logger.debug("\x1b[6;30;42m[+]\x1b[0m Read {}".format(netfilter_file))
+
+    # parse type.c to create a relation dictionary
+    type_file = "{}/security/provenance/type.c".format(args.camflow)
+    rel_dict = create_relation_dict(type_file)
 
     # store all function ASTs from all the parsed ASTs into a central dictionary
     funcs = dict()
@@ -75,14 +107,30 @@ def main(args):
         logger.debug("\x1b[6;30;42m[+]\x1b[0m Hook body: {}".format(func))
 
         # Evaluate the hook (core)
-        # Each hook has its own MotifNode map
-        nodes = dict()
-        _, tree = core.eval_func_body(hook, func, funcs, nodes, dict())
+        # Each hook has its own MotifNode map and a name map
+        # We package objects that pass around too all hooks
+        # nicely into one dictionary object called context
+        context = {"funcs": funcs,
+                   "nodes": dict(),
+                   "rels": rel_dict,
+                   "names": dict(),}
+        
+        _, tree = core.eval_func_body(hook, func, context)
         if tree is None:
-            logger.warning("\x1b[6;30;43m[!]\x1b[0m Hook {} has no RTMTress".format(hook))
+            logger.warning("\x1b[6;30;43m[!]\x1b[0m Hook {} has no RTMTree".format(hook))
             continue
         trees[hook] = tree
         logger.info("\x1b[6;30;42m[+]\x1b[0m Hook {} RTMTree is constructed".format(hook))
+
+        # Visualization
+        if args.viz:
+            g = RTMGraph()
+            mtree.postprocess(tree)
+            mtree.visualize(tree, g)
+            dot_str = g.get_graph()
+            with open("./dot/{}_tree.dot".format(hook), "w") as f:
+                f.write(dot_str)
+            logger.info("\x1b[6;30;42m[+]\x1b[0m Hook {} is visualized in dot/".format(hook))
 
 
 if __name__ == "__main__":
@@ -93,6 +141,8 @@ if __name__ == "__main__":
                         help="increase output verbosity")
     parser.add_argument("-l", "--log", default="tinkerbell.log",
                         help="log file path (default to tinkerbell.log)")
+    parser.add_argument("-V", "--viz", action="store_true",
+                        help="visualize RTM tree of LSM hooks")
     args = parser.parse_args()
 
     # set up logging
@@ -114,6 +164,14 @@ if __name__ == "__main__":
     else:
         logger.setLevel(logging.WARNING)
     logger.debug("\x1b[6;30;42m[+]\x1b[0m Logging configured. Logs are saved to {}".format(args.log))
+
+    if args.viz:
+        try:
+            os.makedirs("dot")
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise RuntimeError('Directory ./dot/ cannot be created')
+        logger.debug("\x1b[6;30;42m[+]\x1b[0m Visualization configured. Figures are saved to ./dot/")
 
     main(args)
 

@@ -76,15 +76,17 @@ def parse_funcs(ast):
     return funcs
 
 
-def eval_func_body(func_name, func_body, func_dict, node_dict, name_dict):
+def eval_func_body(func_name, func_body, context):
     """Evaluate a Compound (function body is a Compound).
 
     Arguments:
     func_name       -- the name of the function whose body we are inspecting
     func_body       -- function body to be evaluated
-    func_dict       -- dict that stores all function bodies
-    node_dict       -- MotifNode dict
-    name_dict       -- caller argument to callee paramter name dict
+    context         -- contextual information, which contains:
+                    funcs:  a dictionary that stores all function bodies
+                    nodes:  a MotifNode dictionary
+                    rels:   a relation dictionary
+                    name:   a dictionary that maps caller argument to callee paramter
 
     Returns:
     a MotifNode and an RTMTree, both of which can be None."""
@@ -97,7 +99,7 @@ def eval_func_body(func_name, func_body, func_dict, node_dict, name_dict):
         logger.debug("\x1b[6;30;42m[+]\x1b[0m Evaluating {}".format(type(block).__name__))
         # Case 1: provenance-graph-related function call
         if type(block).__name__ == "FuncCall":
-            node, subtree = eval_func_call(func_name, block, func_dict, node_dict, name_dict)
+            node, subtree = eval_func_call(func_name, block, context)
             if not subtree is None:
                 tree = mtree.create_binary_node(".", tree, subtree)
         # Case 2: rc = ...
@@ -105,12 +107,14 @@ def eval_func_body(func_name, func_body, func_dict, node_dict, name_dict):
             raise NotImplementedError("{} is not properly implemented".format(type(block).__name__))
         # Case 3: declaration with initialization
         elif type(block).__name__ == "Decl":
-            subtree = eval_decl(func_name, block, func_dict, node_dict, name_dict)
+            subtree = eval_decl(func_name, block, context)
             if not subtree is None:
                 tree = mtree.create_binary_node(".", tree, subtree)
         # Case 4: if/else
         elif type(block).__name__ == "If":
-            raise NotImplementedError("{} is not properly implemented".format(type(block).__name__))
+            subtree = eval_if(func_name, block, context)
+            if not subtree is None:
+                tree = mtree.create_binary_node(".", tree, subtree)
         # Case 5: return with function call
         elif type(block).__name__ == 'Return':
             raise NotImplementedError("{} is not properly implemented".format(type(block).__name__))
@@ -138,7 +142,7 @@ def eval_func_body(func_name, func_body, func_dict, node_dict, name_dict):
     return node, tree
 
 
-def eval_func_call(func_name, call, func_dict, node_dict, name_dict):
+def eval_func_call(func_name, call, context):
     """Evaluate a single function call.
     We may skip the function call if it is irrelevant to modeling, 
     or call eval_func_body to further evaluate the function call's body.
@@ -147,44 +151,67 @@ def eval_func_call(func_name, call, func_dict, node_dict, name_dict):
     Arguments:
     func_name       -- the name of the caller function that calls this function
     call            -- function call to be evaluated
-    func_dict       -- dict that stores all function bodies
-    node_dict       -- MotifNode dict
-    name_dict       -- caller argument to callee parameter name dict
-    
+    context         -- contextual information
+
     Returns:
     a MotifNode and an RTMTree, both of which can be None."""
-    logger.debug('\x1b[6;30;42m[+]\x1b[0m Evaluating function call {} (core/core.py/eval_func_call)'.format(call.name.name))
+    # Name of the function call
+    name = call.name.name
+    # Call arguments in the function call
+    args = ct.get_func_args(call)
+    logger.debug("\x1b[6;30;42m[+]\x1b[0m Evaluating function call {} (core/core.py/eval_func_call)".format(name))
     
     node = None
     tree = None
 
-    # Base case 1: provenance_cred(), which returns a pointer to a process_memory node
-    if call.name.name == "provenance_cred":
-        node = motif.create_motif_node("process_memory")
-    # Recursive case: go into a function body (if call is in @func_dict) to evaluate
-    elif call.name.name in func_dict:
-        # func_* are extracted from function definition by parse_funcs()
-        func_body = func_dict[call.name.name]["body"]
+    # Unpack contextual information to use
+    func_dict = context["funcs"]
+    node_dict = context["nodes"]
+    rel_dict = context["rels"]
+    name_dict = context["names"]
 
-        args = ["{}.{}".format(func_name, arg) for arg in ct.get_func_args(call)]
-        params = ["{}.{}".format(call.name.name, param) for param in func_dict[call.name.name]["param"]]
+    # Base case 1: provenance_cred(), which returns only a pointer to a process_memory node
+    if name == "provenance_cred":
+        node = motif.create_motif_node("process_memory")
+    # Base case 2: record_terminate()
+    # Function signature: static __always_inline int record_terminate(uint64_t type, struct provenance *prov)
+    # TODO: can we remove this special case?
+    elif name == "record_terminate":
+        # Obtain the provenance node (latest version) to be terminated by name in node_dict.
+        # This node is passed in as the second argument (prov) of the function call.
+        node_name = ct.get_global_name(ct.local_name(func_name, args[1]), name_dict)
+        node = node_dict[node_name][-1]
+        # The terminate relation create a new node of the same type (but a new version)
+        # that connects the original node to show termination.
+        new_node = motif.MotifNode(node.t)
+        # Add the new node to the node_dict
+        node_dict[node_name].append(new_node)
+        # Create an terminate edge, the type of the edge 
+        # is determined by the first argument (type) of
+        # the function call.
+        edge = motif.MotifEdge(node, new_node, ct.get_rel(rel_dict, args[0]))
+        tree = mtree.create_leaf_node(edge)
+    # Recursive case: go into a function body (if call is in @func_dict) to evaluate
+    elif name in func_dict:
+        # func_body and params are extracted from function definition using parse_funcs()
+        func_body = func_dict[name]["body"]
+        args = [ct.local_name(func_name, arg) for arg in args]
+        params = [ct.local_name(name, param) for param in func_dict[name]["params"]]
         name_dict = ct.create_name_dict(args, params, name_dict)
-        node, tree = eval_func_body(call.name.name, func_body, func_dict, node_dict, name_dict)
+        node, tree = eval_func_body(name, func_body, context)
     else:
-        logger.warning("\x1b[6;30;43m[!]\x1b[0m Skipping function call {} (core/core.py/eval_func_call)".format(call.name.name))
+        logger.warning("\x1b[6;30;43m[!]\x1b[0m Skipping function call {} (core/core.py/eval_func_call)".format(name))
     
     return node, tree
 
 
-def eval_decl(func_name, decl, func_dict, node_dict, name_dict):
+def eval_decl(func_name, decl, context):
     """Evaluate a single declaration that generates new TreeNodes.
 
     Arguments:
     func_name       -- the name of the function whose declaration statement we are inspecting
     decl            -- declaration to be evaluated
-    func_dict       -- dict that stores all function bodies
-    node_dict       -- MotifNode dict
-    name_dict       -- caller argument to callee parameter name dict
+    context         -- contextual information
 
     Returns:
     an RTMTree, which can be None."""
@@ -201,6 +228,11 @@ def eval_decl(func_name, decl, func_dict, node_dict, name_dict):
 
         return is_prov
 
+    # Unpack contextual information to use
+    func_dict = context["funcs"]
+    node_dict = context["nodes"]
+    name_dict = context["names"]
+
     tree = None
 
     if prov_decl(decl):
@@ -214,7 +246,7 @@ def eval_decl(func_name, decl, func_dict, node_dict, name_dict):
 
         # Case 1: if the declaration is assigned by a function call
         if type(decl.init).__name__ == "FuncCall":
-            node, tree = eval_func_call(func_name, decl.init, func_dict, node_dict, name_dict)
+            node, tree = eval_func_call(func_name, decl.init, context)
             if node is None:
                 logger.fatal("\x1b[6;30;41m[x]\x1b[0m {} must be associated with a MotifNode (core/core.py/eval_decl)".format(decl.name))
                 raise RuntimeError("MotifNode should not be None")
@@ -226,6 +258,102 @@ def eval_decl(func_name, decl, func_dict, node_dict, name_dict):
         logger.warning("\x1b[6;30;43m[!]\x1b[0m Skipping declaration: {} (core/core.py/eval_decl)".format(ct.ast_snippet(decl)))
         
     return tree
+
+
+#NOTE: Implementation-specific function.
+#TODO: Is it possible to generalize? Maybe change CamFlow design?
+def eval_if_condition(func_name, condition, context):
+    """Evaluate if condition. This function is very specific to the
+    CamFlow code implementation, thus hardcoded and need to be modified
+    if CamFlow code changes.
+
+    Arguments:
+    func_name       -- the name of the function whose if/else block we are inspecting
+    condition       -- if condition
+    context         -- contextual information
+
+    Returns:
+    True if the condition warrants for an alternation relation in RTMTree."""
+
+    logger.debug("\x1b[6;30;42m[+]\x1b[0m Evaluating if condition: {} (core/core.py/eval_if_condition)".format(ct.ast_snippet(condition)))
+    check_condition = False
+    if type(condition).__name__ == "BinaryOp":
+
+        raise NotImplementedError("If condition of type {} is not properly implemented".format(type(condition).__name__))
+    else:
+        logger.warning("\x1b[6;30;43m[!]\x1b[0m Skipping if condition: {} (core/core.py/eval_if_condition)".format(ct.ast_snippet(condition)))
+
+    return check_condition
+
+
+def eval_if_branch(func_name, branch, context):
+    """Evaluate a branch in if/else block, whether it is a if/else if/else branch.
+    This is a helper function that eval_if function calls.
+
+    Arguments:
+    func_name       -- the name of the function whose if/else branch we are inspecting
+    branch          -- the branch to be evaluate
+    context         -- contextual information
+
+    Returns:
+    an RTMTree that represents the branch, which can be None."""
+    tree = None
+    if type(branch).__name__ == 'FuncCall':
+        _, tree = eval_func_call(func_name, branch, context)
+    elif type(branch).__name__ == 'Assignment':
+        raise NotImplementedError("{} is not properly implemented".format(type(branch).__name__))
+    elif type(branch).__name__ == 'Decl':
+        tree = eval_decl(func_name, branch, context)
+    elif type(branch).__name__ == 'Return':
+        raise NotImplementedError("{} is not properly implemented".format(type(branch).__name__))
+    elif type(branch).__name__ == 'Compound':
+        raise NotImplementedError("{} is not properly implemented".format(type(branch).__name__))
+    elif type(branch).__name__ == 'If':     # else if case
+        tree = eval_if(func_name, branch, context)
+    elif type(branch).__name__ == 'While':
+        raise NotImplementedError("{} is not properly implemented".format(type(branch).__name__))
+    elif type(branch).__name__ == 'Switch':
+        raise NotImplementedError("{} is not properly implemented".format(type(branch).__name__))
+    elif type(branch).__name__ == 'For':
+        raise NotImplementedError("{} is not properly implemented".format(type(branch).__name__))
+    elif type(branch).__name__ == 'NoneType':
+        logger.debug("\x1b[6;30;42m[+]\x1b[0m Branch does not exist (core/core.py/eval_if_branch)")
+    else:
+        raise NotImplementedError("{} is not properly implemented".format(type(branch).__name__))
+    
+    return tree
+
+
+def eval_if(func_name, block, context):
+    """Evalaute a (nested) if/else block. Only if/else blocks that could potentially
+    create MotifNodes or RTMTree are of interest to us. Some if/else condition
+    checks are also of interest to us. Most if/else are for error handling only.
+
+    Arguments:
+    func_name       -- the name of the function whose if/else block we are inspecting
+    block           -- the if/else block
+    context         -- contextual information
+
+    Returns:
+    an RTMTree, which can be None."""
+    # Only under some if condition do we actually create an alternation node
+    if eval_if_condition(func_name, block.cond, context):
+        raise NotImplementedError("If/else block is not properly implemented when if condition is checked")
+    else:
+        logger.warning("\x1b[6;30;43m[!]\x1b[0m If condition {} is skipped. We do not create an alternation RTMTreeNode (core/core.py/eval_if)".format(ct.ast_snippet(block.cond)))
+        logger.debug("\x1b[6;30;42m[+]\x1b[0m Evaluating true branch: {} (core/core.py/eval_if)".format(ct.ast_snippet(block.iftrue)))
+        true_branch = eval_if_branch(func_name, block.iftrue, context)
+        logger.debug("\x1b[6;30;42m[+]\x1b[0m Evaluating false branch: {} (core/core.py/eval_if)".format(ct.ast_snippet(block.iffalse)))
+        false_branch = eval_if_branch(func_name, block.iffalse, context)
+
+        if true_branch and false_branch:
+            logger.warning("Neither true nor false branch are None. Are you sure if condition is correctly checked?")
+            raise NotImplementedError("Check if condition before removing this error.")
+        
+        if true_branch:
+            return true_branch
+        else:
+            return false_branch
 
 
 # Quick module test

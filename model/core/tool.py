@@ -1,6 +1,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
+
 def ast_snippet(ast_snippet):
     """AST snippet from pycparser without formatting for quick printing.
 
@@ -123,4 +124,20 @@ def create_name_dict(args, params, name_dict):
         new_dict[params[i]] = arg
 
     return new_dict
+
+
+def get_rel(rel_dict, rel_type):
+    """Get CamFlow's provenance relation name string from its definition.
+
+    Arguments:
+    rel_dict        -- the dictionary constructed from create_relation_dict()
+    rel_type        -- the relation definition in the code
+
+    Returns:
+    a relation name string."""
+    try:
+        return rel_dict[rel_type]
+    except Exception as e:
+        logger.fatal("Relation type {} is unknown".format(rel_type))
+        raise ValueError(repr(e))
 

@@ -146,7 +146,7 @@ analyze: clean-pyc venv/bin/activate
 	python model.py --camflow $(CAMFLOW)
 
 debug:
-	python model.py --camflow $(CAMFLOW) -vv
+	python model.py --camflow $(CAMFLOW) -vv -V
 
 prepare: remedy_hooks preprocess_hooks remedy_record preprocess_record remedy_inode preprocess_inode remedy_net preprocess_net remedy_task preprocess_task remedy_netfilter preprocess_netfilter
 
