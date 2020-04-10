@@ -96,28 +96,32 @@ def eval_func_body(func_name, func_body, context):
     # The body of FuncDef is a Compound, which is a placeholder for a block surrounded by {}
     # The following goes through the declarations and statements in the function body
     for block in func_body.block_items:
-        logger.debug("\x1b[6;30;42m[+]\x1b[0m Evaluating {}".format(type(block).__name__))
+        logger.debug("\x1b[6;30;42m[+]\x1b[0m Evaluating {}: {}".format(type(block).__name__, ct.ast_snippet(block)))
         # Case 1: provenance-graph-related function call
         if type(block).__name__ == "FuncCall":
             node, subtree = eval_func_call(func_name, block, context)
-            if not subtree is None:
+            if subtree:
                 tree = mtree.create_binary_node(".", tree, subtree)
         # Case 2: rc = ...
         elif type(block).__name__ == "Assignment":
-            raise NotImplementedError("{} is not properly implemented".format(type(block).__name__))
+            subtree = eval_assign(func_name, block, context)
+            if subtree:
+                tree = mtree.create_binary_node(".", tree, subtree)
         # Case 3: declaration with initialization
         elif type(block).__name__ == "Decl":
             subtree = eval_decl(func_name, block, context)
-            if not subtree is None:
+            if subtree:
                 tree = mtree.create_binary_node(".", tree, subtree)
         # Case 4: if/else
         elif type(block).__name__ == "If":
             subtree = eval_if(func_name, block, context)
-            if not subtree is None:
+            if subtree:
                 tree = mtree.create_binary_node(".", tree, subtree)
         # Case 5: return with function call
         elif type(block).__name__ == 'Return':
-            raise NotImplementedError("{} is not properly implemented".format(type(block).__name__))
+            node, subtree = eval_ret(func_name, block, context)
+            if subtree:
+                tree = mtree.create_binary_node(".", tree, subtree)
         # Case 6: while block
         elif type(block).__name__ == 'While':
             raise NotImplementedError("{} is not properly implemented".format(type(block).__name__))
@@ -173,7 +177,10 @@ def eval_func_call(func_name, call, context):
     # Base case 1: provenance_cred(), which returns only a pointer to a process_memory node
     if name == "provenance_cred":
         node = motif.create_motif_node("process_memory")
-    # Base case 2: record_terminate()
+    # Base case 2: provenance_task(), which returns only a pointer to a task node
+    elif name == "provenance_task":
+        node = motif.create_motif_node("task")
+    # Base case 3: record_terminate()
     # Function signature: static __always_inline int record_terminate(uint64_t type, struct provenance *prov)
     # TODO: can we remove this special case?
     elif name == "record_terminate":
@@ -191,6 +198,14 @@ def eval_func_call(func_name, call, context):
         # the function call.
         edge = motif.MotifEdge(node, new_node, ct.get_rel(rel_dict, args[0]))
         tree = mtree.create_leaf_node(edge)
+    
+    # The following function calls are EXPLICITLY skipped,
+    # because at the time of coding, I am not sure if they
+    # should actually be skipped or otherwise inspected.
+    # TODO: Check with Thomas to make sure it is OK to skip them, then remove them from this list
+    elif name == "init_provenance_struct":
+        logger.warning("\x1b[6;30;43m[!]\x1b[0m Skipping function call {} (core/core.py/eval_func_call)".format(name))
+
     # Recursive case: go into a function body (if call is in @func_dict) to evaluate
     elif name in func_dict:
         # func_body and params are extracted from function definition using parse_funcs()
@@ -203,6 +218,58 @@ def eval_func_call(func_name, call, context):
         logger.warning("\x1b[6;30;43m[!]\x1b[0m Skipping function call {} (core/core.py/eval_func_call)".format(name))
     
     return node, tree
+
+
+def eval_assign(func_name, assign, context):
+    """Evaluate a single assignment that generates new TreeNodes.
+
+    Arguments:
+    func_name       -- the name of the function whose assignment statement we are inspecting
+    assign          -- assignment to be evaluated
+    context         -- contextual information
+
+    Returns:
+    an RTMTree, which can be None."""
+    # Unpack contextual information to use
+    node_dict = context["nodes"]
+    name_dict = context["names"]
+
+    tree = None
+    # Case 1: where a provenance node was previously declared but not assigned.
+    # and it is now assigned by a function, e.g.,
+    # struct provenance *tprov;
+    # tprov = provenance_task(t);
+    if type(assign.rvalue).__name__ == "FuncCall":
+        node, tree = eval_func_call(func_name, assign.rvalue, context)
+        # Case 1: consider tprov = provenance_task(t);
+        # tprov should have already been declared so it
+        # should have been saved in node_dict.
+        if type(assign.lvalue).__name__ == "ID":
+            node_name = ct.get_global_name(ct.local_name(func_name, assign.lvalue.name), name_dict)
+            if node_name in node_dict:
+                if not node:
+                    raise NotImplementedError("Node {} should not be None.".format(node_name))
+                else:
+                    node_dict[node_name].append(node)
+            else:
+                logger.warning("\x1b[6;30;43m[!]\x1b[0m Skipping function assignment of node {} (core/core.py/eval_assign) because no previous declaration is known".format(node_name))
+        # Case 2: consider *tprov = ...
+        # or &tprov = ...
+        elif type(assignment.lvalue).__name__ == 'UnaryOp':
+            node_name = ct.get_global_name(ct.local_name(func_name, assign.lvalue.expr.name), name_dict)
+            raise NotImplementedError("Node {} is not properly implemented.".format(node_name))
+    # Case 2: where a provenance node was previously declared but not assigned.
+    # We care only provenance nodes, for example, we consider this scenario:
+    # struct provenance *tprov;
+    # tprov = t->provenance;
+    # Other ID assignments are ignored.
+    # We populate those cases when we see them
+    elif type(assign.lvalue).__name__ == "ID":
+        logger.warning("\x1b[6;30;43m[!]\x1b[0m Skipping ID assignment: {} (core/core.py/eval_assign)".format(ct.ast_snippet(assign)))
+    else:
+        raise NotImplementedError("Assignment method is not properly implemented")
+
+    return tree
 
 
 def eval_decl(func_name, decl, context):
@@ -252,6 +319,11 @@ def eval_decl(func_name, decl, context):
                 raise RuntimeError("MotifNode should not be None")
             else:
                 node_dict[node_name] = [node]
+        # Case 2: if it is not set when it is declare, 
+        # then it must be set later, so we declare its
+        # existence in node_dict with an empty list.
+        elif type(decl.init).__name__ == "NoneType":
+            node_dict[node_name] = list()
         else:
             raise NotImplementedError("Declaration method {} is not properly implemented".format(type(decl.init).__name__))
     else:
@@ -278,8 +350,11 @@ def eval_if_condition(func_name, condition, context):
     logger.debug("\x1b[6;30;42m[+]\x1b[0m Evaluating if condition: {} (core/core.py/eval_if_condition)".format(ct.ast_snippet(condition)))
     check_condition = False
     if type(condition).__name__ == "BinaryOp":
-
-        raise NotImplementedError("If condition of type {} is not properly implemented".format(type(condition).__name__))
+        # We have yet seen any BinaryOp if condition we need to consider so far
+        logger.warning("\x1b[6;30;43m[!]\x1b[0m Skipping if condition of type {} (core/core.py/eval_if_condition)".format(type(condition).__name__))
+    elif type(condition).__name__ == "ID":
+        # We have yet seen any ID if condition we need to consider so far
+        logger.warning("\x1b[6;30;43m[!]\x1b[0m Skipping if condition of type {} (core/core.py/eval_if_condition)".format(type(condition).__name__))
     else:
         logger.warning("\x1b[6;30;43m[!]\x1b[0m Skipping if condition: {} (core/core.py/eval_if_condition)".format(ct.ast_snippet(condition)))
 
@@ -305,8 +380,9 @@ def eval_if_branch(func_name, branch, context):
     elif type(branch).__name__ == 'Decl':
         tree = eval_decl(func_name, branch, context)
     elif type(branch).__name__ == 'Return':
-        raise NotImplementedError("{} is not properly implemented".format(type(branch).__name__))
+        _, tree = eval_ret(func_name, branch, context)
     elif type(branch).__name__ == 'Compound':
+        _, tree = eval_func_body(func_name, branch, context)
         raise NotImplementedError("{} is not properly implemented".format(type(branch).__name__))
     elif type(branch).__name__ == 'If':     # else if case
         tree = eval_if(func_name, branch, context)
@@ -347,7 +423,7 @@ def eval_if(func_name, block, context):
         false_branch = eval_if_branch(func_name, block.iffalse, context)
 
         if true_branch and false_branch:
-            logger.warning("Neither true nor false branch are None. Are you sure if condition is correctly checked?")
+            logger.warning("\x1b[6;30;43m[!]\x1b[0m Neither true nor false branch are None. Are you sure if condition is correctly checked? (core/core.py/eval_if)")
             raise NotImplementedError("Check if condition before removing this error.")
         
         if true_branch:
@@ -355,6 +431,28 @@ def eval_if(func_name, block, context):
         else:
             return false_branch
 
+
+def eval_ret(func_name, ret, context):
+    """Evaluate a single return statement that generates new MotifNode or TreeNodes.
+
+    Argument:
+    func_name       -- the name of the function whose assignment statement we are inspecting
+    ret             -- the return statement to be evaluated
+    context         -- contextual information
+
+    Returns:
+    a MotifNode and an RTMTree, both of which can be None."""
+    node = None
+    tree = None
+
+    if type(ret.expr).__name__ == 'FuncCall':
+        raise NotImplementedError("Returning a function call is not properly implemented")
+    elif type(ret.expr).__name__ == 'ID':
+        raise NotImplementedError("Returning an ID is not properly implemented")
+    else:
+        logger.warning("\x1b[6;30;43m[!]\x1b[0m Skipping return: {} (core/core.py/eval_ret)".format(ct.ast_snippet(ret)))
+
+    return node, tree
 
 # Quick module test
 if __name__ == "__main__":

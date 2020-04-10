@@ -12,6 +12,7 @@ from __future__ import print_function
 import argparse
 import sys
 import os
+import errno
 import re
 import pycparser
 import logging
@@ -93,7 +94,8 @@ def main(args):
 
     # populate a list of hooks we model
     hooks = list()
-    hooks.append('provenance_cred_free')
+    hooks.append("provenance_task_alloc")
+    # hooks.append("provenance_cred_free")
 
     # a dictionary that maps each hook to its RTMTree we constructed
     trees = dict()
