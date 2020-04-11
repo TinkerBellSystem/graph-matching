@@ -96,7 +96,7 @@ def eval_func_body(func_name, func_body, context):
     # The body of FuncDef is a Compound, which is a placeholder for a block surrounded by {}
     # The following goes through the declarations and statements in the function body
     for block in func_body.block_items:
-        logger.debug("\x1b[6;30;42m[+]\x1b[0m Evaluating {}: {}".format(type(block).__name__, ct.ast_snippet(block)))
+        logger.debug("\x1b[6;30;42m[+]\x1b[0m Evaluating {}: {} (core/core.py/eval_func_body)".format(type(block).__name__, ct.ast_snippet(block)))
         # Case 1: provenance-graph-related function call
         if type(block).__name__ == "FuncCall":
             node, subtree = eval_func_call(func_name, block, context)
@@ -118,27 +118,27 @@ def eval_func_body(func_name, func_body, context):
             if subtree:
                 tree = mtree.create_binary_node(".", tree, subtree)
         # Case 5: return with function call
-        elif type(block).__name__ == 'Return':
+        elif type(block).__name__ == "Return":
             node, subtree = eval_ret(func_name, block, context)
             if subtree:
                 tree = mtree.create_binary_node(".", tree, subtree)
         # Case 6: while block
-        elif type(block).__name__ == 'While':
+        elif type(block).__name__ == "While":
             raise NotImplementedError("{} is not properly implemented".format(type(block).__name__))
         # Case 7: unary operation such as: node_identifier(prov_elt(prov)).version++;
-        elif type(block).__name__ == 'UnaryOp':
+        elif type(block).__name__ == "UnaryOp":
             raise NotImplementedError("{} is not properly implemented".format(type(block).__name__))
         # Case 8: goto
-        elif type(block).__name__ == 'Goto':
-            raise NotImplementedError("{} is not properly implemented".format(type(block).__name__))
+        elif type(block).__name__ == "Goto":
+            logger.warning("\x1b[6;30;43m[!]\x1b[0m Skipping {}: {} (core/core.py/eval_func_body)".format(type(block).__name__, ct.ast_snippet(block)))
         # Case 9: label associated with goto
-        elif type(block).__name__ == 'Label':
-            raise NotImplementedError("{} is not properly implemented".format(type(block).__name__))
+        elif type(block).__name__ == "Label":
+            logger.warning("\x1b[6;30;43m[!]\x1b[0m Skipping {}: {} (core/core.py/eval_func_body)".format(type(block).__name__, ct.ast_snippet(block)))
         # Case 10: Switch statement
-        elif type(block).__name__ == 'Switch':
+        elif type(block).__name__ == "Switch":
             raise NotImplementedError("{} is not properly implemented".format(type(block).__name__))
         # Case 11: For loop
-        elif type(block).__name__ == 'For':
+        elif type(block).__name__ == "For":
             raise NotImplementedError("{} is not properly implemented".format(type(block).__name__))
         else:
             raise NotImplementedError("{} is not properly implemented".format(type(block).__name__))
@@ -174,13 +174,16 @@ def eval_func_call(func_name, call, context):
     rel_dict = context["rels"]
     name_dict = context["names"]
 
-    # Base case 1: provenance_cred(), which returns only a pointer to a process_memory node
+    # Base case 1: provenance_cred()
     if name == "provenance_cred":
         node = motif.create_motif_node("process_memory")
-    # Base case 2: provenance_task(), which returns only a pointer to a task node
+    # Base case 2: provenance_task()
     elif name == "provenance_task":
         node = motif.create_motif_node("task")
-    # Base case 3: record_terminate()
+    # Base case 3: provenance_inode()
+    elif name == "provenance_inode":
+        node = motif.create_motif_node("inode")
+    # Base case 4: record_terminate()
     # Function signature: static __always_inline int record_terminate(uint64_t type, struct provenance *prov)
     # TODO: can we remove this special case?
     elif name == "record_terminate":
@@ -265,7 +268,13 @@ def eval_assign(func_name, assign, context):
     # Other ID assignments are ignored.
     # We populate those cases when we see them
     elif type(assign.lvalue).__name__ == "ID":
-        logger.warning("\x1b[6;30;43m[!]\x1b[0m Skipping ID assignment: {} (core/core.py/eval_assign)".format(ct.ast_snippet(assign)))
+        logger.warning("\x1b[6;30;43m[!]\x1b[0m Skipping {} assignment: {} (core/core.py/eval_assign)".format(type(assign.lvalue).__name__, ct.ast_snippet(assign)))
+    # Case 3: e.g., prov_elt(prov)->inode_info.mode = mode;
+    elif type(assign.lvalue).__name__ == "StructRef":
+        logger.warning("\x1b[6;30;43m[!]\x1b[0m Skipping {} assignment: {} (core/core.py/eval_assign)".format(type(assign.lvalue).__name__, ct.ast_snippet(assign)))
+    # Case 4: e.g., prov_type(prov_elt(prov)) = type;
+    elif type(assign.lvalue).__name__ == "FuncCall":
+        logger.warning("\x1b[6;30;43m[!]\x1b[0m Skipping {} assignment: {} (core/core.py/eval_assign)".format(type(assign.lvalue).__name__, ct.ast_snippet(assign)))
     else:
         raise NotImplementedError("Assignment method is not properly implemented")
 
@@ -373,26 +382,27 @@ def eval_if_branch(func_name, branch, context):
     Returns:
     an RTMTree that represents the branch, which can be None."""
     tree = None
-    if type(branch).__name__ == 'FuncCall':
+    if type(branch).__name__ == "FuncCall":
         _, tree = eval_func_call(func_name, branch, context)
-    elif type(branch).__name__ == 'Assignment':
-        raise NotImplementedError("{} is not properly implemented".format(type(branch).__name__))
-    elif type(branch).__name__ == 'Decl':
+    elif type(branch).__name__ == "Assignment":
+        tree = eval_assign(func_name, branch, context)
+    elif type(branch).__name__ == "Decl":
         tree = eval_decl(func_name, branch, context)
-    elif type(branch).__name__ == 'Return':
+    elif type(branch).__name__ == "Return":
         _, tree = eval_ret(func_name, branch, context)
-    elif type(branch).__name__ == 'Compound':
+    elif type(branch).__name__ == "Compound":
         _, tree = eval_func_body(func_name, branch, context)
-        raise NotImplementedError("{} is not properly implemented".format(type(branch).__name__))
-    elif type(branch).__name__ == 'If':     # else if case
+    elif type(branch).__name__ == "If":     # else if case
         tree = eval_if(func_name, branch, context)
-    elif type(branch).__name__ == 'While':
+    elif type(branch).__name__ == "Goto":
+        logger.warning("\x1b[6;30;43m[!]\x1b[0m Skipping {}: {} (core/core.py/eval_if_branch)".format(type(branch).__name__, ct.ast_snippet(branch)))
+    elif type(branch).__name__ == "While":
         raise NotImplementedError("{} is not properly implemented".format(type(branch).__name__))
-    elif type(branch).__name__ == 'Switch':
+    elif type(branch).__name__ == "Switch":
         raise NotImplementedError("{} is not properly implemented".format(type(branch).__name__))
-    elif type(branch).__name__ == 'For':
+    elif type(branch).__name__ == "For":
         raise NotImplementedError("{} is not properly implemented".format(type(branch).__name__))
-    elif type(branch).__name__ == 'NoneType':
+    elif type(branch).__name__ == "NoneType":
         logger.debug("\x1b[6;30;42m[+]\x1b[0m Branch does not exist (core/core.py/eval_if_branch)")
     else:
         raise NotImplementedError("{} is not properly implemented".format(type(branch).__name__))
@@ -442,13 +452,23 @@ def eval_ret(func_name, ret, context):
 
     Returns:
     a MotifNode and an RTMTree, both of which can be None."""
+    # Unpack contextual information to use
+    node_dict = context["nodes"]
+    name_dict = context["names"]
+
     node = None
     tree = None
 
     if type(ret.expr).__name__ == 'FuncCall':
-        raise NotImplementedError("Returning a function call is not properly implemented")
+        node, tree = eval_func_call(func_name, ret.expr, context)
     elif type(ret.expr).__name__ == 'ID':
-        raise NotImplementedError("Returning an ID is not properly implemented")
+        # Obtain the global bame of the variable returned
+        node_name = ct.get_global_name(ct.local_name(func_name, ret.expr.name), name_dict)
+        if node_name in node_dict:
+            node = node_dict[node_name][-1]
+        else:
+            # For example, "NULL" is returned.
+            logger.warning("\x1b[6;30;43m[!]\x1b[0m Skipping return because of unrecognized ID: {} (core/core.py/eval_ret)".format(ret.expr.name))
     else:
         logger.warning("\x1b[6;30;43m[!]\x1b[0m Skipping return: {} (core/core.py/eval_ret)".format(ct.ast_snippet(ret)))
 

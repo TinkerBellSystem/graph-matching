@@ -75,25 +75,21 @@ def get_func_args(call):
                 args.append(arg.expr.name)
             elif type(arg).__name__ == "FuncCall":
                 #TODO: Case 3: func(inner_func(...)) -> ...
-                logger.warning("\x1b[6;30;43m[!]\x1b[0m Function argument type {} in argument list \
-                        is not considered (core/tool.py/get_func_args)".format(type(arg).__name__))
+                logger.warning("\x1b[6;30;43m[!]\x1b[0m Function argument type {} in argument list is not considered (core/tool.py/get_func_args)".format(type(arg).__name__))
             elif type(arg).__name__ == "Constant":
                 # Case 4: func(ARG_CONST) -> ARG_CONST
                 args.append(arg.value)
             elif type(arg).__name__ == "StructRef":
-                #TODO: Case 5:???
-                logger.warning("\x1b[6;30;43m[!]\x1b[0m Function argument type {} in argument list \
-                        is not considered (core/tool.py/get_func_args)".format(type(arg).__name__))
+                #TODO: Case 5: func(A->B) -> A
+                args.append(arg.name.name)
+                logger.warning("\x1b[6;30;43m[!]\x1b[0m Only function argument component: {} is considered in StructRef: {} (core/tool.py/get_func_args)".format(arg.name.name, ast_snippet(arg)))
             elif type(arg).__name__ == 'BinaryOp':
                 #TODO: Case 6:???
-                logger.warning("\x1b[6;30;43m[!]\x1b[0m Function argument type {} in argument list \
-                        is not considered (core/tool.py/get_func_args)".format(type(arg).__name__))
+                logger.warning("\x1b[6;30;43m[!]\x1b[0m Function argument type {} in argument list is not considered (core/tool.py/get_func_args)".format(type(arg).__name__))
             else:
-                logger.warning("\x1b[6;30;43m[!]\x1b[0m Function argument type {} in argument list is \
-                        not considered (core/tool.py/get_func_args)".format(type(arg).__name__))
+                logger.warning("\x1b[6;30;43m[!]\x1b[0m Function argument type {} in argument list is not considered (core/tool.py/get_func_args)".format(type(arg).__name__))
     else:
-        logger.warning("\x1b[6;30;43m[!]\x1b[0m Function argument type {} is not considered \
-                (core/tool.py/get_func_args)".format(type(call.args).__name__))
+        logger.warning("\x1b[6;30;43m[!]\x1b[0m Function argument type {} is not considered (core/tool.py/get_func_args)".format(type(call.args).__name__))
     
     return args
 
