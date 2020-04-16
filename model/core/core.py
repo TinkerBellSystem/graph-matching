@@ -8,6 +8,7 @@
 # or (at your option) any later version.
 
 from __future__ import print_function
+from collections import OrderedDict
 
 import logging
 logger = logging.getLogger(__name__)
@@ -63,8 +64,11 @@ def parse_funcs(ast):
             # From declaration, we can also get the function name.
             function_name = function_decl.name
 
-            # We declare a dictionary to map parameter name to its type
-            params = dict()
+            # We declare an ordered dictionary to map parameter name to its type
+            # It is ordered because we want the items to be aligned with the
+            # arguments when we perform name mapping between parameters and
+            # arguments.
+            params = OrderedDict()
             # The following goes through the name and type of each argument.
             # type contains multiple fields such as "TypeDecl" and "IdentifierType"
             for param_decl in function_decl.type.args.params:
@@ -190,18 +194,76 @@ def eval_func_call(func_name, call, context):
         # Obtain the provenance node (latest version) to be terminated by name in node_dict.
         # This node is passed in as the second argument (prov) of the function call.
         node_name = ct.get_global_name(ct.local_name(func_name, args[1]), name_dict)
-        node = node_dict[node_name][-1]
-        # The terminate relation create a new node of the same type (but a new version)
+        old_node = node_dict[node_name][-1]
+        # The terminate relation creates a new node of the same type (but a new version)
         # that connects the original node to show termination.
-        new_node = motif.MotifNode(node.t)
+        # This node is returned.
+        node = motif.create_motif_node(old_node.t)
         # Add the new node to the node_dict
-        node_dict[node_name].append(new_node)
-        # Create an terminate edge, the type of the edge 
+        node_dict[node_name].append(node)
+        # Create a terminate edge, the type of the edge 
         # is determined by the first argument (type) of
         # the function call.
-        edge = motif.MotifEdge(node, new_node, ct.get_rel(rel_dict, args[0]))
+        edge = motif.MotifEdge(old_node, node, ct.get_rel(rel_dict, args[0]))
         tree = mtree.create_leaf_node(edge)
-    
+    # Base case 5: update_inode_type()
+    # Function signature: static inline void update_inode_type(uint16_t mode, struct provenance *prov)
+    # TODO: can we remove this special case?
+    elif name == "update_inode_type":
+        # Obtain the provenance node (latest version) to be updated by name in node_dict.
+        # This node is passed in as the second argument (prov) of the function call.
+        node_name = ct.get_global_name(ct.local_name(func_name, args[1]), name_dict)
+        old_node = node_dict[node_name][-1]
+        # The update creates a new node of the same node type (but different inode type).
+        # This node is returned.
+        node = motif.create_motif_node(old_node.t)
+        # Add the new node to the node_dict
+        node_dict[node_name].append(node)
+        # Create a version edge
+        edge = motif.MotifEdge(old_node, node, ct.get_rel(rel_dict, "RL_VERSION"))
+        # We also create a unary node because inode type update may or may not occur (check CamFlow code).
+        tree = mtree.create_unary_node("?", mtree.create_leaf_node(edge))
+    # Base case 6: alloc_long_provenance()
+    # TODO: can we remove this special case?
+    elif name == "alloc_long_provenance":
+        t = args[0]
+        node = motif.create_motif_node(ct.get_vtype(t))
+    # Base case 7: __update_version()
+    # Function signature: static __always_inline int __update_version(const uint64_t type, prov_entry_t *prov)
+    # TODO: can we remove this special case?
+    elif name == "__update_version":
+        # Obtain the provenance node (latest version) to be updated by name in node_dict.
+        # This node is passed in as the second argument (prov) of the function call.
+        node_name = ct.get_global_name(ct.local_name(func_name, args[1]), name_dict)
+        old_node = node_dict[node_name][-1]
+        # If the node type is RL_VERSION_TASK, RL_VERSION, or RL_NAMED,
+        # filter_update_node() will filter the node out, and no update;
+        node_type = ct.get_global_name(ct.local_name(func_name, args[0]), name_dict).split(".")[1]
+        if node_type == "RL_VERSION_TASK" or \
+                node_type == "RL_VERSION" or \
+                node_type == "RL_NAMED":
+                    pass
+        else:
+            node = motif.create_motif_node(old_node.t)
+            # Add the new node to the node_dict
+            node_dict[node_name].append(node)
+            if old_node.t == "task":
+                edge = motif.MotifEdge(old_node, node, ct.get_rel(rel_dict, "RL_VERSION_TASK"))
+            else:
+                edge = motif.MotifEdge(old_node, node, ct.get_rel(rel_dict, "RL_VERSION"))
+            tree = mtree.create_unary_node("?", mtree.create_leaf_node(edge))
+    # Base case 8: __write_relation()
+    # Function signature: static __always_inline int __write_relation(const uint64_t type, void *from, void *to, const struct file *file, const uint64_t flags)
+    # TODO: can we remove this special case?
+    elif name == "__write_relation":
+        rel_name = ct.get_global_name(ct.local_name(func_name, args[0]), name_dict).split(".")[1]
+        rel_type = ct.get_rel(rel_dict, rel_name)
+        src_name = ct.get_global_name(ct.local_name(func_name, args[1]), name_dict)
+        dst_name = ct.get_global_name(ct.local_name(func_name, args[2]), name_dict)
+        src_node = node_dict[src_name][-1]
+        dst_node = node_dict[dst_name][-1]
+        edge = motif.MotifEdge(src_node, dst_node, rel_type)
+        tree = mtree.create_leaf_node(edge)
     # The following function calls are EXPLICITLY skipped,
     # because at the time of coding, I am not sure if they
     # should actually be skipped or otherwise inspected.
@@ -216,6 +278,7 @@ def eval_func_call(func_name, call, context):
         args = [ct.local_name(func_name, arg) for arg in args]
         params = [ct.local_name(name, param) for param in func_dict[name]["params"]]
         name_dict = ct.create_name_dict(args, params, name_dict)
+        context["names"] = name_dict
         node, tree = eval_func_body(name, func_body, context)
     else:
         logger.warning("\x1b[6;30;43m[!]\x1b[0m Skipping function call {} (core/core.py/eval_func_call)".format(name))
@@ -258,7 +321,7 @@ def eval_assign(func_name, assign, context):
                 logger.warning("\x1b[6;30;43m[!]\x1b[0m Skipping function assignment of node {} (core/core.py/eval_assign) because no previous declaration is known".format(node_name))
         # Case 2: consider *tprov = ...
         # or &tprov = ...
-        elif type(assignment.lvalue).__name__ == 'UnaryOp':
+        elif type(assign.lvalue).__name__ == 'UnaryOp':
             node_name = ct.get_global_name(ct.local_name(func_name, assign.lvalue.expr.name), name_dict)
             raise NotImplementedError("Node {} is not properly implemented.".format(node_name))
     # Case 2: where a provenance node was previously declared but not assigned.
@@ -291,16 +354,23 @@ def eval_decl(func_name, decl, context):
 
     Returns:
     an RTMTree, which can be None."""
-    # We are only concerned with declaration type "struct provenance" or "struct provenance *"
-    # We define an inner function to check if the declaration type is provenance-related
+    # We are only concerned with declaration type "struct provenance", "struct provenance *"
+    # or "union long_prov_elt *". We define an inner function to check if the declaration 
+    # type is provenance-related.
     def prov_decl(decl):
         is_prov = False
         # Case 1: e.g., struct provenance *cprov = provenance_cred(cred); 
         if type(decl.type).__name__ == "PtrDecl" and \
-           type(decl.type.type).__name__ == "TypeDecl" and \
-           type(decl.type.type.type).__name__ == "Struct" and \
-           decl.type.type.type.name == "provenance":
-               is_prov = True
+                type(decl.type.type).__name__ == "TypeDecl" and \
+                type(decl.type.type.type).__name__ == "Struct" and \
+                decl.type.type.type.name == "provenance":
+                    is_prov = True
+        # Case 2: e.g., union long_prov_elt *fname_prov;
+        elif type(decl.type).__name__ == "PtrDecl" and \
+                type(decl.type.type).__name__ == "TypeDecl" and \
+                type(decl.type.type.type).__name__ == "Union" and \
+                decl.type.type.type.name == "long_prov_elt":
+                    is_prov = True
 
         return is_prov
 
@@ -313,12 +383,11 @@ def eval_decl(func_name, decl, context):
 
     if prov_decl(decl):
         # In any case, since it is a declaration, the variable should not have already existed in @node_dict.
-        # TODO: @node_dict will not work for recursion, we may have name conflicts that are justified!
+        # TODO: @node_dict will not work for recursion (or calling the same function multiple times), we may 
+        # have name conflicts that are justified!
         node_name = ct.get_global_name(ct.local_name(func_name, decl.name), name_dict)
         if node_name in node_dict:
-            logger.fatal("\x1b[6;30;41m[x]\x1b[0m MotifNode named {} (globally, {}) has already existed. \
-                    Please check naming conflict (core/core.py/eval_decl)".format(decl.name, node_name))
-            raise RuntimeError("MotifNode has a global naming conflict")
+            logger.fatal("\x1b[6;30;43m[!]\x1b[0m MotifNode named {} (globally, {}) has already existed. Please check naming conflict. We will reset this entry for now (core/core.py/eval_decl)".format(decl.name, node_name))
 
         # Case 1: if the declaration is assigned by a function call
         if type(decl.init).__name__ == "FuncCall":

@@ -74,8 +74,18 @@ def get_func_args(call):
                 # Case 2: e.g., func(&arg2) -> arg2
                 args.append(arg.expr.name)
             elif type(arg).__name__ == "FuncCall":
-                #TODO: Case 3: func(inner_func(...)) -> ...
-                logger.warning("\x1b[6;30;43m[!]\x1b[0m Function argument type {} in argument list is not considered (core/tool.py/get_func_args)".format(type(arg).__name__))
+                # Case 3: func(inner_func(...)) -> ...
+                # We consider only one argument case in the inner_func for now
+                if len(arg.args.exprs) > 1:
+                    logger.warning("\x1b[6;30;43m[!]\x1b[0m Function argument type {} with more than 1 arg is not considered (core/tool.py/get_func_args)".format(type(arg).__name__))
+                    raise RuntimeError("The argument type is not properly implemented")
+                else:
+                    # Subcase 1: func(inner_func(arg)) -> arg
+                    if type(arg.args.exprs[0]).__name__ == 'ID':
+                        args.append(arg.args.exprs[0].name)
+                    else:
+                        logger.warning("\x1b[6;30;43m[!]\x1b[0m Function argument type {} with inner argument type {} is not considered (core/tool.py/get_func_args)".format(type(arg).__name__, type(arg.args.exprs[0]).__name__))
+                        raise RuntimeError("The argument type is not properly implemented")
             elif type(arg).__name__ == "Constant":
                 # Case 4: func(ARG_CONST) -> ARG_CONST
                 args.append(arg.value)
@@ -86,10 +96,13 @@ def get_func_args(call):
             elif type(arg).__name__ == 'BinaryOp':
                 #TODO: Case 6:???
                 logger.warning("\x1b[6;30;43m[!]\x1b[0m Function argument type {} in argument list is not considered (core/tool.py/get_func_args)".format(type(arg).__name__))
+                raise RuntimeError("The argument type is not properly implemented")
             else:
                 logger.warning("\x1b[6;30;43m[!]\x1b[0m Function argument type {} in argument list is not considered (core/tool.py/get_func_args)".format(type(arg).__name__))
+                raise RuntimeError("The argument type is not properly implemented")
     else:
         logger.warning("\x1b[6;30;43m[!]\x1b[0m Function argument type {} is not considered (core/tool.py/get_func_args)".format(type(call.args).__name__))
+        raise RuntimeError("The argument type is not properly implemented")
     
     return args
 
@@ -118,7 +131,8 @@ def create_name_dict(args, params, name_dict):
     for i in range(len(params)):
         arg = get_global_name(args[i], name_dict)
         new_dict[params[i]] = arg
-
+    
+    logger.debug("\x1b[6;30;42m[+]\x1b[0m New name dict: {}".format(new_dict))
     return new_dict
 
 
@@ -134,6 +148,22 @@ def get_rel(rel_dict, rel_type):
     try:
         return rel_dict[rel_type]
     except Exception as e:
-        logger.fatal("Relation type {} is unknown".format(rel_type))
+        logger.fatal("\x1b[6;30;41m[x]\x1b[0m Relation type {} is unknown (core/tool.py/get_rel)".format(rel_type))
         raise ValueError(repr(e))
+
+
+def get_vtype(name):
+    """Getting a vertex type from a vertex name (or a type name in code).
+
+    Argument:
+    name        -- the vertex name or type name in code
+
+    Returns:
+    vertex type name."""
+
+    if name == "ENT_PATH":
+        return "path"
+    else:
+        logger.fatal("\x1b[6;30;41m[x]\x1b[0m Vertex type {} is unknown (core/tool.py/get_vtype)".format(name))
+        raise RuntimeError("The vertex type is not properly implemented")
 
